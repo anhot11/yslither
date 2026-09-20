@@ -116,9 +116,10 @@ static inline float dist2(float ax, float ay, float bx, float by) {
 }
 
 static inline float ang_between(float a, float b) {
-  float r1 = fmodf(a - b, (float)M_PI);
-  float r2 = fmodf(b - a, (float)M_PI);
-  return r1 < r2 ? -r1 : r2;
+  float d = fmodf(a - b, (float)PI2);
+  if (d < -(float)M_PI) d += (float)PI2;
+  if (d > (float)M_PI) d -= (float)PI2;
+  return d;
 }
 
 static inline int ang_index(float angle) {

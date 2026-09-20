@@ -9,6 +9,9 @@ void input(tenv* env) {
   user_settings* usrs = &usr->usrs;
   struct mg_connection* connection = gdata->connection;
 
+  if (gdata->data.ctm - gdata->data.last_ping_mtm > 1000) {
+    gdata->data.wfpr = false; // Watchdog: never let a dropped pong freeze pings
+  }
   if (!gdata->data.wfpr) {
     if (gdata->data.ctm - gdata->data.last_ping_mtm > 250) {
       gdata->data.last_ping_mtm = gdata->data.ctm;
@@ -82,9 +85,10 @@ void input(tenv* env) {
 
     bool want_e = false;
     if (xm != gdata->data.lsxm || ym != gdata->data.lsym) want_e = true;
+    bool heartbeat_e = (gdata->data.ctm - gdata->data.last_e_mtm > 350);
     me->eang = atan2f(ym, xm);
     float ang;
-    if (want_e && gdata->data.ctm - gdata->data.last_e_mtm > 50) {
+    if ((want_e && gdata->data.ctm - gdata->data.last_e_mtm > 50) || heartbeat_e) {
       want_e = false;
       gdata->data.last_e_mtm = gdata->data.ctm;
       gdata->data.lsxm = xm;
@@ -98,7 +102,7 @@ void input(tenv* env) {
       ang = fmodf(ang, PI2);
       if (ang < 0) ang += PI2;
       int sang = (int)floorf((250 + 1) * ang / PI2);
-      if (sang != gdata->data.lsang) {
+      if (sang != gdata->data.lsang || heartbeat_e) {
         gdata->data.lsang = sang;
         mg_ws_send(connection, (uint8_t[]){sang & 255}, 1, WEBSOCKET_OP_BINARY);
       }
