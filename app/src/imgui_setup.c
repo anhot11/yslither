@@ -59,28 +59,28 @@ void imgui_init(tenv* env) {
 
     ImFontAtlas_AddFontFromFileTTF(
         io->Fonts, "app/res/fonts/iconfont.ttf", 20 + i * 4, &icons_config,
-        (const ImWchar[]){0xe900, 0xeaea, 0});
+        (const ImWchar[]){0xe900, 0xeb00, 0});
 
     usr->imgui_data.regular_font[i] = ImFontAtlas_AddFontFromFileTTF(
         io->Fonts, "app/res/fonts/regular_regular.ttf", 20 + i * 4, NULL, NULL);
 
     ImFontAtlas_AddFontFromFileTTF(
         io->Fonts, "app/res/fonts/iconfont.ttf", 20 + i * 4, &icons_config,
-        (const ImWchar[]){0xe900, 0xeaea, 0});
+        (const ImWchar[]){0xe900, 0xeb00, 0});
 
     usr->imgui_data.mono_font_bold[i] = ImFontAtlas_AddFontFromFileTTF(
         io->Fonts, "app/res/fonts/mono_bold.ttf", 20 + i * 4, NULL, NULL);
 
     ImFontAtlas_AddFontFromFileTTF(io->Fonts, "app/res/fonts/iconfont.ttf",
                                    20 + i * 4, &icons_config,
-                                   (const ImWchar[]){0xe900, 0xeaea, 0});
+                                   (const ImWchar[]){0xe900, 0xeb00, 0});
 
     usr->imgui_data.regular_font_bold[i] = ImFontAtlas_AddFontFromFileTTF(
         io->Fonts, "app/res/fonts/regular_bold.ttf", 20 + i * 4, NULL, NULL);
 
     ImFontAtlas_AddFontFromFileTTF(io->Fonts, "app/res/fonts/iconfont.ttf",
                                    20 + i * 4, &icons_config,
-                                   (const ImWchar[]){0xe900, 0xeaea, 0});
+                                   (const ImWchar[]){0xe900, 0xeb00, 0});
   }
   
   io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;

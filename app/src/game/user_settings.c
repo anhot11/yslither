@@ -89,7 +89,7 @@ void user_settings_default(user_settings* usr_settings) {
   usr_settings->hotkeys[HOTKEY_BOT] =
       (hotkey){GLFW_KEY_T, false, 0, "Bot"};
   usr_settings->hotkeys[HOTKEY_MENU] =
-      (hotkey){GLFW_KEY_Z, true, 0, "Hotkey menu"};
+      (hotkey){GLFW_KEY_Z, false, 0, "Hotkey menu"};
   usr_settings->hotkeys[HOTKEY_RESTART] =
       (hotkey){GLFW_KEY_R, false, 1, "Restart"};
   usr_settings->hotkeys[HOTKEY_QUIT] = (hotkey){GLFW_KEY_Q, false, 1, "Quit"};

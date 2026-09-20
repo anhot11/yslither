@@ -1,5 +1,5 @@
 #include "ui_overlay.h"
-
+#include "custom_controls.h"
 #include "../user.h"
 
 void ui_overlay(tenv* env) {
@@ -94,10 +94,12 @@ void ui_overlay(tenv* env) {
                   seconds);
     igText("");
 
+#ifndef __ANDROID__
     if (usrs->hotkeys[HOTKEY_MENU].active) {
       display_hotkeys(usr, (icon_sz.x - char_sz.x) * 0.5f,
                       usrs->stats_font_size);
     }
+#endif
 
     float px = (((gdata->data.view_xx - gdata->data.grd) * 2) /
                 ((gdata->data.flux_grd) * 2));
@@ -218,4 +220,7 @@ void ui_overlay(tenv* env) {
     igTextColored((ImVec4){1, 1, 1, 0.7f}, "%d° %d%%", pang, dst);
     igPopFont();
   }
+
+  // Render on-screen custom touch action buttons
+  custom_controls_render_hud(env, (float)ctx->size[0], (float)ctx->size[1]);
 }

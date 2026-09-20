@@ -2,6 +2,7 @@
 #include "ui/skin_editor.h"
 #include "ui/title_screen.h"
 #include "ui/settings.h"
+#include "ui/controls_editor.h"
 #include "ui/viewport.h"
 #include "user.h"
 
@@ -90,6 +91,9 @@ void trender(tenv* env) {
       break;
     case SETTINGS:
       ui_settings(env);
+      break;
+    case CONTROLS_EDITOR:
+      ui_controls_editor(env);
       break;
   }
   igEnd();

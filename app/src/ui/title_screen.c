@@ -5,6 +5,7 @@
 
 #include "../network/server.h"
 #include "../network/server_list.h"
+#include "controls_editor.h"
 #include "../user.h"
 
 static bool s_show_server_selector = false;
@@ -374,20 +375,55 @@ void ui_title_screen(tenv* env) {
                 "Cliente Vulkan con Bot Defensivo de Supervivencia");
   igPopFont();
 
-  // Stats row (Record, Kills, Play time)
+  // Stats row with icons: Trophy/Star (\ue99e), Kills (\ueaeb), Time (\ue952)
   int tot_sec = (int)usrs->play_time;
   int hours = tot_sec / 3600;
   int minutes = (tot_sec % 3600) / 60;
   int seconds = tot_sec % 60;
 
-  char stats_str[96];
-  snprintf(stats_str, sizeof(stats_str), "Record: %d   |   Kills: %d   |   Tiempo: %02d:%02d:%02d",
-           usrs->score, usrs->kills, hours, minutes, seconds);
-  ImVec2 stats_sz;
-  igCalcTextSize(&stats_sz, stats_str, NULL, false, -1);
-  igSetCursorPosX((ctx->size[0] - stats_sz.x) * 0.5f);
+  char score_buf[32], kills_buf[32], time_buf[32];
+  snprintf(score_buf, sizeof(score_buf), " %d", usrs->score);
+  snprintf(kills_buf, sizeof(kills_buf), " %d", usrs->kills);
+  snprintf(time_buf, sizeof(time_buf), " %02d:%02d:%02d", hours, minutes, seconds);
+
+  ImVec2 sz_sc_ic, sz_sc_val, sz_k_ic, sz_k_val, sz_t_ic, sz_t_val;
+  igCalcTextSize(&sz_sc_ic, "\ue99e", NULL, false, -1);
+  igCalcTextSize(&sz_sc_val, score_buf, NULL, false, -1);
+  igCalcTextSize(&sz_k_ic, "\ueaeb", NULL, false, -1);
+  igCalcTextSize(&sz_k_val, kills_buf, NULL, false, -1);
+  igCalcTextSize(&sz_t_ic, "\ue952", NULL, false, -1);
+  igCalcTextSize(&sz_t_val, time_buf, NULL, false, -1);
+
+  float total_stats_w = sz_sc_ic.x + sz_sc_val.x + 28.0f +
+                        sz_k_ic.x + sz_k_val.x + 28.0f +
+                        sz_t_ic.x + sz_t_val.x;
+  igSetCursorPosX((ctx->size[0] - total_stats_w) * 0.5f);
   igSpacing();
-  igTextColored((ImVec4){0.80f, 0.85f, 0.90f, 0.70f}, "%s", stats_str);
+
+  // Record: Golden Trophy/Star
+  igTextColored((ImVec4){0.95f, 0.82f, 0.20f, 1.0f}, "\ue99e");
+  igSameLine(0, 4.0f);
+  igTextColored((ImVec4){0.90f, 0.92f, 0.95f, 0.95f}, "%s", score_buf);
+
+  // Separator
+  igSameLine(0, 14.0f);
+  igTextColored((ImVec4){0.4f, 0.45f, 0.5f, 0.6f}, "|");
+
+  // Kills: Crimson Skull
+  igSameLine(0, 14.0f);
+  igTextColored((ImVec4){0.95f, 0.30f, 0.30f, 1.0f}, "\ueaeb");
+  igSameLine(0, 4.0f);
+  igTextColored((ImVec4){0.90f, 0.92f, 0.95f, 0.95f}, "%s", kills_buf);
+
+  // Separator
+  igSameLine(0, 14.0f);
+  igTextColored((ImVec4){0.4f, 0.45f, 0.5f, 0.6f}, "|");
+
+  // Tiempo: Cyan Clock
+  igSameLine(0, 14.0f);
+  igTextColored((ImVec4){0.30f, 0.75f, 0.95f, 1.0f}, "\ue952");
+  igSameLine(0, 4.0f);
+  igTextColored((ImVec4){0.90f, 0.92f, 0.95f, 0.95f}, "%s", time_buf);
 
   igSpacing();
   igSpacing();
@@ -468,21 +504,27 @@ void ui_title_screen(tenv* env) {
 
   igSpacing();
 
-  // 4. Secondary Buttons Row: Aspectos (Skin editor) & Ajustes (Settings)
-  float half_btn_w = (menu_w - style->ItemSpacing.x) * 0.5f;
+  // 4. Secondary Buttons Row: Controles, Aspectos, Ajustes
+  float third_btn_w = (menu_w - 2.0f * style->ItemSpacing.x) / 3.0f;
   igSetCursorPosX(center_x);
   igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
              usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
 
-  igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.20f, 0.24f, 0.32f, 1.0f});
-  igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.26f, 0.32f, 0.42f, 1.0f});
+  igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.18f, 0.28f, 0.40f, 1.0f});
+  igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.24f, 0.38f, 0.54f, 1.0f});
 
-  if (igButton("\ue90c  Aspectos", (ImVec2){half_btn_w, 52.0f})) {
+  if (igButton("\ueaed  Controles", (ImVec2){third_btn_w, 52.0f})) {
+    ui_controls_editor_init(env);
+    usr->gdata.curr_screen = CONTROLS_EDITOR;
+  }
+  igSameLine(0, -1);
+
+  if (igButton("\ue90c  Aspectos", (ImVec2){third_btn_w, 52.0f})) {
     usr->gdata.curr_screen = SKIN_EDITOR;
   }
   igSameLine(0, -1);
 
-  if (igButton("\ue991  Ajustes", (ImVec2){half_btn_w, 52.0f})) {
+  if (igButton("\ue991  Ajustes", (ImVec2){third_btn_w, 52.0f})) {
     usr->gdata.curr_screen = SETTINGS;
   }
 

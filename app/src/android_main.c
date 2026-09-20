@@ -15,6 +15,7 @@
 #include "core/tenv.h"
 #include "core/tentry.h"
 #include "game/touch_input.h"
+#include "game/custom_controls.h"
 #include "imgui_setup.h"
 #include "user.h"
 
@@ -164,6 +165,11 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event) {
     if (action_masked == AMOTION_EVENT_ACTION_DOWN ||
         action_masked == AMOTION_EVENT_ACTION_POINTER_DOWN) {
       int id = AMotionEvent_getPointerId(event, pointer_index);
+      if (g_env.usr && ((tuser_data*)g_env.usr)->gdata.curr_screen == PLAYING) {
+        if (custom_controls_touch_down(id, x, y, screen_w, screen_h, &g_env)) {
+          return 1;
+        }
+      }
       touch_input_down(&g_touch, id, x, y, screen_w, screen_h);
       return 1;
     } else if (action_masked == AMOTION_EVENT_ACTION_MOVE) {
@@ -172,6 +178,11 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event) {
         int id = AMotionEvent_getPointerId(event, i);
         float px = AMotionEvent_getX(event, i);
         float py = AMotionEvent_getY(event, i);
+        if (g_env.usr && ((tuser_data*)g_env.usr)->gdata.curr_screen == PLAYING) {
+          if (custom_controls_touch_move(id, px, py, screen_w, screen_h, &g_env)) {
+            continue;
+          }
+        }
         touch_input_move(&g_touch, id, px, py, screen_w, screen_h);
       }
       return 1;
@@ -179,6 +190,9 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event) {
                action_masked == AMOTION_EVENT_ACTION_POINTER_UP ||
                action_masked == AMOTION_EVENT_ACTION_CANCEL) {
       int id = AMotionEvent_getPointerId(event, pointer_index);
+      if (g_env.usr && ((tuser_data*)g_env.usr)->gdata.curr_screen == PLAYING) {
+        custom_controls_touch_up(id, &g_env);
+      }
       touch_input_up(&g_touch, id);
       return 1;
     }
@@ -254,6 +268,7 @@ static void handle_cmd(struct android_app* app, int32_t cmd) {
 
           tinit(&g_env);
           touch_input_init(&g_touch);
+          custom_controls_load(&g_custom_controls);
 
           g_initialized = true;
           LOGI("yslither game initialized successfully.");
