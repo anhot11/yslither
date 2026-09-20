@@ -223,4 +223,60 @@ void ui_overlay(tenv* env) {
 
   // Render on-screen custom touch action buttons
   custom_controls_render_hud(env, (float)ctx->size[0], (float)ctx->size[1]);
+
+  // Game Over overlay banner when dying
+  if (gdata->data.dead && gdata->data.death_time > 0.0) {
+    float card_w = fminf(460.0f, (float)ctx->size[0] * 0.85f);
+    float card_h = 160.0f;
+    float card_x = (ctx->size[0] - card_w) * 0.5f;
+    float card_y = (ctx->size[1] - card_h) * 0.35f;
+
+    ImDrawList* fg_dl = igGetForegroundDrawList_ViewportPtr(igGetMainViewport());
+    if (fg_dl) {
+      double dt = glfwGetTime() - gdata->data.death_time;
+      float alpha = fminf(0.60f, (float)dt * 0.6f);
+      ImDrawList_AddRectFilled(fg_dl, (ImVec2){0, 0}, (ImVec2){(float)ctx->size[0], (float)ctx->size[1]},
+                               igColorConvertFloat4ToU32((ImVec4){0.04f, 0.05f, 0.08f, alpha}), 0, 0);
+
+      ImDrawList_AddRectFilled(fg_dl, (ImVec2){card_x, card_y}, (ImVec2){card_x + card_w, card_y + card_h},
+                               igColorConvertFloat4ToU32((ImVec4){0.11f, 0.13f, 0.18f, 0.95f}), 16.0f, 0);
+      ImDrawList_AddRect(fg_dl, (ImVec2){card_x, card_y}, (ImVec2){card_x + card_w, card_y + card_h},
+                         igColorConvertFloat4ToU32((ImVec4){0.85f, 0.22f, 0.28f, 0.90f}), 16.0f, 0, 2.5f);
+    }
+
+    igSetNextWindowPos((ImVec2){card_x, card_y}, ImGuiCond_Always, (ImVec2){0, 0});
+    igSetNextWindowSize((ImVec2){card_w, card_h}, ImGuiCond_Always);
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+                             ImGuiWindowFlags_NoBackground;
+
+    if (igBegin("##death_banner", NULL, flags)) {
+      igSpacing();
+      igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_LARGE],
+                 usr->imgui_data.regular_font_bold[FONT_SIZE_LARGE]->LegacySize);
+      ImVec2 title_sz;
+      igCalcTextSize(&title_sz, "\ueaeb  ¡HAS MUERTO!", NULL, false, -1);
+      igSetCursorPosX((card_w - title_sz.x) * 0.5f);
+      igTextColored((ImVec4){0.95f, 0.28f, 0.32f, 1.0f}, "\ueaeb  ¡HAS MUERTO!");
+      igPopFont();
+
+      igSpacing();
+
+      char stats_buf[128];
+      snprintf(stats_buf, sizeof(stats_buf), "Puntuacion: %d   |   Kills: %d",
+               gdata->data.score, gdata->data.kills);
+      ImVec2 st_sz;
+      igCalcTextSize(&st_sz, stats_buf, NULL, false, -1);
+      igSetCursorPosX((card_w - st_sz.x) * 0.5f);
+      igTextColored((ImVec4){0.88f, 0.90f, 0.94f, 1.0f}, "%s", stats_buf);
+
+      igSpacing();
+      const char* return_msg = "Regresando al menu principal...";
+      ImVec2 ret_sz;
+      igCalcTextSize(&ret_sz, return_msg, NULL, false, -1);
+      igSetCursorPosX((card_w - ret_sz.x) * 0.5f);
+      igTextColored((ImVec4){0.55f, 0.65f, 0.75f, 0.85f}, "%s", return_msg);
+    }
+    igEnd();
+  }
 }

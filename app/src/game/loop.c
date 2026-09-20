@@ -74,6 +74,18 @@ void game_loop(tenv* env) {
         gdata->restart_req = true;
       }
 
+      // Return to menu on death after brief explosion animation or on user tap
+      if (gdata->data.dead && gdata->data.death_time > 0.0) {
+        double dt = glfwGetTime() - gdata->data.death_time;
+        bool user_tapped = tmouse_button_pressed(env->ms, GLFW_MOUSE_BUTTON_LEFT);
+        if (dt >= 1.4 || (dt >= 0.25 && user_tapped)) {
+          if (gdata->connection) {
+            gdata->connection->is_closing = true;
+            gdata->restart_req = usrs->instant_restart;
+          }
+        }
+      }
+
       if (gdata->closed) {
         game_data_reset(env);
 
@@ -84,6 +96,7 @@ void game_loop(tenv* env) {
           gdata->restart_req = false;
         } else {
           usr->gdata.conn = DISCONNECTED;
+          gdata->curr_screen = TITLE_SCREEN;
         }
         gdata->closed = false;
       }

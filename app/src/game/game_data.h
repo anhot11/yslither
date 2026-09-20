@@ -168,6 +168,7 @@ typedef struct game_data {
     bool md;
     bool wmd;
     bool dead;
+    double death_time;
     bool follow_view;
     bool mmgad;
     bool gotlb;

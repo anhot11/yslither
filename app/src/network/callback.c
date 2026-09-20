@@ -430,6 +430,16 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
         if (o->id == id) {
           if (o->id == gdata->data.snake_id) {
             o->id = gdata->data.snake_id = -1;
+            gdata->data.dead = true;
+            if (gdata->data.death_time <= 0.0) {
+              gdata->data.death_time = glfwGetTime();
+            }
+            if (gdata->data.score > usrs->score) {
+              usrs->score = gdata->data.score;
+            }
+            usrs->kills = gdata->data.kills;
+            usrs->play_time = gdata->data.play_etm;
+            save_user_settings(usrs);
           } else
             o->id = -1234;
           if (is_kill) {
@@ -1271,11 +1281,17 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
   } else if (cmd == 'k') {
     gdata->data.kills++;
   } else if (cmd == 'v') {
+    gdata->data.dead = true;
+    if (gdata->data.death_time <= 0.0) {
+      gdata->data.death_time = glfwGetTime();
+    }
     gdata->data.follow_view = false;
     gdata->data.lview_xx = gdata->data.view_xx;
     gdata->data.lview_yy = gdata->data.view_yy;
+    if (gdata->data.score > usrs->score) {
+      usrs->score = gdata->data.score;
+    }
     usrs->kills = gdata->data.kills;
-    usrs->score = gdata->data.score;
     usrs->play_time = gdata->data.play_etm;
 
     save_user_settings(usrs);

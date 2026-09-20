@@ -596,6 +596,7 @@ void game_data_reset(tenv* env) {
   gdata->data.fps_etm = 0;
   gdata->data.fps_ltm = 0;
   gdata->data.dead = true;
+  gdata->data.death_time = 0.0;
   gdata->data.follow_view = false;
   gdata->data.mmgad = false;
   gdata->data.gotlb = false;
