@@ -69,6 +69,13 @@
 #define GLFW_KEY_F11 300
 #endif
 
+#ifndef APP_VERSION
+#define APP_VERSION "1.0.0"
+#endif
+#ifndef SETTINGS_VERSION
+#define SETTINGS_VERSION "1.3"
+#endif
+
 typedef enum conn_status {
   DISCONNECTED = 0,
   CONNECTING = 1,
