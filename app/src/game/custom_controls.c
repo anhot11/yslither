@@ -185,7 +185,7 @@ static void trigger_action_on_down(button_action_t act, tenv* env) {
 
   switch (act) {
     case BTN_ACTION_BOOST:
-      gdata->bot.output.accel = true;
+      // Boost state handled directly by custom_controls_is_boost_active()
       break;
     case BTN_ACTION_ZOOM_IN:
       gdata->data.ms_zoom *= expf(1.0f * usrs->zoom_step);
@@ -197,6 +197,11 @@ static void trigger_action_on_down(button_action_t act, tenv* env) {
       break;
     case BTN_ACTION_BOT:
       usrs->hotkeys[HOTKEY_BOT].active ^= 1;
+      if (!usrs->hotkeys[HOTKEY_BOT].active) {
+        gdata->bot.output.accel = false;
+        gdata->data.wmd = false;
+        gdata->data.md = false;
+      }
       break;
     case BTN_ACTION_ASSIST:
       usrs->hotkeys[HOTKEY_ASSIST].active ^= 1;
@@ -228,13 +233,8 @@ static void trigger_action_on_down(button_action_t act, tenv* env) {
 }
 
 static void trigger_action_on_up(button_action_t act, tenv* env) {
-  if (!env || !env->usr) return;
-  tuser_data* usr = env->usr;
-  game_data* gdata = &usr->gdata;
-
-  if (act == BTN_ACTION_BOOST) {
-    gdata->bot.output.accel = false;
-  }
+  (void)act;
+  (void)env;
 }
 
 bool custom_controls_touch_down(int pointer_id, float x, float y, float screen_w, float screen_h, tenv* env) {

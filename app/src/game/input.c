@@ -2,6 +2,7 @@
 
 #include "../user.h"
 #include "custom_controls.h"
+#include "touch_input.h"
 
 void input(tenv* env) {
   tuser_data* usr = env->usr;
@@ -75,7 +76,8 @@ void input(tenv* env) {
                       twindow_key_down(env->wnd, GLFW_KEY_SPACE) ||
                       twindow_key_down(env->wnd, GLFW_KEY_UP) ||
                       custom_controls_is_boost_active() ||
-                      gdata->bot.output.accel;
+                      touch_input_is_boosting() ||
+                      (usrs->hotkeys[HOTKEY_BOT].active && gdata->bot.output.accel);
 
     if (gdata->data.md != gdata->data.wmd &&
         gdata->data.ctm - gdata->data.last_accel_mtm > 150) {

@@ -4,7 +4,6 @@
 
 void time_step(tenv* env) {
   tuser_data* usr = env->usr;
-  tcontext* ctx = env->ctx;
   game_data* gdata = &usr->gdata;
 
   double time_sec = glfwGetTime();
@@ -43,7 +42,6 @@ void time_step(tenv* env) {
 
 void oef(tenv* env) {
   tuser_data* usr = env->usr;
-  tcontext* ctx = env->ctx;
   game_data* gdata = &usr->gdata;
   user_settings* usrs = &usr->usrs;
   gameplay_mode* mode = usrs->modes + usrs->hotkeys[HOTKEY_ASSIST].active;
@@ -435,6 +433,9 @@ void oef(tenv* env) {
     }
   }
 
-  if (usrs->hotkeys[HOTKEY_BOT].active && gdata->data.follow_view)
+  if (usrs->hotkeys[HOTKEY_BOT].active && gdata->data.follow_view) {
     sbot_go(env);
+  } else {
+    gdata->bot.output.accel = false;
+  }
 }

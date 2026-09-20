@@ -39,5 +39,6 @@ void touch_input_update_layout(touch_state* ts, float screen_w, float screen_h);
 void touch_input_down(touch_state* ts, int pointer_id, float x, float y, float screen_w, float screen_h);
 void touch_input_move(touch_state* ts, int pointer_id, float x, float y, float screen_w, float screen_h);
 void touch_input_up(touch_state* ts, int pointer_id);
+bool touch_input_is_boosting(void);
 
 #endif

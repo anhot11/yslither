@@ -3,13 +3,20 @@
 #include <math.h>
 #include <string.h>
 
+static touch_state* s_current_touch_state = NULL;
+
 void touch_input_init(touch_state* ts) {
+  s_current_touch_state = ts;
   memset(ts, 0, sizeof(touch_state));
   ts->mode = TOUCH_CONTROL_JOYSTICK;
   ts->joy_pointer_id = -1;
   ts->boost_pointer_id = -1;
   ts->joy_radius = 120.0f;
   ts->boost_radius = 90.0f;
+}
+
+bool touch_input_is_boosting(void) {
+  return s_current_touch_state ? s_current_touch_state->boost : false;
 }
 
 void touch_input_update_layout(touch_state* ts, float screen_w, float screen_h) {

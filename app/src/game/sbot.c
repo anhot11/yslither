@@ -12,6 +12,7 @@
 #include "../constants.h"
 #include "../user.h"
 #include "custom_controls.h"
+#include "touch_input.h"
 
 // yslither Survival / Ultra-Defensive Bot
 // Upgraded with 32-sector collision radar, predictive threat avoidance,
@@ -304,12 +305,13 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
   float fd = sqrtf(fd2);
   float d_head = fabsf(ang_between(ang, B.ang));
 
-  // 3. Unicycle / Turning Radius Rejection (prevents spinning in circles):
-  // If food is inside minimum turning radius and requires a sharp turn (> 45 deg),
-  // the snake physically cannot turn tightly enough to hit it in one go.
-  float min_turn_r = B.width * 2.2f;
-  if (fd < min_turn_r && d_head > ((float)M_PI * 0.25f)) {
-    return;
+  // 3. Turning Radius Rejection for small food (prevents jittering on tiny food inside turn circle):
+  // Dead snake chunks (fsz >= 3.0f) are never rejected because our smooth arc steering loops back cleanly.
+  if (fsz < 3.0f) {
+    float min_turn_r = B.width * 2.2f;
+    if (fd < min_turn_r && d_head > ((float)M_PI * 0.25f)) {
+      return;
+    }
   }
 
   // 4. Survival Defense: evaluate risk from enemy snake heads and bodies
@@ -338,15 +340,16 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
   }
 
   // 5. Intelligent Multi-factor Food Scoring:
-  // Forward orientation bonus: food ahead requires no turning (up to 1.85x bonus)
-  float forward_bonus = 1.0f + 0.85f * cosf(d_head);
+  // Forward orientation bonus: only prioritize forward direction for small ambient food.
+  // Dead snake chunks (fsz >= 3.0f) are not penalized for being behind us or at our tail!
+  float forward_bonus = (fsz >= 3.0f) ? 1.0f : (1.0f + 0.85f * cosf(d_head));
 
   // Proximity weighting: close food is favored, but large feasts easily bridge the distance gap
   float dist_norm = fd / 180.0f;
   float prox_factor = 1.0f / (1.0f + dist_norm * dist_norm);
 
-  // Value scaling (large food / dead snake chunks are attractive, rewarding large orbs)
-  float size_val = 1.0f + fsz * 0.85f;
+  // Value scaling (dead snake chunks are heavily rewarded)
+  float size_val = 1.0f + (fsz >= 3.0f ? fsz * 2.2f : fsz * 0.85f);
 
   // Target persistence / stickiness bonus (prevents rapid jumping between distant targets)
   float persistence = 1.0f;
@@ -983,9 +986,23 @@ static void compute_food_goal(game_data* gdata) {
   float best = -1.0f;
   for (int i = 0; i < MAXARC; i++) {
     if (!B.food_angles_set[i] || B.food_angles[i].sz <= 0.0f) continue;
-    // Dead Snake Feast Bonus: sectors with high accumulated mass get up to 8x multiplier!
-    float feast_mult = 1.0f + fminf(7.0f, B.food_angles[i].total_mass * 0.12f);
+    // Multi-sector cluster mass aggregation (dead snake trails cross multiple sectors)
+    float cluster_mass = B.food_angles[i].total_mass;
+    int prev_i = (i - 1 + MAXARC) % MAXARC;
+    int next_i = (i + 1) % MAXARC;
+    if (B.food_angles_set[prev_i]) cluster_mass += B.food_angles[prev_i].total_mass * 0.6f;
+    if (B.food_angles_set[next_i]) cluster_mass += B.food_angles[next_i].total_mass * 0.6f;
+
+    bool is_feast = (cluster_mass >= 16.0f || B.food_angles[i].sz >= 6.0f || B.food_angles[i].count >= 6);
+    float feast_mult = 1.0f + fminf(16.0f, cluster_mass * 0.25f);
     float sector_score = B.food_angles[i].score * feast_mult;
+    if (is_feast) {
+      sector_score *= 4.0f;
+      float d_head = fabsf(ang_between(B.food_angles[i].ang, B.ang));
+      if (d_head > ((float)M_PI * 0.40f)) {
+        sector_score *= 2.0f;
+      }
+    }
     if (sector_score > best) {
       best = sector_score;
       B.current_food = B.food_angles[i];
@@ -1033,22 +1050,37 @@ static void delay_action(game_data* gdata) {
       float f_dx = B.current_food.x - B.x;
       float f_dy = B.current_food.y - B.y;
       float f_dist = sqrtf(f_dx * f_dx + f_dy * f_dy);
-      if (f_dist < (B.radius * 1.6f)) {
-        // Food consumed! Instead of heading straight (which loses the feast),
-        // immediately scan for the next nearest unconsumed food in forward arc to maintain vacuum!
+      float f_ang = atan2f(f_dy, f_dx);
+      float d_head = fabsf(ang_between(f_ang, B.ang));
+
+      if (d_head > ((float)M_PI * 0.35f)) {
+        // Rear or flank target (e.g. dead snake on our tail / kill behind):
+        // To prevent orbiting/spinning in tight circles, steer along a wide 320px turning arc
+        float d_turn = ang_between(f_ang, B.ang);
+        float turn_sign = (d_turn >= 0.0f) ? 1.0f : -1.0f;
+        float lead_ang = B.ang + turn_sign * fminf(fabsf(d_turn), ((float)M_PI * 0.55f));
+        B.goal = (v2){roundf(B.x + cosf(lead_ang) * 320.0f),
+                      roundf(B.y + sinf(lead_ang) * 320.0f)};
+      } else if (f_dist < (B.radius * 1.8f)) {
+        // Food consumed! Scan across the corpse trail to maintain continuous vacuum!
         int fn = tdarray_length(gdata->data.foods);
-        float next_best_d2 = 9999999.0f;
+        float best_chunk_score = -1.0f;
         float n_fx = 0.0f, n_fy = 0.0f;
+        float n_fd2 = 0.0f;
         bool found_next = false;
         for (int i = 0; i < fn; i++) {
           food* fo = gdata->data.foods + i;
           if (fo->eaten) continue;
           float d2 = dist2(B.x, B.y, fo->xx, fo->yy);
-          if (d2 < (450.0f * 450.0f) && d2 > (B.radius * B.radius * 0.5f)) {
+          if (d2 < (550.0f * 550.0f) && d2 > (B.radius * B.radius * 0.4f)) {
             float a = atan2f(fo->yy - B.y, fo->xx - B.x);
-            if (fabsf(ang_between(a, B.ang)) < ((float)M_PI * 0.48f)) {
-              if (d2 < next_best_d2) {
-                next_best_d2 = d2;
+            float a_diff = fabsf(ang_between(a, B.ang));
+            if (a_diff < ((float)M_PI * 0.75f)) {
+              float d = sqrtf(d2);
+              float f_score = (1.0f + fo->sz * 2.0f) / (1.0f + d * 0.015f) * (1.0f + 0.5f * cosf(a_diff));
+              if (f_score > best_chunk_score) {
+                best_chunk_score = f_score;
+                n_fd2 = d2;
                 n_fx = fo->xx;
                 n_fy = fo->yy;
                 found_next = true;
@@ -1059,14 +1091,16 @@ static void delay_action(game_data* gdata) {
         if (found_next) {
           B.current_food.x = n_fx;
           B.current_food.y = n_fy;
-          B.current_food.d2 = next_best_d2;
-          float nd = sqrtf(next_best_d2);
-          float lead = fminf(130.0f, nd * 0.6f);
+          B.current_food.d2 = n_fd2;
+          float nd = sqrtf(n_fd2);
+          float lead = fminf(140.0f, nd * 0.6f);
           B.goal = (v2){roundf(n_fx + ((n_fx - B.x) / nd) * lead),
                         roundf(n_fy + ((n_fy - B.y) / nd) * lead)};
         } else {
-          B.has_food = false;
-          B.goal = heading_abs(safe_ang);
+          // Keep current target or project through heading, don't abort instantly!
+          float safe_dist = fmaxf(1.0f, f_dist);
+          B.goal = (v2){roundf(B.current_food.x + (f_dx / safe_dist) * 100.0f),
+                        roundf(B.current_food.y + (f_dy / safe_dist) * 100.0f)};
         }
       } else {
         // Project goal smoothly through the food cluster along the approach line (vacuum mode)
@@ -1147,6 +1181,11 @@ void sbot_go(tenv* env) {
   game_data* gdata = &usr->gdata;
   sbot* bot = &gdata->bot;
 
+  if (!usrs->hotkeys[HOTKEY_BOT].active) {
+    bot->output.accel = false;
+    return;
+  }
+
   // Bot mode behavior adjustments
   if (usrs->bot_mode == 1) {
     // Mode 1: Caza / Equilibrado (tighter radius for fast turns & pursuit)
@@ -1186,13 +1225,21 @@ void sbot_go(tenv* env) {
   } else {
     delay_action(gdata);
 
-    // Intelligent Feast & Hunting Turbo
+    // Intelligent Feast & Hunting Turbo (STRICTLY MASS-POSITIVE)
     if (usrs->bot_mode == 1 && usrs->bot_auto_turbo && B.has_food) {
-      bool is_feast = (B.current_food.total_mass >= 10.0f || B.current_food.sz >= 4.0f || B.current_food.count >= 4);
+      // Feast Definition: Only genuine corpses / kill drops (mass >= 22.0 or individual chunk >= 7.0 or cluster >= 6 with mass >= 18.0)
+      bool is_feast = (B.current_food.total_mass >= 22.0f || B.current_food.sz >= 7.0f ||
+                       (B.current_food.count >= 6 && B.current_food.total_mass >= 18.0f));
       float f_dist = sqrtf(B.current_food.d2);
+      float f_ang = atan2f(B.current_food.y - B.y, B.current_food.x - B.x);
+      float d_head = fabsf(ang_between(f_ang, B.ang));
 
-      // Fast sprint into feasts from 50px up to 900px; normal food from 180px to 750px
-      bool dist_ok = is_feast ? (f_dist > 50.0f && f_dist < 900.0f) : (f_dist > 180.0f && f_dist < 750.0f && B.current_food.sz >= 3.0f);
+      // STRICT RULES FOR AUTO-TURBO:
+      // 1. NEVER sprint for normal small food (ambient dots) - cruising costs 0 mass!
+      // 2. Sprint only for high-value corpse feasts where mass gained >> boost spent.
+      // 3. Snake must be facing the feast (d_head < 38 deg) - NEVER sprint during turns!
+      // 4. Sprint window: 90px to 800px. Stop sprinting under 90px so we don't overshoot or waste boost eating the trail.
+      bool dist_ok = is_feast && (d_head < ((float)M_PI * 0.21f)) && (f_dist > 90.0f && f_dist < 800.0f);
 
       if (dist_ok) {
         // Raycast corridor clearance check directly along the approach vector to the food
@@ -1235,7 +1282,7 @@ void sbot_go(tenv* env) {
   }
 
   // Manual player boost button always overrides the bot!
-  if (custom_controls_is_boost_active()) {
+  if (custom_controls_is_boost_active() || touch_input_is_boosting()) {
     bot->output.accel = true;
   }
 
