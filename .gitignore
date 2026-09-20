@@ -6,3 +6,8 @@ thermite/res/shaders/bin
 *.ini
 *.cache
 compile_commands.json
+*.apk
+downloaded_artifacts/
+.gradle/
+app/.cxx/
+local.properties
