@@ -69,10 +69,14 @@ void redraw(tenv* env) {
     }
 
     if (gdata->data.follow_view) {
-      int snakes_len = tdarray_length(gdata->data.snakes);
-      snake* me = gdata->data.snakes + (snakes_len - 1);
-      gdata->data.view_xx = me->xx + me->fx + gdata->data.fvx;
-      gdata->data.view_yy = me->yy + me->fy + gdata->data.fvy;
+      snake* me = get_snake(gdata, gdata->data.snake_id);
+      if (!me && tdarray_length(gdata->data.snakes) > 0) {
+        me = gdata->data.snakes + (tdarray_length(gdata->data.snakes) - 1);
+      }
+      if (me) {
+        gdata->data.view_xx = me->xx + me->fx + gdata->data.fvx;
+        gdata->data.view_yy = me->yy + me->fy + gdata->data.fvy;
+      }
     }
 
     gdata->data.bpx1 = gdata->data.view_xx - (mww2 / gdata->data.gsc + 84);

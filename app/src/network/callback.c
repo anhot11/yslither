@@ -463,8 +463,10 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
     if (cmd == 'd' || cmd == '7' ||
         dlen <= 2 && (cmd == 'e' || cmd == 'E' || cmd == '3' || cmd == '4' ||
                       cmd == '5')) {
-      int snakes_len = tdarray_length(gdata->data.snakes);
-      o = gdata->data.snakes + (snakes_len - 1);
+      o = get_snake(gdata, gdata->data.snake_id);
+      if (!o && tdarray_length(gdata->data.snakes) > 0) {
+        o = gdata->data.snakes + (tdarray_length(gdata->data.snakes) - 1);
+      }
       is_my_snake = true;
     } else {
       int id = a[m] << 8 | a[m + 1];
@@ -618,9 +620,13 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
       snl(gdata, o);
     }
   } else if (cmd == 'R') {
-    int snakes_len = tdarray_length(gdata->data.snakes);
-    snake* o = gdata->data.snakes + (snakes_len - 1);
-    o->rsc = a[m];
+    snake* o = get_snake(gdata, gdata->data.snake_id);
+    if (!o && tdarray_length(gdata->data.snakes) > 0) {
+      o = gdata->data.snakes + (tdarray_length(gdata->data.snakes) - 1);
+    }
+    if (o) {
+      o->rsc = a[m];
+    }
     m++;
   } else if (cmd == 'g' || cmd == 'n' || cmd == 'G' || cmd == 'N' ||
              cmd == '+' || cmd == '=') {
@@ -629,8 +635,10 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
     bool is_my_snake = false;
     if (cmd == 'G' || cmd == 'N' || cmd == '=' && dlen == 6 ||
         cmd == '+' && dlen == 9) {
-      int snakes_len = tdarray_length(gdata->data.snakes);
-      o = gdata->data.snakes + (snakes_len - 1);
+      o = get_snake(gdata, gdata->data.snake_id);
+      if (!o && tdarray_length(gdata->data.snakes) > 0) {
+        o = gdata->data.snakes + (tdarray_length(gdata->data.snakes) - 1);
+      }
       is_my_snake = true;
     } else {
       int id = a[m] << 8 | a[m + 1];

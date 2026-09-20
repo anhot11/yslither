@@ -119,11 +119,11 @@ void ui_overlay(tenv* env) {
   float mww2 = ctx->size[0] / 2.0f;
   float mhh2 = ctx->size[1] / 2.0f;
 
-  int snakes_len = tdarray_length(gdata->data.snakes);
-  if (snakes_len) {
-    snake* me = gdata->data.snakes + (snakes_len - 1);
-
-    if (gdata->data.snake_id == me->id) {
+  snake* me = get_snake(gdata, gdata->data.snake_id);
+  if (!me && tdarray_length(gdata->data.snakes) > 0) {
+    me = gdata->data.snakes + (tdarray_length(gdata->data.snakes) - 1);
+  }
+  if (me) {
       float a = me->alive_amt * (1 - me->dead_amt);
       int sct = me->sct + me->rsc;
       float hx = me->xx + me->fx;
@@ -146,7 +146,6 @@ void ui_overlay(tenv* env) {
             usrs->laser_thickness);
       }
     }
-  }
 
   usr->r->global.minimap_opacity = 0;
   if (usrs->hotkeys[HOTKEY_HUD].active) {

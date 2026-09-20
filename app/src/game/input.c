@@ -26,8 +26,11 @@ void input(tenv* env) {
     int xm;
     int ym;
 
-    int snakes_len = tdarray_length(gdata->data.snakes);
-    snake* me = gdata->data.snakes + (snakes_len - 1);
+    snake* me = get_snake(gdata, gdata->data.snake_id);
+    if (!me && tdarray_length(gdata->data.snakes) > 0) {
+      me = gdata->data.snakes + (tdarray_length(gdata->data.snakes) - 1);
+    }
+    if (!me) return;
 
     if (usrs->hotkeys[HOTKEY_BOT].active) {
       xm = gdata->bot.output.xm;
@@ -136,14 +139,19 @@ void input(tenv* env) {
   }
 
   if (gdata->data.follow_view) {
-    snake* me = gdata->data.snakes + (tdarray_length(gdata->data.snakes) - 1);
-    int score = (int)floorf((gdata->data.fpsls[me->sct] +
-                             me->fam / gdata->data.fmlts[me->sct] - 1) *
-                                15 -
-                            5) /
-                1;
-    if (score >= 1000) {
-      usrs->hotkeys[HOTKEY_RESTART].active = false;
+    snake* me = get_snake(gdata, gdata->data.snake_id);
+    if (!me && tdarray_length(gdata->data.snakes) > 0) {
+      me = gdata->data.snakes + (tdarray_length(gdata->data.snakes) - 1);
+    }
+    if (me) {
+      int score = (int)floorf((gdata->data.fpsls[me->sct] +
+                               me->fam / gdata->data.fmlts[me->sct] - 1) *
+                                  15 -
+                              5) /
+                  1;
+      if (score >= 1000) {
+        usrs->hotkeys[HOTKEY_RESTART].active = false;
+      }
     }
   }
 

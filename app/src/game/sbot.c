@@ -1241,17 +1241,19 @@ static int snake_score(game_data* gdata, snake* sk) {
 static void every(game_data* gdata) {
   int ns = tdarray_length(gdata->data.snakes);
   if (ns == 0) return;
-  snake* me = NULL;
-  for (int i = 0; i < ns; i++) {
-    if (gdata->data.snakes[i].id == B.id) {
-      me = gdata->data.snakes + i;
-      break;
+  snake* me = get_snake(gdata, gdata->data.snake_id);
+  if (!me) {
+    for (int i = 0; i < ns; i++) {
+      if (gdata->data.snakes[i].id == B.id) {
+        me = gdata->data.snakes + i;
+        break;
+      }
     }
   }
   if (!me) {
     me = gdata->data.snakes + (ns - 1);
-    B.id = me->id;
   }
+  B.id = me->id;
 
   B.x = me->xx;
   B.y = me->yy;
@@ -1420,8 +1422,10 @@ void sbot_go(tenv* env) {
     bot->output.accel = true;
   }
 
-  bot->output.xm = (B.goal.x - gdata->data.view_xx) * gdata->data.gsc;
-  bot->output.ym = (B.goal.y - gdata->data.view_yy) * gdata->data.gsc;
+  float dx = B.goal.x - B.x;
+  float dy = B.goal.y - B.y;
+  bot->output.xm = (int)roundf(dx * 10.0f);
+  bot->output.ym = (int)roundf(dy * 10.0f);
 }
 
 void sbot_render_overlay(tenv* env) {
