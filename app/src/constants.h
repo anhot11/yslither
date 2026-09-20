@@ -73,7 +73,7 @@
 #define APP_VERSION "1.0.0"
 #endif
 #ifndef SETTINGS_VERSION
-#define SETTINGS_VERSION "1.3"
+#define SETTINGS_VERSION "1.4"
 #endif
 
 typedef enum conn_status {
@@ -87,7 +87,8 @@ typedef enum screen {
   SKIN_EDITOR = 1,
   PLAYING = 2,
   SETTINGS = 3,
-  CONTROLS_EDITOR = 4
+  CONTROLS_EDITOR = 4,
+  BOT_SETTINGS = 5
 } screen;
 
 typedef enum font_size {

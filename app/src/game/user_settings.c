@@ -30,6 +30,13 @@ void user_settings_default(user_settings* usr_settings) {
   usr_settings->instant_restart = false;
   usr_settings->bot_radius_mult = 20;
   usr_settings->bot_follow_circle_score = 2000;
+  usr_settings->bot_mode = 0;           // Ultra-Defensivo
+  usr_settings->bot_visual_line = true;  // Ver linea del bot
+  usr_settings->bot_visual_zones = true; // Ver zonas rojas
+  usr_settings->bot_visual_radar = true; // Ver circulos de radar
+  usr_settings->bot_visual_food = true;  // Ver objetivo de comida
+  usr_settings->bot_auto_turbo = true;
+  usr_settings->bot_auto_start = false;
   strcpy(usr_settings->ipv4, "192.211.52.146:444");
   strcpy(usr_settings->nickname, "Slither");
 

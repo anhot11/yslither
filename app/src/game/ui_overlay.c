@@ -1,5 +1,6 @@
 #include "ui_overlay.h"
 #include "custom_controls.h"
+#include "sbot.h"
 #include "../user.h"
 
 void ui_overlay(tenv* env) {
@@ -220,6 +221,9 @@ void ui_overlay(tenv* env) {
     igTextColored((ImVec4){1, 1, 1, 0.7f}, "%d° %d%%", pang, dst);
     igPopFont();
   }
+
+  // Render visual debug overlays for Bot Mode (line, red zones, sensors, food target)
+  sbot_render_overlay(env);
 
   // Render on-screen custom touch action buttons
   custom_controls_render_hud(env, (float)ctx->size[0], (float)ctx->size[1]);

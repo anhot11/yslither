@@ -71,6 +71,13 @@ typedef struct user_settings {
   float zoom_step;
   int bot_radius_mult;
   int bot_follow_circle_score;
+  int bot_mode;              // 0 = Ultra-Defensivo, 1 = Caza / Equilibrado, 2 = Auto-Coil Continuo
+  bool bot_visual_line;      // Ver linea del bot hacia el objetivo
+  bool bot_visual_zones;     // Ver zonas rojas de peligro y colision
+  bool bot_visual_radar;     // Ver radar de sensores y circulos de esquiva
+  bool bot_visual_food;      // Ver linea verde hacia el objetivo de comida
+  bool bot_auto_turbo;       // Permitir turbo inteligente en situaciones seguras
+  bool bot_auto_start;       // Activar el bot automaticamente al iniciar partida
 
   gameplay_mode modes[2];
 

@@ -17,6 +17,7 @@ typedef struct sbot {
 
 void sbot_init(tenv* env);
 void sbot_go(tenv* env);
+void sbot_render_overlay(tenv* env);
 void sbot_destroy(tenv* env);
 
 #endif

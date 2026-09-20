@@ -963,31 +963,208 @@ void sbot_go(tenv* env) {
   user_settings* usrs = &usr->usrs;
   game_data* gdata = &usr->gdata;
   sbot* bot = &gdata->bot;
-  B.radius_mult = usrs->bot_radius_mult;
-  B.follow_circle_length = usrs->bot_follow_circle_score;
+
+  // Bot mode behavior adjustments
+  if (usrs->bot_mode == 1) {
+    // Mode 1: Caza / Equilibrado (tighter radius for fast turns & pursuit)
+    B.radius_mult = fmaxf(10.0f, usrs->bot_radius_mult * 0.75f);
+  } else {
+    // Mode 0: Ultra-Defensivo, Mode 2: Auto-Coil
+    B.radius_mult = (float)usrs->bot_radius_mult;
+  }
+  B.follow_circle_length = (float)usrs->bot_follow_circle_score;
 
   if (tdarray_length(gdata->data.snakes) == 0) return;
 
   every(gdata);
 
-  if (B.snake_len < B.follow_circle_length) B.stage = 0;
-  if (B.has_food && B.stage != 0) B.has_food = false;
+  if (usrs->bot_mode == 2) {
+    // Mode 2: Auto-Coil Continuo
+    if (B.snake_len > 150) {
+      B.stage = 2; // trigger defensive circle
+    } else {
+      B.stage = 0; // grow until 150 then coil
+    }
+  } else {
+    if (B.snake_len < B.follow_circle_length) B.stage = 0;
+    if (B.has_food && B.stage != 0) B.has_food = false;
+  }
 
   if (B.stage == 2) {
     bot->output.accel = false;
     follow_circle_self(gdata);
   } else if (check_collision(gdata) || check_encircle(gdata)) {
     if (B.delay_frame != -1) B.delay_frame = COLLISION_DELAY;
+    // Smart auto-turbo: emergency escape boost if enemy is dangerously close
+    if (usrs->bot_auto_turbo && B.coll_pts_n > 0 && B.coll_pts[0].d2 < 140.0f * 140.0f) {
+      bot->output.accel = true;
+    } else {
+      bot->output.accel = false;
+    }
   } else {
     if (B.snake_len > B.follow_circle_length) B.stage = 1;
     if (B.delay_frame == -1) B.delay_frame = ACTION_FRAMES;
-    bot->output.accel = false;
+    // Hunting mode turbo towards large food clusters when safe
+    if (usrs->bot_mode == 1 && usrs->bot_auto_turbo && B.has_food &&
+        B.current_food.sz > 3.0f && B.current_food.d2 > 180.0f * 180.0f) {
+      bot->output.accel = true;
+    } else {
+      bot->output.accel = false;
+    }
   }
 
   delay_action(gdata);
 
   bot->output.xm = (B.goal.x - gdata->data.view_xx) * gdata->data.gsc;
   bot->output.ym = (B.goal.y - gdata->data.view_yy) * gdata->data.gsc;
+}
+
+void sbot_render_overlay(tenv* env) {
+  tuser_data* usr = env->usr;
+  user_settings* usrs = &usr->usrs;
+  game_data* gdata = &usr->gdata;
+  tcontext* ctx = env->ctx;
+
+  // Only render if the bot is active and game is playing
+  if (!usrs->hotkeys[HOTKEY_BOT].active) return;
+  if (tdarray_length(gdata->data.snakes) == 0) return;
+
+  ImDrawList* dl = igGetWindowDrawList();
+  if (!dl) return;
+
+  float mww2 = ctx->size[0] * 0.5f;
+  float mhh2 = ctx->size[1] * 0.5f;
+  float gsc = gdata->data.gsc;
+  float view_xx = gdata->data.view_xx;
+  float view_yy = gdata->data.view_yy;
+
+  // 1. Zonas rojas de colision y peligro (enemigos, obstaculos y limites)
+  if (usrs->bot_visual_zones && B.coll_pts_n > 0) {
+    for (int i = 0; i < B.coll_pts_n; i++) {
+      coll_pt* cp = &B.coll_pts[i];
+      float cx = mww2 + (cp->x - view_xx) * gsc;
+      float cy = mhh2 + (cp->y - view_yy) * gsc;
+      float cr = cp->r * gsc;
+      if (cr < 5.0f) cr = 5.0f;
+
+      // Skip offscreen
+      if (cx < -cr - 40.0f || cx > ctx->size[0] + cr + 40.0f ||
+          cy < -cr - 40.0f || cy > ctx->size[1] + cr + 40.0f) {
+        continue;
+      }
+
+      // Red danger zone fill
+      ImDrawList_AddCircleFilled(dl, (ImVec2){cx, cy}, cr,
+                                 igColorConvertFloat4ToU32((ImVec4){0.95f, 0.15f, 0.15f, 0.22f}), 24);
+      // Red danger zone outline
+      ImDrawList_AddCircle(dl, (ImVec2){cx, cy}, cr,
+                           igColorConvertFloat4ToU32((ImVec4){1.0f, 0.20f, 0.20f, 0.85f}), 24, 2.0f);
+      // Core hazard dot
+      ImDrawList_AddCircleFilled(dl, (ImVec2){cx, cy}, 4.0f,
+                                 igColorConvertFloat4ToU32((ImVec4){1.0f, 0.10f, 0.10f, 0.95f}), 8);
+    }
+  }
+
+  // 2. Radar de sensores frontales y feelers laterales
+  if (usrs->bot_visual_radar) {
+    // Head sweep circle
+    float hx = mww2 + (B.head_circle.x - view_xx) * gsc;
+    float hy = mhh2 + (B.head_circle.y - view_yy) * gsc;
+    float hr = B.head_circle.r * gsc;
+    if (hr > 3.0f) {
+      ImDrawList_AddCircleFilled(dl, (ImVec2){hx, hy}, hr,
+                                 igColorConvertFloat4ToU32((ImVec4){1.0f, 0.55f, 0.05f, 0.10f}), 24);
+      ImDrawList_AddCircle(dl, (ImVec2){hx, hy}, hr,
+                           igColorConvertFloat4ToU32((ImVec4){1.0f, 0.60f, 0.10f, 0.65f}), 24, 1.8f);
+    }
+
+    // Left feeler
+    float lx = mww2 + (B.side_l.x - view_xx) * gsc;
+    float ly = mhh2 + (B.side_l.y - view_yy) * gsc;
+    float lr = B.side_l.r * gsc;
+    if (lr > 3.0f) {
+      ImDrawList_AddCircle(dl, (ImVec2){lx, ly}, lr,
+                           igColorConvertFloat4ToU32((ImVec4){1.0f, 0.85f, 0.15f, 0.55f}), 20, 1.5f);
+    }
+
+    // Right feeler
+    float rx = mww2 + (B.side_r.x - view_xx) * gsc;
+    float ry = mhh2 + (B.side_r.y - view_yy) * gsc;
+    float rr = B.side_r.r * gsc;
+    if (rr > 3.0f) {
+      ImDrawList_AddCircle(dl, (ImVec2){rx, ry}, rr,
+                           igColorConvertFloat4ToU32((ImVec4){1.0f, 0.85f, 0.15f, 0.55f}), 20, 1.5f);
+    }
+  }
+
+  // 3. Linea hacia el objetivo de comida seleccionado
+  if (usrs->bot_visual_food && B.has_food) {
+    float head_sx = mww2 + (B.x - view_xx) * gsc;
+    float head_sy = mhh2 + (B.y - view_yy) * gsc;
+    float fx = mww2 + (B.current_food.x - view_xx) * gsc;
+    float fy = mhh2 + (B.current_food.y - view_yy) * gsc;
+
+    ImDrawList_AddLine(dl, (ImVec2){head_sx, head_sy}, (ImVec2){fx, fy},
+                       igColorConvertFloat4ToU32((ImVec4){0.20f, 0.95f, 0.40f, 0.70f}), 1.8f);
+    float fr = fmaxf(8.0f, (B.current_food.sz + 4.0f) * gsc);
+    ImDrawList_AddCircle(dl, (ImVec2){fx, fy}, fr,
+                         igColorConvertFloat4ToU32((ImVec4){0.30f, 1.0f, 0.50f, 0.85f}), 16, 2.0f);
+    ImDrawList_AddCircleFilled(dl, (ImVec2){fx, fy}, 3.5f,
+                               igColorConvertFloat4ToU32((ImVec4){0.60f, 1.0f, 0.70f, 1.0f}), 8);
+  }
+
+  // 4. Linea del bot hacia su objetivo y punto de mira
+  if (usrs->bot_visual_line) {
+    float head_sx = mww2 + (B.x - view_xx) * gsc;
+    float head_sy = mhh2 + (B.y - view_yy) * gsc;
+    float goal_sx = mww2 + (B.goal.x - view_xx) * gsc;
+    float goal_sy = mhh2 + (B.goal.y - view_yy) * gsc;
+
+    // Glowing halo line
+    ImDrawList_AddLine(dl, (ImVec2){head_sx, head_sy}, (ImVec2){goal_sx, goal_sy},
+                       igColorConvertFloat4ToU32((ImVec4){0.0f, 0.75f, 1.0f, 0.35f}), 5.0f);
+    // Sharp bright core line
+    ImDrawList_AddLine(dl, (ImVec2){head_sx, head_sy}, (ImVec2){goal_sx, goal_sy},
+                       igColorConvertFloat4ToU32((ImVec4){0.0f, 0.95f, 1.0f, 0.90f}), 2.5f);
+
+    // Goal Crosshair Reticle
+    ImDrawList_AddCircle(dl, (ImVec2){goal_sx, goal_sy}, 14.0f,
+                         igColorConvertFloat4ToU32((ImVec4){0.0f, 0.95f, 1.0f, 0.85f}), 20, 2.0f);
+    ImDrawList_AddCircle(dl, (ImVec2){goal_sx, goal_sy}, 5.0f,
+                         igColorConvertFloat4ToU32((ImVec4){1.0f, 1.0f, 1.0f, 0.80f}), 12, 1.5f);
+    ImDrawList_AddCircleFilled(dl, (ImVec2){goal_sx, goal_sy}, 2.5f,
+                               igColorConvertFloat4ToU32((ImVec4){1.0f, 1.0f, 1.0f, 1.0f}), 6);
+
+    // Reticle crosshair ticks
+    ImDrawList_AddLine(dl, (ImVec2){goal_sx - 18.0f, goal_sy}, (ImVec2){goal_sx - 9.0f, goal_sy},
+                       igColorConvertFloat4ToU32((ImVec4){0.0f, 0.95f, 1.0f, 0.85f}), 2.0f);
+    ImDrawList_AddLine(dl, (ImVec2){goal_sx + 9.0f, goal_sy}, (ImVec2){goal_sx + 18.0f, goal_sy},
+                       igColorConvertFloat4ToU32((ImVec4){0.0f, 0.95f, 1.0f, 0.85f}), 2.0f);
+    ImDrawList_AddLine(dl, (ImVec2){goal_sx, goal_sy - 18.0f}, (ImVec2){goal_sx, goal_sy - 9.0f},
+                       igColorConvertFloat4ToU32((ImVec4){0.0f, 0.95f, 1.0f, 0.85f}), 2.0f);
+    ImDrawList_AddLine(dl, (ImVec2){goal_sx, goal_sy + 9.0f}, (ImVec2){goal_sx, goal_sy + 18.0f},
+                       igColorConvertFloat4ToU32((ImVec4){0.0f, 0.95f, 1.0f, 0.85f}), 2.0f);
+  }
+
+  // 5. In-game HUD Badge: Bot State & Mode
+  const char* mode_str = (usrs->bot_mode == 1) ? "Caza" : (usrs->bot_mode == 2 ? "Auto-Coil" : "Defensivo");
+  const char* act_str = (B.stage == 1) ? "Evadiendo" : (B.stage == 2 ? "Coiling" : "Buscando");
+
+  char badge_buf[96];
+  snprintf(badge_buf, sizeof(badge_buf), "🤖 BOT [%s]: %s (%d zonas)", mode_str, act_str, B.coll_pts_n);
+
+  ImVec2 bsz;
+  igCalcTextSize(&bsz, badge_buf, NULL, false, -1);
+  float bx = 16.0f;
+  float by = 68.0f;
+
+  ImDrawList_AddRectFilled(dl, (ImVec2){bx - 8.0f, by - 4.0f}, (ImVec2){bx + bsz.x + 8.0f, by + bsz.y + 4.0f},
+                           igColorConvertFloat4ToU32((ImVec4){0.06f, 0.09f, 0.14f, 0.85f}), 6.0f, 0);
+  ImDrawList_AddRect(dl, (ImVec2){bx - 8.0f, by - 4.0f}, (ImVec2){bx + bsz.x + 8.0f, by + bsz.y + 4.0f},
+                     igColorConvertFloat4ToU32((ImVec4){0.20f, 0.80f, 0.95f, 0.75f}), 6.0f, 0, 1.5f);
+  ImDrawList_AddText_Vec2(dl, (ImVec2){bx, by},
+                          igColorConvertFloat4ToU32((ImVec4){0.30f, 0.90f, 1.0f, 1.0f}),
+                          badge_buf, NULL);
 }
 
 void sbot_destroy(tenv* env) { (void)env; }

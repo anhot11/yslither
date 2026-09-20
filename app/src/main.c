@@ -3,6 +3,7 @@
 #include "ui/title_screen.h"
 #include "ui/settings.h"
 #include "ui/controls_editor.h"
+#include "ui/bot_settings.h"
 #include "ui/viewport.h"
 #include "user.h"
 
@@ -48,11 +49,13 @@ void tinit(tenv* env) {
   ui_title_screen_init(env);
   ui_skin_editor_init(env);
   ui_settings_init(env);
+  ui_bot_settings_init(env);
   game_data_init(env);
 }
 
 void tdestroy(tenv* env) {
   game_data_destroy(env);
+  ui_bot_settings_destroy(env);
   ui_settings_destroy(env);
   ui_skin_editor_destroy(env);
   ui_title_screen_destroy(env);
@@ -94,6 +97,9 @@ void trender(tenv* env) {
       break;
     case CONTROLS_EDITOR:
       ui_controls_editor(env);
+      break;
+    case BOT_SETTINGS:
+      ui_bot_settings(env);
       break;
   }
   igEnd();

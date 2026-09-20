@@ -6,6 +6,7 @@
 #include "../network/server.h"
 #include "../network/server_list.h"
 #include "controls_editor.h"
+#include "bot_settings.h"
 #include "../user.h"
 
 static bool s_show_server_selector = false;
@@ -204,11 +205,11 @@ static void ui_server_selector(tenv* env) {
                   ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
     igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_LARGE],
                usr->imgui_data.regular_font_bold[FONT_SIZE_LARGE]->LegacySize);
-    igTextColored((ImVec4){0.35f, 0.70f, 1.0f, 1.0f}, "Seleccionar Servidor Slither.io");
+    igTextColored((ImVec4){0.35f, 0.70f, 1.0f, 1.0f}, "Seleccionar Servidor (Mejor Ping Primero)");
     igPopFont();
 
     igTextColored((ImVec4){0.70f, 0.75f, 0.80f, 1.0f},
-                  "Servidores oficiales de alta velocidad con medidor de ping en tiempo real:");
+                  "Servidores oficiales de alta velocidad con SID y medidor de ping en tiempo real:");
     igSeparator();
     igSpacing();
 
@@ -275,11 +276,20 @@ static void ui_server_selector(tenv* env) {
             igTextColored((ImVec4){0.85f, 0.25f, 0.25f, 1.0f}, "[Timeout]");
           }
 
+          // SID badge
+          igSameLine(115, -1);
+          igSetCursorPosY(14);
+          if (s->sid > 0) {
+            igTextColored((ImVec4){0.40f, 0.80f, 0.95f, 1.0f}, "#%04d", s->sid);
+          } else {
+            igTextColored((ImVec4){0.40f, 0.80f, 0.95f, 0.4f}, "#----");
+          }
+
           // Region & address
-          igSameLine(130, -1);
+          igSameLine(175, -1);
           igSetCursorPosY(14);
           igTextColored((ImVec4){1.0f, 1.0f, 1.0f, 1.0f}, "%s", s->name);
-          igSameLine(360, -1);
+          igSameLine(390, -1);
           igSetCursorPosY(14);
           igTextColored((ImVec4){0.60f, 0.65f, 0.70f, 1.0f}, "%s", srv_addr);
 
@@ -497,6 +507,9 @@ void ui_title_screen(tenv* env) {
     usr->gdata.conn = CONNECTING;
     usr->gdata.curr_screen = PLAYING;
     glfwSetTime(0);
+    if (usrs->bot_auto_start) {
+      usrs->hotkeys[HOTKEY_BOT].active = true;
+    }
     server_connect(env);
   }
   igPopStyleColor(3);
@@ -504,7 +517,24 @@ void ui_title_screen(tenv* env) {
 
   igSpacing();
 
-  // 4. Secondary Buttons Row: Controles, Aspectos, Ajustes
+  // 4. MODO BOT Button (Prominent Bot Configuration Entry)
+  igSetCursorPosX(center_x);
+  igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
+             usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
+  igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.18f, 0.36f, 0.52f, 1.0f});
+  igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.24f, 0.46f, 0.66f, 1.0f});
+  const char* cur_mode_tag = (usrs->bot_mode == 1) ? "Caza" : (usrs->bot_mode == 2 ? "Auto-Coil" : "Ultra-Defensivo");
+  char bot_btn_label[64];
+  snprintf(bot_btn_label, sizeof(bot_btn_label), "🤖  Modo Bot: %s  ⚙", cur_mode_tag);
+  if (igButton(bot_btn_label, (ImVec2){menu_w, 52.0f})) {
+    usr->gdata.curr_screen = BOT_SETTINGS;
+  }
+  igPopStyleColor(2);
+  igPopFont();
+
+  igSpacing();
+
+  // 5. Secondary Buttons Row: Controles, Aspectos, Ajustes
   float third_btn_w = (menu_w - 2.0f * style->ItemSpacing.x) / 3.0f;
   igSetCursorPosX(center_x);
   igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
@@ -513,18 +543,18 @@ void ui_title_screen(tenv* env) {
   igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.18f, 0.28f, 0.40f, 1.0f});
   igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.24f, 0.38f, 0.54f, 1.0f});
 
-  if (igButton("\ueaed  Controles", (ImVec2){third_btn_w, 52.0f})) {
+  if (igButton("\ueaed  Controles", (ImVec2){third_btn_w, 50.0f})) {
     ui_controls_editor_init(env);
     usr->gdata.curr_screen = CONTROLS_EDITOR;
   }
   igSameLine(0, -1);
 
-  if (igButton("\ue90c  Aspectos", (ImVec2){third_btn_w, 52.0f})) {
+  if (igButton("\ue90c  Aspectos", (ImVec2){third_btn_w, 50.0f})) {
     usr->gdata.curr_screen = SKIN_EDITOR;
   }
   igSameLine(0, -1);
 
-  if (igButton("\ue991  Ajustes", (ImVec2){third_btn_w, 52.0f})) {
+  if (igButton("\ue991  Ajustes", (ImVec2){third_btn_w, 50.0f})) {
     usr->gdata.curr_screen = SETTINGS;
   }
 

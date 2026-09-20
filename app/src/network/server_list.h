@@ -3,9 +3,10 @@
 
 #include <stdbool.h>
 
-#define MAX_SERVERS 16
+#define MAX_SERVERS 64
 
 typedef struct {
+  int sid;
   char ip[32];
   int port;
   char name[48];
