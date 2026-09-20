@@ -189,7 +189,7 @@ void ui_bot_settings(tenv* env) {
   igPushStyleColor_Vec4(ImGuiCol_ChildBg, (ImVec4){0.10f, 0.12f, 0.16f, 0.95f});
   igPushStyleColor_Vec4(ImGuiCol_Border, (ImVec4){0.20f, 0.28f, 0.38f, 0.80f});
   igPushStyleVar_Float(ImGuiStyleVar_ChildRounding, 12.0f);
-  igPushStyleVar_ChildBorderSize(1.5f);
+  igPushStyleVar_Float(ImGuiStyleVar_ChildBorderSize, 1.5f);
 
   if (igBeginChild_Str("##bot_visuals_col", (ImVec2){col_w, content_h}, true, ImGuiWindowFlags_None)) {
     igSpacing();
