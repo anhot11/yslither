@@ -4,9 +4,20 @@
 #ifdef __ANDROID__
 #include <android/native_window.h>
 #include <android_native_app_glue.h>
-#else
-#include <GLFW/glfw3.h>
+#include <time.h>
+
+static inline double glfwGetTime(void) {
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
+}
+
+static inline void glfwSetTime(double t) {
+  (void)t;
+}
 #endif
+
+#include <GLFW/glfw3.h>
 #include <cglm/struct.h>
 #include <stdbool.h>
 
