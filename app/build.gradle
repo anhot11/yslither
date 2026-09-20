@@ -42,11 +42,24 @@ android {
         }
     }
 
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets']
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
 }
+
+tasks.register('syncAssets', Copy) {
+    from "${rootDir}/app/res"
+    into "${projectDir}/src/main/assets/app/res"
+}
+
+preBuild.dependsOn syncAssets
 
 dependencies {
 }

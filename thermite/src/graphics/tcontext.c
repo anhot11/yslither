@@ -156,13 +156,14 @@ int _tcontext_select_device(tcontext* context) {
     free(extensions);
 
     if (selected_format != -1 && scores[i].supports_fifo &&
-        scores[i].supports_immediate && scores[i].selected_queue != -1 &&
+        scores[i].selected_queue != -1 &&
         properties.deviceType != VK_PHYSICAL_DEVICE_TYPE_CPU) {
       scores[i].selected_format = formats[selected_format];
       scores[i].score = 0;
 
+      if (scores[i].supports_immediate) scores[i].score++;
       if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-        scores[i].score++;
+        scores[i].score += 2;
     }
 
     free(present_modes);
@@ -238,9 +239,43 @@ void _tcontext_create_swapchain(tcontext* context, bool vsync) {
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context->ph_device,
                                             context->surface, &capabilities);
 
-  context->size[0] = capabilities.currentExtent.width;
-  context->size[1] = capabilities.currentExtent.height;
-  context->min_image_count = capabilities.minImageCount + 1;
+  VkExtent2D swapchain_extent = capabilities.currentExtent;
+  if (swapchain_extent.width == 0xFFFFFFFF || swapchain_extent.width == 0) {
+    swapchain_extent.width = context->size[0] > 0 ? context->size[0] : 1920;
+    swapchain_extent.height = context->size[1] > 0 ? context->size[1] : 1080;
+    if (swapchain_extent.width < capabilities.minImageExtent.width)
+      swapchain_extent.width = capabilities.minImageExtent.width;
+    if (swapchain_extent.width > capabilities.maxImageExtent.width)
+      swapchain_extent.width = capabilities.maxImageExtent.width;
+    if (swapchain_extent.height < capabilities.minImageExtent.height)
+      swapchain_extent.height = capabilities.minImageExtent.height;
+    if (swapchain_extent.height > capabilities.maxImageExtent.height)
+      swapchain_extent.height = capabilities.maxImageExtent.height;
+  }
+  context->size[0] = swapchain_extent.width;
+  context->size[1] = swapchain_extent.height;
+
+  uint32_t min_images = capabilities.minImageCount + 1;
+  if (capabilities.maxImageCount > 0 && min_images > capabilities.maxImageCount) {
+    min_images = capabilities.maxImageCount;
+  }
+  context->min_image_count = min_images;
+
+  VkCompositeAlphaFlagBitsKHR composite_alpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+  if (!(capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)) {
+    if (capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) {
+      composite_alpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+    } else if (capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR) {
+      composite_alpha = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;
+    }
+  }
+
+  VkPresentModeKHR present_mode = VK_PRESENT_MODE_FIFO_KHR;
+#ifndef __ANDROID__
+  if (!vsync) {
+    present_mode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+  }
+#endif
 
   vkCreateSwapchainKHR(
       context->device,
@@ -252,16 +287,15 @@ void _tcontext_create_swapchain(tcontext* context, bool vsync) {
           .minImageCount = context->min_image_count,
           .imageFormat = context->surface_format.format,
           .imageColorSpace = context->surface_format.colorSpace,
-          .imageExtent = capabilities.currentExtent,
+          .imageExtent = swapchain_extent,
           .imageArrayLayers = 1,
           .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
           .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
           .queueFamilyIndexCount = 0,
           .pQueueFamilyIndices = NULL,
           .preTransform = capabilities.currentTransform,
-          .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-          .presentMode =
-              vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR,
+          .compositeAlpha = composite_alpha,
+          .presentMode = present_mode,
           .clipped = VK_TRUE,
           .oldSwapchain = context->old_swapchain},
       NULL, &context->swapchain);
@@ -496,12 +530,12 @@ void _tcontext_create_descriptor_pool(tcontext* context) {
           .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
           .pNext = NULL,
           .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
-          .maxSets = 20,
+          .maxSets = 100,
           .poolSizeCount = 2,
           .pPoolSizes =
               (VkDescriptorPoolSize[]){
-                  {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 20},
-                  {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 20},
+                  {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100},
+                  {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100},
               }},
       NULL, &context->descriptor_pool);
 }
@@ -512,6 +546,8 @@ tcontext* tcontext_create(twindow* window, bool vsync, int fif) {
   context->old_swapchain = VK_NULL_HANDLE;
   context->swapchain_ok = true;
   context->current_frame = 0;
+  context->size[0] = window ? window->size[0] : 1920;
+  context->size[1] = window ? window->size[1] : 1080;
 
   _tcontext_create_instance(context);
   _tcontext_create_surface(context, window);

@@ -31,6 +31,15 @@ void imgui_init(tenv* env) {
   igImplGlfw_InitForVulkan(env->wnd->handle, true);
 #endif
   ImGuiIO* io = igGetIO_Nil();
+#ifdef __ANDROID__
+  if (env && env->wnd && env->wnd->size[0] > 0 && env->wnd->size[1] > 0) {
+    io->DisplaySize = (ImVec2){(float)env->wnd->size[0], (float)env->wnd->size[1]};
+  } else {
+    io->DisplaySize = (ImVec2){1920.0f, 1080.0f};
+  }
+  io->DisplayFramebufferScale = (ImVec2){1.0f, 1.0f};
+  io->DeltaTime = 0.016667f;
+#endif
   // io->MouseDrawCursor = true;
 
   for (int i = 0; i < NUM_FONT_SIZES; i++) {
@@ -126,10 +135,24 @@ void imgui_init(tenv* env) {
   style->Colors[ImGuiCol_HeaderActive] = (ImVec4){0.14f, 0.14f, 0.14f, 1.00f};
 }
 
-void imgui_prerender() {
+void imgui_prerender(tenv* env) {
   igImplVulkan_NewFrame();
 #ifndef __ANDROID__
+  (void)env;
   igImplGlfw_NewFrame();
+#else
+  ImGuiIO* io = igGetIO_Nil();
+  if (env && env->wnd && env->wnd->size[0] > 0 && env->wnd->size[1] > 0) {
+    io->DisplaySize = (ImVec2){(float)env->wnd->size[0], (float)env->wnd->size[1]};
+    io->DisplayFramebufferScale = (ImVec2){1.0f, 1.0f};
+  }
+  static double last_time = 0.0;
+  double current_time = glfwGetTime();
+  if (last_time <= 0.0) last_time = current_time - 0.016667;
+  float dt = (float)(current_time - last_time);
+  if (dt <= 0.0f || dt > 0.5f) dt = 0.016667f;
+  io->DeltaTime = dt;
+  last_time = current_time;
 #endif
   igNewFrame();
 }

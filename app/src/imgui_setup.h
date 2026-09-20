@@ -4,7 +4,7 @@
 #include <thermite.h>
 
 void imgui_init(tenv* env);
-void imgui_prerender();
+void imgui_prerender(tenv* env);
 void imgui_render(VkCommandBuffer cmd);
 void imgui_destroy();
 

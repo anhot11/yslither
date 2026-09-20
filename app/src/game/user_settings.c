@@ -98,8 +98,8 @@ void write_default_settings(user_settings* usr_settings) {
 
   FILE* f = fopen(USER_SETTINGS_FILE, "wb");
   if (f == NULL) {
-    printf("Error creating settings file.");
-    exit(-1);
+    printf("Warning: could not create settings file.\n");
+    return;
   }
 
   fwrite(usr_settings, sizeof(user_settings), 1, f);
@@ -129,8 +129,8 @@ void read_user_settings(user_settings* usr_settings) {
 void save_user_settings(user_settings* usr_settings) {
   FILE* f = fopen(USER_SETTINGS_FILE, "wb");
   if (f == NULL) {
-    printf("Error saving settings.");
-    exit(-1);
+    printf("Warning: could not save settings file.\n");
+    return;
   }
 
   fwrite(usr_settings, sizeof(user_settings), 1, f);

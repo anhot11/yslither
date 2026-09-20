@@ -65,7 +65,7 @@ void trender(tenv* env) {
   tcontext* ctx = env->ctx;
   game_data* gdata = &usr->gdata;
 
-  imgui_prerender();
+  imgui_prerender(env);
   // render begin
   ImGuiStyle* style = igGetStyle();
   ui_viewport(env);

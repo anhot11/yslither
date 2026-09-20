@@ -11,6 +11,14 @@ texture* create_mipmap_texture(tcontext* ctx, const char* filename) {
 
   int w, h, c;
   stbi_uc* data = stbi_load(filename, &w, &h, &c, 4);
+  bool free_data = true;
+  if (!data) {
+    printf("ERROR: Failed to load texture '%s'\n", filename);
+    w = 1; h = 1; c = 4;
+    static uint32_t fallback_pixel = 0xFFFF00FF;
+    data = (stbi_uc*)&fallback_pixel;
+    free_data = false;
+  }
   int mip_levels = (uint32_t)(floorf(log2f(GLM_MAX(w, h))) + 1);
 
   vmaCreateBuffer(
@@ -28,7 +36,7 @@ texture* create_mipmap_texture(tcontext* ctx, const char* filename) {
       &staging_buffer, &staging_memory, &staging_info);
 
   memcpy(staging_info.pMappedData, data, w * h * 4);
-  stbi_image_free(data);
+  if (free_data) stbi_image_free(data);
 
   vmaCreateImage(
       ctx->allocator,
