@@ -325,7 +325,7 @@ void custom_controls_render_hud(tenv* env, float screen_w, float screen_h) {
   user_settings* usrs = &usr->usrs;
   custom_controls_t* cc = &g_custom_controls;
 
-  ImDrawList* dl = igGetForegroundDrawList_Nil();
+  ImDrawList* dl = igGetForegroundDrawList_ViewportPtr(igGetMainViewport());
   if (!dl) return;
 
   for (int i = 0; i < cc->button_count; i++) {
