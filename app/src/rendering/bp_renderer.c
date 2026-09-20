@@ -11,7 +11,7 @@ bp_renderer* bp_renderer_create(tcontext* ctx, int max_instances,
       tcontext_create_shader(ctx, "app/res/shaders/bin/bpf.spv");
 
   vkCreateGraphicsPipelines(
-      ctx->device, NULL, 1,
+      ctx->device, VK_NULL_HANDLE, 1,
       &(VkGraphicsPipelineCreateInfo){
           .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
           .pNext = NULL,

@@ -13,7 +13,7 @@ fd_renderer* fd_renderer_create(tcontext* ctx, int max_instances, int max_p_inst
       tcontext_create_shader(ctx, "app/res/shaders/bin/fdf.spv");
 
   vkCreateGraphicsPipelines(
-      ctx->device, NULL, 1,
+      ctx->device, VK_NULL_HANDLE, 1,
       &(VkGraphicsPipelineCreateInfo){
           .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
           .pNext = NULL,
@@ -169,7 +169,7 @@ fd_renderer* fd_renderer_create(tcontext* ctx, int max_instances, int max_p_inst
   fragment_shader = tcontext_create_shader(ctx, "app/res/shaders/bin/fdrf.spv");
 
   vkCreateGraphicsPipelines(
-      ctx->device, NULL, 1,
+      ctx->device, VK_NULL_HANDLE, 1,
       &(VkGraphicsPipelineCreateInfo){
           .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
           .pNext = NULL,
