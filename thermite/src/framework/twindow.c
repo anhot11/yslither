@@ -31,10 +31,14 @@ twindow* twindow_create(tenv* env, trender_func render_func,
 }
 
 void twindow_poll_input(twindow* window) {
-  if (window->_refresh && window->a_window) {
+  if (!window || !window->a_window || !window->env || !window->env->ctx) return;
+  if (window->_refresh || !window->env->ctx->swapchain_ok) {
     window->size[0] = ANativeWindow_getWidth(window->a_window);
     window->size[1] = ANativeWindow_getHeight(window->a_window);
     tcontext_resize(window->env->ctx, window->env->wnd->size, window->env->config.vsync);
+    if (window->_resize_func) {
+      window->_resize_func(window->env);
+    }
     window->_refresh = false;
   }
 }

@@ -141,8 +141,8 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event) {
     int32_t pointer_index = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >>
                             AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 
-    float screen_w = g_env.wnd ? (float)g_env.wnd->size[0] : 1920.0f;
-    float screen_h = g_env.wnd ? (float)g_env.wnd->size[1] : 1080.0f;
+    float screen_w = g_env.ctx ? (float)g_env.ctx->size[0] : (g_env.wnd ? (float)g_env.wnd->size[0] : 1920.0f);
+    float screen_h = g_env.ctx ? (float)g_env.ctx->size[1] : (g_env.wnd ? (float)g_env.wnd->size[1] : 1080.0f);
 
     float x = AMotionEvent_getX(event, pointer_index);
     float y = AMotionEvent_getY(event, pointer_index);
@@ -283,6 +283,7 @@ void android_main(struct android_app* state) {
     }
 
     if (g_has_window && g_initialized && g_env.config.running) {
+      if (g_env.wnd) twindow_poll_input(g_env.wnd);
       if (g_env.ctx && g_env.ctx->swapchain_ok) {
         tuser_data* usr = (tuser_data*)g_env.usr;
         if (usr && g_touch.active) {

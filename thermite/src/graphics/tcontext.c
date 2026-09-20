@@ -3,6 +3,7 @@
 #include <string.h>
 #ifdef __ANDROID__
 #include <vulkan/vulkan_android.h>
+#include <android/log.h>
 #endif
 
 void _tcontext_create_instance(tcontext* context) {
@@ -239,6 +240,13 @@ void _tcontext_create_swapchain(tcontext* context, bool vsync) {
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context->ph_device,
                                             context->surface, &capabilities);
 
+  VkSurfaceTransformFlagBitsKHR pre_transform = capabilities.currentTransform;
+#ifdef __ANDROID__
+  if (capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) {
+    pre_transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+  }
+#endif
+
   VkExtent2D swapchain_extent = capabilities.currentExtent;
   if (swapchain_extent.width == 0xFFFFFFFF || swapchain_extent.width == 0) {
     swapchain_extent.width = context->size[0] > 0 ? context->size[0] : 1920;
@@ -252,6 +260,21 @@ void _tcontext_create_swapchain(tcontext* context, bool vsync) {
     if (swapchain_extent.height > capabilities.maxImageExtent.height)
       swapchain_extent.height = capabilities.maxImageExtent.height;
   }
+#ifdef __ANDROID__
+  if (pre_transform == VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) {
+    // If window is landscape (width > height) but swapchain_extent is portrait, swap
+    if (context->size[0] > context->size[1] && swapchain_extent.width < swapchain_extent.height) {
+      uint32_t tmp = swapchain_extent.width;
+      swapchain_extent.width = swapchain_extent.height;
+      swapchain_extent.height = tmp;
+    }
+  }
+  __android_log_print(ANDROID_LOG_INFO, "yslither",
+    "Swapchain: currentExtent=(%u, %u), currentTransform=0x%x, chosen preTransform=0x%x, finalExtent=(%u, %u)",
+    capabilities.currentExtent.width, capabilities.currentExtent.height,
+    capabilities.currentTransform, pre_transform,
+    swapchain_extent.width, swapchain_extent.height);
+#endif
   context->size[0] = swapchain_extent.width;
   context->size[1] = swapchain_extent.height;
 
@@ -293,7 +316,7 @@ void _tcontext_create_swapchain(tcontext* context, bool vsync) {
           .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
           .queueFamilyIndexCount = 0,
           .pQueueFamilyIndices = NULL,
-          .preTransform = capabilities.currentTransform,
+          .preTransform = pre_transform,
           .compositeAlpha = composite_alpha,
           .presentMode = present_mode,
           .clipped = VK_TRUE,
@@ -567,6 +590,11 @@ tcontext* tcontext_create(twindow* window, bool vsync, int fif) {
 void tcontext_resize(tcontext* context, const ivec2 size, bool vsync) {
   tcontext_wait_idle(context);
   context->old_swapchain = context->swapchain;
+
+  if (size[0] > 0 && size[1] > 0) {
+    context->size[0] = size[0];
+    context->size[1] = size[1];
+  }
 
   for (int i = 0; i < context->image_count; i++) {
     vkDestroyFramebuffer(context->device,
