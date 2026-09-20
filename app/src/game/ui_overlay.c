@@ -43,13 +43,13 @@ static void render_stats_hud(tenv* env) {
 
   // Format labels
   char size_buf[48];
-  snprintf(size_buf, sizeof(size_buf), "🐍 Tamaño: %d", my_score);
+  snprintf(size_buf, sizeof(size_buf), "Tam: %d", my_score);
 
   char ping_buf[48];
   if (ping_val > 0) {
-    snprintf(ping_buf, sizeof(ping_buf), "📶 %d ms", ping_val);
+    snprintf(ping_buf, sizeof(ping_buf), "%d ms", ping_val);
   } else {
-    snprintf(ping_buf, sizeof(ping_buf), "📶 -- ms");
+    snprintf(ping_buf, sizeof(ping_buf), "-- ms");
   }
 
   ImFont* font = usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR];

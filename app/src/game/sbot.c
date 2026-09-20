@@ -116,6 +116,9 @@ typedef struct {
 
 static bot_state B;
 
+static void to_circle(game_data* gdata);
+static void follow_circle_self(game_data* gdata);
+
 static inline float dist2(float ax, float ay, float bx, float by) {
   float dx = ax - bx, dy = ay - by;
   return dx * dx + dy * dy;
@@ -561,13 +564,19 @@ static void evaluate_best_evasion_heading(game_data* gdata) {
         best_angle = ray_ang;
       }
     }
+
+    // Trapped / encircled with no escape corridor: Auto-Coil defensive circle immediately!
+    if ((max_c < 450.0f || best_score <= -1e8f) && B.snake_len >= 130 && B.enable_follow_circle) {
+      B.stage = 1;
+      to_circle(gdata);
+      return;
+    }
   }
 
   B.goal = heading_abs(best_angle);
 }
 
 static bool check_collision(game_data* gdata) {
-  get_collision_points(gdata);
   if (B.coll_pts_n == 0) return false;
 
   bool immediate_threat = false;
@@ -604,10 +613,15 @@ static bool check_collision(game_data* gdata) {
 }
 
 static bool check_encircle(game_data* gdata) {
+  (void)gdata;
   if (!B.enable_encircle) return false;
   int en[512];
   memset(en, 0, sizeof(en));
   int high = 0, en_all = 0;
+
+  // Generous horizon for detecting encircling predators (at least 750px or 34x radius)
+  float ed = fmaxf(750.0f, B.radius * 34.0f);
+  float ed2 = ed * ed;
 
   for (int i = 0; i < MAXARC; i++) {
     if (!B.coll_angles_set[i]) continue;
@@ -617,16 +631,15 @@ static bool check_encircle(game_data* gdata) {
         high = en[ca->si];
       }
     }
-    float ed = B.radius * ENCIRCLE_DIST_MULT;
-    if (ca->d2 < ed * ed) en_all++;
+    if (ca->d2 < ed2) en_all++;
   }
 
-  if (high > (int)(MAXARC * ENCIRCLE_THRESH) || en_all > (int)(MAXARC * ENCIRCLE_ALL_THRESH)) {
-    evaluate_best_evasion_heading(gdata);
-    gdata->bot.output.accel = false; // Stay at controlled base speed to navigate out of the coil
+  // Encirclement threshold:
+  // 1. A single enemy covers >= 35% of our angular horizon (>= 11 of 32 sectors)
+  // 2. Obstacles cover >= 42% of our surrounding space (>= 14 of 32 sectors) within 750px
+  if (high >= (int)(MAXARC * 0.35f) || en_all >= (int)(MAXARC * 0.42f)) {
     return true;
   }
-  gdata->bot.output.accel = false;
   return false;
 }
 
@@ -791,13 +804,22 @@ static void follow_circle_self(game_data* gdata) {
   determine_circle_dir();
   int o = B.circle_dir;
 
-  if (B.bpts_len < 9.0f * B.width) return;
+  if (B.bpts_len < 8.0f * B.width) {
+    gdata->bot.output.accel = false;
+    B.goal = heading_rel(B.circle_dir * ((float)M_PI * 0.55f));
+    return;
+  }
 
   float close_t = closest_body_point();
   v2 close_pt = smooth_point(close_t);
   v2 close_next = smooth_point(close_t - B.width);
   v2 close_tang =
       unit_vec((v2){close_next.x - close_pt.x, close_next.y - close_pt.y});
+  if (close_tang.x == 0.0f && close_tang.y == 0.0f) {
+    gdata->bot.output.accel = false;
+    B.goal = heading_rel(B.circle_dir * ((float)M_PI * 0.55f));
+    return;
+  }
   v2 close_norm = (v2){-o * close_tang.y, o * close_tang.x};
 
   float cur_course = asinf(
@@ -940,6 +962,7 @@ static void follow_circle_self(game_data* gdata) {
   } else {
     B.goal = (v2){roundf(goal.x), roundf(goal.y)};
   }
+  gdata->bot.output.accel = false;
 }
 
 static void to_circle(game_data* gdata) {
@@ -954,19 +977,23 @@ static void to_circle(game_data* gdata) {
   }
   if (!me) return;
 
-  int pn = tdarray_length(me->pts), checked = 0;
-  for (int i = 0; i < pn && checked < 24; i++) {
+  populate_pts(gdata);
+  determine_circle_dir();
+
+  int pn = tdarray_length(me->pts);
+  for (int i = 0; i < pn - 6; i++) {
     body_part* po = me->pts + i;
     if (po->dying) continue;
-    checked++;
-    circ tc = {po->xx, po->yy, B.radius};
+    circ tc = {po->xx, po->yy, B.radius * 1.5f};
     if (circle_intersect(B.head_circle, tc, NULL)) {
       B.stage = 2;
+      follow_circle_self(gdata);
       return;
     }
   }
   gdata->bot.output.accel = false;
-  B.goal = heading_rel((B.circle_dir * (float)M_PI) / 32.0f);
+  // Maximum sharp inward turn toward our body center to curl into a circle
+  B.goal = heading_rel(B.circle_dir * ((float)M_PI * 0.55f));
 }
 
 static void compute_food_goal(game_data* gdata) {
@@ -1199,6 +1226,10 @@ void sbot_go(tenv* env) {
   if (tdarray_length(gdata->data.snakes) == 0) return;
 
   every(gdata);
+  get_collision_points(gdata);
+
+  bool can_coil = (B.snake_len >= 130 && B.enable_follow_circle);
+  bool is_encircled = check_encircle(gdata);
 
   if (usrs->bot_mode == 2) {
     // Mode 2: Auto-Coil Continuo
@@ -1208,22 +1239,37 @@ void sbot_go(tenv* env) {
       B.stage = 0; // grow until 150 then coil
     }
   } else {
-    if (B.snake_len < B.follow_circle_length) B.stage = 0;
+    // Mode 0 (Ultra-Defensivo) & Mode 1 (Caza / Equilibrado):
+    // If trapped or encircled by enemies, prioritize defensive coiling!
+    if (is_encircled && can_coil) {
+      if (B.stage == 0) {
+        B.stage = 1; // Begin coiling inward
+      }
+    } else if (!is_encircled) {
+      // Resume hunting if length is under manual coil threshold
+      if (B.snake_len < B.follow_circle_length) {
+        B.stage = 0;
+      }
+    }
     if (B.has_food && B.stage != 0) B.has_food = false;
   }
 
   B.bot_mode = usrs->bot_mode;
   B.bot_auto_turbo = usrs->bot_auto_turbo;
 
-  bool in_collision = check_collision(gdata) || check_encircle(gdata);
   if (B.stage == 2) {
     bot->output.accel = false;
     follow_circle_self(gdata);
-  } else if (in_collision) {
-    B.delay_frame = COLLISION_DELAY;
+  } else if (B.stage == 1) {
     bot->output.accel = false;
+    to_circle(gdata);
   } else {
-    delay_action(gdata);
+    bool in_collision = check_collision(gdata);
+    if (in_collision) {
+      B.delay_frame = COLLISION_DELAY;
+      bot->output.accel = false;
+    } else {
+      delay_action(gdata);
 
     // Intelligent Feast & Hunting Turbo (STRICTLY MASS-POSITIVE)
     if (usrs->bot_mode == 1 && usrs->bot_auto_turbo && B.has_food) {
@@ -1280,6 +1326,7 @@ void sbot_go(tenv* env) {
       bot->output.accel = false;
     }
   }
+}
 
   // Manual player boost button always overrides the bot!
   if (custom_controls_is_boost_active() || touch_input_is_boosting()) {
@@ -1423,7 +1470,7 @@ void sbot_render_overlay(tenv* env) {
   const char* act_str = (B.stage == 1) ? "Evadiendo" : (B.stage == 2 ? "Coiling" : "Buscando");
 
   char badge_buf[96];
-  snprintf(badge_buf, sizeof(badge_buf), "🤖 BOT [%s]: %s (%d zonas)", mode_str, act_str, B.coll_pts_n);
+  snprintf(badge_buf, sizeof(badge_buf), "BOT [%s]: %s (%d zonas)", mode_str, act_str, B.coll_pts_n);
 
   ImVec2 bsz;
   igCalcTextSize(&bsz, badge_buf, NULL, false, -1);

@@ -360,14 +360,14 @@ void ui_title_screen(tenv* env) {
   if (usrs->debug_logs_enabled) {
     igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.12f, 0.38f, 0.45f, 0.90f});
     igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.16f, 0.48f, 0.58f, 1.0f});
-    if (igButton("🛠️ LOGS & DEBUG: ACTIVO", (ImVec2){200.0f, 32.0f})) {
+    if (igButton("LOGS & DEBUG: ACTIVO", (ImVec2){200.0f, 32.0f})) {
       usrs->debug_logs_enabled = false;
       save_user_settings(usrs);
     }
   } else {
     igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.20f, 0.22f, 0.26f, 0.70f});
     igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.28f, 0.30f, 0.35f, 0.90f});
-    if (igButton("🛠️ LOGS & DEBUG: INACTIVO", (ImVec2){200.0f, 32.0f})) {
+    if (igButton("LOGS & DEBUG: INACTIVO", (ImVec2){200.0f, 32.0f})) {
       usrs->debug_logs_enabled = true;
       save_user_settings(usrs);
     }
@@ -499,9 +499,9 @@ void ui_title_screen(tenv* env) {
 
   char srv_btn_label[128];
   if (cur_ping > 0 && cur_ping < 999) {
-    snprintf(srv_btn_label, sizeof(srv_btn_label), "Servidor: %s (%d ms)  ▼", srv_name, cur_ping);
+    snprintf(srv_btn_label, sizeof(srv_btn_label), "Servidor: %s (%d ms)  [v]", srv_name, cur_ping);
   } else {
-    snprintf(srv_btn_label, sizeof(srv_btn_label), "Servidor: %s  ▼", srv_name);
+    snprintf(srv_btn_label, sizeof(srv_btn_label), "Servidor: %s  [v]", srv_name);
   }
 
   igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
@@ -546,7 +546,7 @@ void ui_title_screen(tenv* env) {
   igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.24f, 0.46f, 0.66f, 1.0f});
   const char* cur_mode_tag = (usrs->bot_mode == 1) ? "Ataque/Caza" : (usrs->bot_mode == 2 ? "Auto-Coil" : "Ultra-Defensivo");
   char bot_btn_label[64];
-  snprintf(bot_btn_label, sizeof(bot_btn_label), "🤖  Modo Bot: %s  ⚙", cur_mode_tag);
+  snprintf(bot_btn_label, sizeof(bot_btn_label), "Modo Bot: %s", cur_mode_tag);
   if (igButton(bot_btn_label, (ImVec2){menu_w, 52.0f})) {
     usr->gdata.curr_screen = BOT_SETTINGS;
   }
@@ -562,14 +562,14 @@ void ui_title_screen(tenv* env) {
   if (usrs->debug_logs_enabled) {
     igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.14f, 0.38f, 0.44f, 1.0f});
     igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.18f, 0.48f, 0.55f, 1.0f});
-    if (igButton("🛠️  Logs y Debug: ACTIVADO (Desactivar)", (ImVec2){menu_w, 48.0f})) {
+    if (igButton("Logs y Debug: ACTIVADO (Desactivar)", (ImVec2){menu_w, 48.0f})) {
       usrs->debug_logs_enabled = false;
       save_user_settings(usrs);
     }
   } else {
     igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.22f, 0.24f, 0.28f, 1.0f});
     igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.28f, 0.32f, 0.38f, 1.0f});
-    if (igButton("🛠️  Logs y Debug: DESACTIVADO (Activar)", (ImVec2){menu_w, 48.0f})) {
+    if (igButton("Logs y Debug: DESACTIVADO (Activar)", (ImVec2){menu_w, 48.0f})) {
       usrs->debug_logs_enabled = true;
       save_user_settings(usrs);
     }

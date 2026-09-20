@@ -23,7 +23,7 @@ void ui_bot_settings(tenv* env) {
   igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_LARGE],
              usr->imgui_data.regular_font_bold[FONT_SIZE_LARGE]->LegacySize);
   igSetCursorPos((ImVec2){24.0f, 16.0f});
-  igTextColored((ImVec4){0.20f, 0.90f, 0.50f, 1.0f}, "🤖  CONFIGURACION DEL MODO BOT & IA");
+  igTextColored((ImVec4){0.20f, 0.90f, 0.50f, 1.0f}, "CONFIGURACION DEL MODO BOT & IA");
   igPopFont();
 
   igPushFont(usr->imgui_data.regular_font[FONT_SIZE_SMALL],
@@ -60,8 +60,8 @@ void ui_bot_settings(tenv* env) {
     // Mode 0: Ultra-Defensivo
     bool is_m0 = (usrs->bot_mode == 0);
     if (is_m0) {
-      igPushStyleColor_Vec4(ImGuiCol_ChildBg, (ImVec4){0.12f, 0.26f, 0.18f, 0.90f});
-      igPushStyleColor_Vec4(ImGuiCol_Border, (ImVec4){0.25f, 0.85f, 0.45f, 1.0f});
+      igPushStyleColor_Vec4(ImGuiCol_ChildBg, (ImVec4){0.10f, 0.25f, 0.18f, 0.90f});
+      igPushStyleColor_Vec4(ImGuiCol_Border, (ImVec4){0.20f, 0.85f, 0.45f, 1.0f});
     } else {
       igPushStyleColor_Vec4(ImGuiCol_ChildBg, (ImVec4){0.13f, 0.15f, 0.20f, 0.70f});
       igPushStyleColor_Vec4(ImGuiCol_Border, (ImVec4){0.22f, 0.25f, 0.32f, 0.80f});
@@ -71,7 +71,7 @@ void ui_bot_settings(tenv* env) {
       igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
                  usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
       igTextColored(is_m0 ? (ImVec4){0.30f, 0.95f, 0.55f, 1.0f} : (ImVec4){0.85f, 0.85f, 0.85f, 1.0f},
-                    "🛡️  Ultra-Defensivo / Supervivencia");
+                    "Modo 0: Ultra-Defensivo / Supervivencia");
       igPopFont();
 
       igPushFont(usr->imgui_data.regular_font[FONT_SIZE_SMALL],
@@ -82,7 +82,7 @@ void ui_bot_settings(tenv* env) {
 
       igSpacing();
       if (is_m0) {
-        igTextColored((ImVec4){0.25f, 0.90f, 0.50f, 1.0f}, "✓ SELECCIONADO");
+        igTextColored((ImVec4){0.25f, 0.90f, 0.50f, 1.0f}, "[ACTIVO] SELECCIONADO");
       } else {
         if (igButton("Activar Modo Defensivo", (ImVec2){180.0f, 26.0f})) {
           usrs->bot_mode = 0;
@@ -108,7 +108,7 @@ void ui_bot_settings(tenv* env) {
       igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
                  usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
       igTextColored(is_m1 ? (ImVec4){0.98f, 0.75f, 0.25f, 1.0f} : (ImVec4){0.85f, 0.85f, 0.85f, 1.0f},
-                    "⚔️  Ataque / Caza & Crecimiento");
+                    "Modo 1: Ataque / Caza & Crecimiento");
       igPopFont();
 
       igPushFont(usr->imgui_data.regular_font[FONT_SIZE_SMALL],
@@ -119,7 +119,7 @@ void ui_bot_settings(tenv* env) {
 
       igSpacing();
       if (is_m1) {
-        igTextColored((ImVec4){0.95f, 0.70f, 0.20f, 1.0f}, "✓ SELECCIONADO (POR DEFECTO)");
+        igTextColored((ImVec4){0.95f, 0.70f, 0.20f, 1.0f}, "[ACTIVO] SELECCIONADO (POR DEFECTO)");
       } else {
         if (igButton("Activar Modo Ataque", (ImVec2){180.0f, 26.0f})) {
           usrs->bot_mode = 1;
@@ -145,7 +145,7 @@ void ui_bot_settings(tenv* env) {
       igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
                  usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
       igTextColored(is_m2 ? (ImVec4){0.85f, 0.45f, 0.98f, 1.0f} : (ImVec4){0.85f, 0.85f, 0.85f, 1.0f},
-                    "🌀  Auto-Coil Continuo");
+                    "Modo 2: Auto-Coil Continuo");
       igPopFont();
 
       igPushFont(usr->imgui_data.regular_font[FONT_SIZE_SMALL],
@@ -156,7 +156,7 @@ void ui_bot_settings(tenv* env) {
 
       igSpacing();
       if (is_m2) {
-        igTextColored((ImVec4){0.80f, 0.40f, 0.95f, 1.0f}, "✓ SELECCIONADO");
+        igTextColored((ImVec4){0.80f, 0.40f, 0.95f, 1.0f}, "[ACTIVO] SELECCIONADO");
       } else {
         if (igButton("Activar Modo Auto-Coil", (ImVec2){180.0f, 26.0f})) {
           usrs->bot_mode = 2;
@@ -318,7 +318,7 @@ void ui_bot_settings(tenv* env) {
   // Restore Defaults Button
   igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.20f, 0.22f, 0.28f, 1.0f});
   igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.28f, 0.32f, 0.40f, 1.0f});
-  if (igButton("↺  Valores por Defecto", (ImVec2){220.0f, 48.0f})) {
+  if (igButton("Restablecer Valores", (ImVec2){220.0f, 48.0f})) {
     usrs->bot_mode = 1; // Ataque / Caza por defecto
     usrs->bot_visual_line = true;
     usrs->bot_visual_zones = true;
@@ -339,7 +339,7 @@ void ui_bot_settings(tenv* env) {
   igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.18f, 0.82f, 0.42f, 1.0f});
   igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
              usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
-  if (igButton("✓  Guardar y Volver al Menu", (ImVec2){save_w, 48.0f})) {
+  if (igButton("Guardar y Volver al Menu", (ImVec2){save_w, 48.0f})) {
     save_user_settings(usrs);
     usr->gdata.curr_screen = TITLE_SCREEN;
   }
