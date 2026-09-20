@@ -7,6 +7,10 @@
 
 #include "../constants.h"
 
+#ifndef SETTINGS_VERSION
+#define SETTINGS_VERSION "1.3"
+#endif
+
 typedef struct hotkey {
   int key;
   bool active;
