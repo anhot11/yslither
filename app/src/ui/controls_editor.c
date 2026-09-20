@@ -84,12 +84,11 @@ void ui_controls_editor(tenv* env) {
         igSameLine(0, -1);
 
         char item_label[64];
-        snprintf(item_label, sizeof(item_label), "%s %s (%s)",
-                 btn->icon[0] != '\0' ? btn->icon : "",
+        snprintf(item_label, sizeof(item_label), "%s  [%s]",
                  btn->name,
                  custom_controls_action_key_str(btn->action));
 
-        if (igSelectable_Bool(item_label, selected, ImGuiSelectableFlags_None, (ImVec2){-1, 26})) {
+        if (igSelectable_Bool(item_label, selected, ImGuiSelectableFlags_None, (ImVec2){0, 28})) {
           s_selected_idx = i;
         }
 
