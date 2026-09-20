@@ -394,7 +394,7 @@ void ui_title_screen(tenv* env) {
 
   // Style rounding for modern touch controls
   igPushStyleVar_Float(ImGuiStyleVar_FrameRounding, 12.0f);
-  igPushStyleVar_Float(ImGuiStyleVar_ItemSpacing, 12.0f);
+  igPushStyleVar_Vec2(ImGuiStyleVar_ItemSpacing, (ImVec2){12.0f, 12.0f});
 
   // 1. Nickname Field with Touch Editor Button
   igSetCursorPosX(center_x);
