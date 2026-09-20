@@ -47,6 +47,7 @@ tmouse* tmouse_create(twindow* window) {
 }
 
 void tmouse_update(tmouse* mouse) {
+  if (!mouse) return;
   tdarray_clear(mouse->buttons_pressed);
   tdarray_clear(mouse->buttons_released);
 
@@ -56,14 +57,17 @@ void tmouse_update(tmouse* mouse) {
 }
 
 int tmouse_button_pressed(tmouse* mouse, int button) {
+  if (!mouse || !mouse->buttons_pressed) return 0;
   return tdarray_find(mouse->buttons_pressed, &button) != -1;
 }
 
 int tmouse_button_released(tmouse* mouse, int button) {
+  if (!mouse || !mouse->buttons_released) return 0;
   return tdarray_find(mouse->buttons_released, &button) != -1;
 }
 
 void tmouse_destroy(tmouse* mouse) {
+  if (!mouse) return;
   tdarray_destroy(mouse->buttons_released);
   tdarray_destroy(mouse->buttons_pressed);
   free(mouse);

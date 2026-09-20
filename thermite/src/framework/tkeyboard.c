@@ -36,20 +36,24 @@ tkeyboard* tkeyboard_create(twindow* window) {
 }
 
 void tkeyboard_update(tkeyboard* keyboard) {
+  if (!keyboard) return;
   tdarray_clear(keyboard->keys_pressed);
   tdarray_clear(keyboard->keys_released);
   keyboard->char_pressed = 0;
 }
 
 int tkeyboard_key_pressed(tkeyboard* keyboard, int key) {
+  if (!keyboard || !keyboard->keys_pressed) return 0;
   return tdarray_find(keyboard->keys_pressed, &key) != -1;
 }
 
 int tkeyboard_key_released(tkeyboard* keyboard, int key) {
+  if (!keyboard || !keyboard->keys_released) return 0;
   return tdarray_find(keyboard->keys_released, &key) != -1;
 }
 
 void tkeyboard_destroy(tkeyboard* keyboard) {
+  if (!keyboard) return;
   tdarray_destroy(keyboard->keys_released);
   tdarray_destroy(keyboard->keys_pressed);
   free(keyboard);

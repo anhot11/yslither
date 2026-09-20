@@ -208,6 +208,8 @@ static void handle_cmd(struct android_app* app, int32_t cmd) {
 
           tlaunch(&g_env);
           g_env.wnd = twindow_create(&g_env, trender, tresize);
+          g_env.kb = tkeyboard_create(g_env.wnd);
+          g_env.ms = tmouse_create(g_env.wnd);
           g_env.ctx = tcontext_create(g_env.wnd, g_env.config.vsync, 3);
           if (!g_env.ctx) {
             LOGE("FATAL: Failed to create Vulkan context!");
@@ -270,6 +272,8 @@ void android_main(struct android_app* state) {
         if (g_initialized) {
           tdestroy(&g_env);
           if (g_env.ctx) tcontext_destroy(g_env.ctx);
+          if (g_env.ms) tmouse_destroy(g_env.ms);
+          if (g_env.kb) tkeyboard_destroy(g_env.kb);
           if (g_env.wnd) twindow_destroy(g_env.wnd);
           free(g_env.usr);
           g_initialized = false;
@@ -287,6 +291,9 @@ void android_main(struct android_app* state) {
 
         tinput(&g_env);
         trender(&g_env);
+
+        if (g_env.kb) tkeyboard_update(g_env.kb);
+        if (g_env.ms) tmouse_update(g_env.ms);
       }
     }
   }
