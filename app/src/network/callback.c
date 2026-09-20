@@ -843,8 +843,16 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
     }
   } else if (cmd == 'p') {
     gdata->data.wfpr = false;
-    gdata->data.pings[gdata->data.cping] = gdata->data.ctm - gdata->data.last_ping_mtm;
+    float current_rtt = gdata->data.ctm - gdata->data.last_ping_mtm;
+    gdata->data.pings[gdata->data.cping] = current_rtt;
     gdata->data.cping = (gdata->data.cping + 1) % PING_SAMPLE_COUNT;
+    if (current_rtt > 0.0f && current_rtt < 3000.0f) {
+      if (gdata->data.ping <= 0) {
+        gdata->data.ping = (int)roundf(current_rtt);
+      } else {
+        gdata->data.ping = (int)roundf(gdata->data.ping * 0.75f + current_rtt * 0.25f);
+      }
+    }
     if (gdata->data.lagging) {
       gdata->data.etm *= gdata->data.lag_mult;
       gdata->data.lagging = false;

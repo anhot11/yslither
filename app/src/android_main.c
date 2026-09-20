@@ -2,6 +2,7 @@
 
 #include <android/asset_manager.h>
 #include <android/log.h>
+#include <android/window.h>
 #include <android_native_app_glue.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -243,6 +244,10 @@ static void handle_cmd(struct android_app* app, int32_t cmd) {
       LOGI("APP_CMD_INIT_WINDOW");
       if (app->window != NULL) {
         g_has_window = true;
+        if (app->activity) {
+          ANativeActivity_setWindowFlags(app->activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
+          LOGI("Applied AWINDOW_FLAG_KEEP_SCREEN_ON: screen will not turn off during gameplay");
+        }
         if (!g_initialized) {
           if (app->activity && app->activity->assetManager) {
             extract_all_assets(app->activity->assetManager);

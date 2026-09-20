@@ -67,6 +67,8 @@ typedef struct {
 
 typedef struct {
   float x, y, ang, da, d2, sz, score;
+  float total_mass;
+  int count;
 } food_ang;
 
 typedef struct {
@@ -278,17 +280,17 @@ static void add_coll_angle(coll_pt* sp) {
 }
 
 static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* gdata) {
-  // 1. Hard maximum tactical horizon (950 px)
-  if (fd2 > (950.0f * 950.0f)) return;
+  // 1. Extended tactical horizon (1100 px for feasts)
+  if (fd2 > (1100.0f * 1100.0f)) return;
 
   float ang = atan2f(roundf(fy - B.y), roundf(fx - B.x));
   int ai = ang_index(ang);
 
-  // Check collision sector distance
+  // Check collision sector distance: only reject if an obstacle physically blocks the path before the food
   if (B.coll_angles_set[ai]) {
     float cd = sqrtf(B.coll_angles[ai].d2);
     float fd = sqrtf(fd2);
-    if (cd <= fd + (B.radius * B.radius_mult * B.speed_mult) / 1.5f) return;
+    if (cd <= (fd - B.radius * 1.5f)) return;
   }
 
   // 2. Reject food outside safe arena boundaries
@@ -302,7 +304,7 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
   float fd = sqrtf(fd2);
   float d_head = fabsf(ang_between(ang, B.ang));
 
-  // 3. Unicycle / Turning Radius Rejection (prevents spinning in circles!):
+  // 3. Unicycle / Turning Radius Rejection (prevents spinning in circles):
   // If food is inside minimum turning radius and requires a sharp turn (> 45 deg),
   // the snake physically cannot turn tightly enough to hit it in one go.
   float min_turn_r = B.width * 2.2f;
@@ -339,12 +341,12 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
   // Forward orientation bonus: food ahead requires no turning (up to 1.85x bonus)
   float forward_bonus = 1.0f + 0.85f * cosf(d_head);
 
-  // Steep quadratic proximity weighting: close food dominates distant food!
-  float dist_norm = fd / 140.0f;
+  // Proximity weighting: close food is favored, but large feasts easily bridge the distance gap
+  float dist_norm = fd / 180.0f;
   float prox_factor = 1.0f / (1.0f + dist_norm * dist_norm);
 
-  // Value scaling (large food / dead snake chunks are attractive, capped to prevent distortion)
-  float size_val = fminf(6.0f, 1.0f + fsz * 0.5f);
+  // Value scaling (large food / dead snake chunks are attractive, rewarding large orbs)
+  float size_val = 1.0f + fsz * 0.85f;
 
   // Target persistence / stickiness bonus (prevents rapid jumping between distant targets)
   float persistence = 1.0f;
@@ -357,17 +359,20 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
   if (!B.food_angles_set[ai]) {
     B.food_angles[ai] =
         (food_ang){roundf(fx), roundf(fy), ang, d_head,
-                   fd2, fsz, score};
+                   fd2, fsz, score, fsz, 1};
     B.food_angles_set[ai] = true;
   } else {
     food_ang* fa = &B.food_angles[ai];
+    fa->total_mass += fsz;
+    fa->count++;
     fa->sz += roundf(fsz);
     fa->score += score;
-    // Always track the closest edible food point in this sector
-    if (fa->d2 > fd2) {
+    // Track closest edible food point in this sector, favoring larger pieces if distance is close
+    if (fa->d2 > fd2 || (fsz > fa->sz && fd2 < fa->d2 * 1.30f)) {
       fa->x = roundf(fx);
       fa->y = roundf(fy);
       fa->d2 = fd2;
+      fa->sz = fsz;
     }
   }
 }
@@ -978,8 +983,11 @@ static void compute_food_goal(game_data* gdata) {
   float best = -1.0f;
   for (int i = 0; i < MAXARC; i++) {
     if (!B.food_angles_set[i] || B.food_angles[i].sz <= 0.0f) continue;
-    if (B.food_angles[i].score > best) {
-      best = B.food_angles[i].score;
+    // Dead Snake Feast Bonus: sectors with high accumulated mass get up to 8x multiplier!
+    float feast_mult = 1.0f + fminf(7.0f, B.food_angles[i].total_mass * 0.12f);
+    float sector_score = B.food_angles[i].score * feast_mult;
+    if (sector_score > best) {
+      best = sector_score;
       B.current_food = B.food_angles[i];
       B.has_food = true;
     }
@@ -1026,12 +1034,43 @@ static void delay_action(game_data* gdata) {
       float f_dy = B.current_food.y - B.y;
       float f_dist = sqrtf(f_dx * f_dx + f_dy * f_dy);
       if (f_dist < (B.radius * 1.6f)) {
-        // Food consumed! Clear target so next food is selected
-        B.has_food = false;
-        B.goal = heading_abs(B.ang);
+        // Food consumed! Instead of heading straight (which loses the feast),
+        // immediately scan for the next nearest unconsumed food in forward arc to maintain vacuum!
+        int fn = tdarray_length(gdata->data.foods);
+        float next_best_d2 = 9999999.0f;
+        float n_fx = 0.0f, n_fy = 0.0f;
+        bool found_next = false;
+        for (int i = 0; i < fn; i++) {
+          food* fo = gdata->data.foods + i;
+          if (fo->eaten) continue;
+          float d2 = dist2(B.x, B.y, fo->xx, fo->yy);
+          if (d2 < (450.0f * 450.0f) && d2 > (B.radius * B.radius * 0.5f)) {
+            float a = atan2f(fo->yy - B.y, fo->xx - B.x);
+            if (fabsf(ang_between(a, B.ang)) < ((float)M_PI * 0.48f)) {
+              if (d2 < next_best_d2) {
+                next_best_d2 = d2;
+                n_fx = fo->xx;
+                n_fy = fo->yy;
+                found_next = true;
+              }
+            }
+          }
+        }
+        if (found_next) {
+          B.current_food.x = n_fx;
+          B.current_food.y = n_fy;
+          B.current_food.d2 = next_best_d2;
+          float nd = sqrtf(next_best_d2);
+          float lead = fminf(130.0f, nd * 0.6f);
+          B.goal = (v2){roundf(n_fx + ((n_fx - B.x) / nd) * lead),
+                        roundf(n_fy + ((n_fy - B.y) / nd) * lead)};
+        } else {
+          B.has_food = false;
+          B.goal = heading_abs(safe_ang);
+        }
       } else {
         // Project goal smoothly through the food cluster along the approach line (vacuum mode)
-        float lead = fminf(120.0f, f_dist * 0.5f);
+        float lead = fminf(130.0f, f_dist * 0.6f);
         B.goal = (v2){roundf(B.current_food.x + (f_dx / f_dist) * lead),
                       roundf(B.current_food.y + (f_dy / f_dist) * lead)};
       }
@@ -1147,22 +1186,49 @@ void sbot_go(tenv* env) {
   } else {
     delay_action(gdata);
 
-    // Hunting mode turbo towards food when safe
-    if (usrs->bot_mode == 1 && usrs->bot_auto_turbo && B.has_food &&
-        B.current_food.sz >= 2.0f && B.current_food.d2 > (150.0f * 150.0f) && B.current_food.d2 < (750.0f * 750.0f)) {
-      // Only engage hunting turbo if no enemy heads within 650 px AND no obstacles within 450 px
-      bool safe_to_turbo = true;
-      for (int i = 0; i < B.coll_pts_n; i++) {
-        if (B.coll_pts[i].type == 0 && B.coll_pts[i].d2 < (650.0f * 650.0f)) {
-          safe_to_turbo = false;
-          break;
+    // Intelligent Feast & Hunting Turbo
+    if (usrs->bot_mode == 1 && usrs->bot_auto_turbo && B.has_food) {
+      bool is_feast = (B.current_food.total_mass >= 10.0f || B.current_food.sz >= 4.0f || B.current_food.count >= 4);
+      float f_dist = sqrtf(B.current_food.d2);
+
+      // Fast sprint into feasts from 50px up to 900px; normal food from 180px to 750px
+      bool dist_ok = is_feast ? (f_dist > 50.0f && f_dist < 900.0f) : (f_dist > 180.0f && f_dist < 750.0f && B.current_food.sz >= 3.0f);
+
+      if (dist_ok) {
+        // Raycast corridor clearance check directly along the approach vector to the food
+        float food_ang = atan2f(B.current_food.y - B.y, B.current_food.x - B.x);
+        float food_cos = cosf(food_ang);
+        float food_sin = sinf(food_ang);
+
+        bool path_safe = true;
+        for (int i = 0; i < B.coll_pts_n; i++) {
+          coll_pt* cp = &B.coll_pts[i];
+          // Check for aggressive enemy heads crossing into our forward cone
+          if (cp->type == 0) {
+            float head_ang = atan2f(cp->y - B.y, cp->x - B.x);
+            if (fabsf(ang_between(head_ang, B.ang)) < ((float)M_PI * 0.38f) && cp->d2 < (550.0f * 550.0f)) {
+              path_safe = false;
+              break;
+            }
+          }
+          // Obstacle clearance along food approach corridor
+          float vx = cp->x - B.x;
+          float vy = cp->y - B.y;
+          float proj = vx * food_cos + vy * food_sin;
+          if (proj > 0.0f && proj < (f_dist + 160.0f)) {
+            float perp2 = (vx * vx + vy * vy) - (proj * proj);
+            float req_clear = cp->r + B.radius * 1.8f;
+            if (perp2 < req_clear * req_clear) {
+              // Obstacle directly blocks the path to the food!
+              path_safe = false;
+              break;
+            }
+          }
         }
-        if (B.coll_pts[i].d2 < (450.0f * 450.0f)) {
-          safe_to_turbo = false;
-          break;
-        }
+        bot->output.accel = path_safe;
+      } else {
+        bot->output.accel = false;
       }
-      bot->output.accel = safe_to_turbo;
     } else {
       bot->output.accel = false;
     }

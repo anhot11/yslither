@@ -2,6 +2,113 @@
 #include "custom_controls.h"
 #include "sbot.h"
 #include "../user.h"
+#include <stdio.h>
+#include <math.h>
+
+static void render_stats_hud(tenv* env) {
+  if (!env || !env->usr || !env->ctx) return;
+  tuser_data* usr = env->usr;
+  game_data* gdata = &usr->gdata;
+
+  // Only render during active gameplay
+  if (tdarray_length(gdata->data.snakes) == 0) return;
+
+  ImDrawList* fg_dl = igGetForegroundDrawList_ViewportPtr(igGetMainViewport());
+  if (!fg_dl) return;
+
+  // 1. Calculate live score / snake length (tamaño)
+  int my_score = gdata->data.score;
+  int ns = tdarray_length(gdata->data.snakes);
+  for (int i = 0; i < ns; i++) {
+    if (gdata->data.snakes[i].id == gdata->data.snake_id) {
+      snake* me = &gdata->data.snakes[i];
+      int sct = me->sct + me->rsc;
+      if (sct >= 0 && gdata->data.fpsls && gdata->data.fmlts) {
+        int calc_score = (int)floorf((gdata->data.fpsls[sct] + me->fam / gdata->data.fmlts[sct] - 1.0f) * 15.0f - 5.0f);
+        if (calc_score > 0) my_score = calc_score;
+      }
+      if (my_score <= 0) {
+        my_score = tdarray_length(me->pts) * 10;
+      }
+      break;
+    }
+  }
+  if (my_score < 10) my_score = 10;
+
+  // 2. Ping value (ms wifi)
+  int ping_val = gdata->data.ping;
+  if (ping_val <= 0 && gdata->data.last_ping_mtm > 0) {
+    ping_val = (int)roundf(gdata->data.ctm - gdata->data.last_ping_mtm);
+  }
+
+  // Format labels
+  char size_buf[48];
+  snprintf(size_buf, sizeof(size_buf), "🐍 Tamaño: %d", my_score);
+
+  char ping_buf[48];
+  if (ping_val > 0) {
+    snprintf(ping_buf, sizeof(ping_buf), "📶 %d ms", ping_val);
+  } else {
+    snprintf(ping_buf, sizeof(ping_buf), "📶 -- ms");
+  }
+
+  ImFont* font = usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR];
+  if (!font) font = igGetFont();
+
+  igPushFont(font, font->LegacySize);
+
+  ImVec2 size_txt_sz;
+  igCalcTextSize(&size_txt_sz, size_buf, NULL, false, -1);
+
+  ImVec2 ping_txt_sz;
+  igCalcTextSize(&ping_txt_sz, ping_buf, NULL, false, -1);
+
+  float pad_x = 10.0f;
+  float pad_y = 5.0f;
+  float start_x = 16.0f;
+  float start_y = 14.0f;
+
+  // --- Badge 1: Snake Size (Tamaño) ---
+  float card1_w = size_txt_sz.x + pad_x * 2.0f;
+  float card_h = size_txt_sz.y + pad_y * 2.0f;
+
+  ImDrawList_AddRectFilled(fg_dl, (ImVec2){start_x, start_y},
+                           (ImVec2){start_x + card1_w, start_y + card_h},
+                           igColorConvertFloat4ToU32((ImVec4){0.08f, 0.10f, 0.14f, 0.88f}), 8.0f, 0);
+  ImDrawList_AddRect(fg_dl, (ImVec2){start_x, start_y},
+                     (ImVec2){start_x + card1_w, start_y + card_h},
+                     igColorConvertFloat4ToU32((ImVec4){0.95f, 0.75f, 0.20f, 0.75f}), 8.0f, 0, 1.5f);
+  ImDrawList_AddText_Vec2(fg_dl, (ImVec2){start_x + pad_x, start_y + pad_y},
+                          igColorConvertFloat4ToU32((ImVec4){0.98f, 0.86f, 0.28f, 1.0f}),
+                          size_buf, NULL);
+
+  // --- Badge 2: WiFi Ping ms ---
+  float start2_x = start_x + card1_w + 10.0f;
+  float card2_w = ping_txt_sz.x + pad_x * 2.0f;
+
+  ImVec4 ping_color;
+  if (ping_val <= 0) {
+    ping_color = (ImVec4){0.70f, 0.75f, 0.80f, 1.0f};
+  } else if (ping_val < 85) {
+    ping_color = (ImVec4){0.20f, 0.90f, 0.45f, 1.0f}; // Verde brillante
+  } else if (ping_val < 160) {
+    ping_color = (ImVec4){0.95f, 0.82f, 0.25f, 1.0f}; // Amarillo
+  } else {
+    ping_color = (ImVec4){0.95f, 0.30f, 0.25f, 1.0f}; // Rojo
+  }
+
+  ImDrawList_AddRectFilled(fg_dl, (ImVec2){start2_x, start_y},
+                           (ImVec2){start2_x + card2_w, start_y + card_h},
+                           igColorConvertFloat4ToU32((ImVec4){0.08f, 0.10f, 0.14f, 0.88f}), 8.0f, 0);
+  ImDrawList_AddRect(fg_dl, (ImVec2){start2_x, start_y},
+                     (ImVec2){start2_x + card2_w, start_y + card_h},
+                     igColorConvertFloat4ToU32((ImVec4){ping_color.x, ping_color.y, ping_color.z, 0.70f}), 8.0f, 0, 1.5f);
+  ImDrawList_AddText_Vec2(fg_dl, (ImVec2){start2_x + pad_x, start_y + pad_y},
+                          igColorConvertFloat4ToU32(ping_color),
+                          ping_buf, NULL);
+
+  igPopFont();
+}
 
 void ui_overlay(tenv* env) {
   tuser_data* usr = env->usr;
@@ -44,7 +151,6 @@ void ui_overlay(tenv* env) {
   usr->r->global.minimap_opacity = 0;
   if (usrs->hotkeys[HOTKEY_HUD].active) {
     ImGuiStyle* style = igGetStyle();
-    float frame_height = igGetFrameHeight();
 
     igPushFont(usr->imgui_data.mono_font[usrs->stats_font_size],
                usr->imgui_data.mono_font[usrs->stats_font_size]->LegacySize);
@@ -221,6 +327,9 @@ void ui_overlay(tenv* env) {
     igTextColored((ImVec4){1, 1, 1, 0.7f}, "%d° %d%%", pang, dst);
     igPopFont();
   }
+ 
+  // Render live in-game stats HUD: Snake Size (Tamaño) & WiFi Ping (ms)
+  render_stats_hud(env);
 
   // Render visual debug overlays for Bot Mode (line, red zones, sensors, food target)
   sbot_render_overlay(env);
