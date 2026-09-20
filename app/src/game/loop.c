@@ -6,6 +6,7 @@
 #include "oef.h"
 #include "redraw.h"
 #include "ui_overlay.h"
+#include "flight_recorder.h"
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -56,6 +57,7 @@ void game_loop(tenv* env) {
     }
     case CONNECTED:
       time_step(env);
+      flight_recorder_record_frame(env);
       input(env);
       server_poll(env);
       oef(env);
@@ -69,13 +71,14 @@ void game_loop(tenv* env) {
         gdata->connection->is_closing = true;
       } else if (usrs->hotkeys[HOTKEY_RESTART].active ||
                  (usrs->restart_rc &&
-                  tmouse_button_pressed(env->ms, GLFW_MOUSE_BUTTON_RIGHT))) {
+                   tmouse_button_pressed(env->ms, GLFW_MOUSE_BUTTON_RIGHT))) {
         gdata->connection->is_closing = true;
         gdata->restart_req = true;
       }
 
       // Return to menu on death after brief explosion animation or on user tap
       if (gdata->data.dead && gdata->data.death_time > 0.0) {
+        flight_recorder_on_death(env);
         double dt = glfwGetTime() - gdata->data.death_time;
         bool user_tapped = tmouse_button_pressed(env->ms, GLFW_MOUSE_BUTTON_LEFT);
         if (dt >= 1.4 || (dt >= 0.25 && user_tapped)) {
@@ -87,6 +90,7 @@ void game_loop(tenv* env) {
       }
 
       if (gdata->closed) {
+        flight_recorder_init();
         game_data_reset(env);
 
         if (gdata->restart_req) {

@@ -6,6 +6,7 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "../cimgui/cimgui.h"
 #include "../user.h"
+#include "../game/flight_recorder.h"
 
 void ui_bot_settings_init(tenv* env) {
   (void)env;
@@ -179,6 +180,33 @@ void ui_bot_settings(tenv* env) {
     igCheckbox("Activar Bot Automaticamente al Iniciar Partida", &usrs->bot_auto_start);
     igTextColored((ImVec4){0.60f, 0.65f, 0.70f, 0.85f},
                   "El bot tomara el control en cuanto te conectes al servidor.");
+
+    igSpacing();
+    igSeparator();
+    igSpacing();
+
+    // Flight Recorder / Telemetry / Debug Master Switch
+    igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
+               usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
+    igTextColored((ImVec4){0.35f, 0.85f, 0.95f, 1.0f}, "CAJA NEGRA Y MODO DEBUG");
+    igPopFont();
+    igSpacing();
+
+    igCheckbox("Sistema de Logs & Modo Debug (Caja Negra)", &usrs->debug_logs_enabled);
+    igTextColored((ImVec4){0.60f, 0.65f, 0.70f, 0.85f},
+                  "Almacena telemetria en memoria (300 frames) y genera diagnostico de muerte al chocar en telemetry_death_latest.json.");
+
+    if (flight_recorder_has_death_event()) {
+      igSpacing();
+      igPushStyleColor_Vec4(ImGuiCol_ChildBg, (ImVec4){0.20f, 0.12f, 0.14f, 0.90f});
+      igPushStyleColor_Vec4(ImGuiCol_Border, (ImVec4){0.80f, 0.30f, 0.30f, 0.80f});
+      if (igBeginChild_Str("##death_diag", (ImVec2){-1, 62.0f}, true, ImGuiWindowFlags_None)) {
+        igTextColored((ImVec4){0.95f, 0.40f, 0.40f, 1.0f}, "Ultimo Diagnostico Registrado:");
+        igTextWrapped("%s", flight_recorder_get_last_death_summary());
+      }
+      igEndChild();
+      igPopStyleColor(2);
+    }
   }
   igEndChild();
   igPopStyleVar(2);
@@ -301,6 +329,7 @@ void ui_bot_settings(tenv* env) {
     usrs->bot_auto_start = false;
     usrs->bot_radius_mult = 20;
     usrs->bot_follow_circle_score = 2000;
+    usrs->debug_logs_enabled = true;
   }
   igPopStyleColor(2);
 

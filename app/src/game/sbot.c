@@ -1025,7 +1025,8 @@ void sbot_render_overlay(tenv* env) {
   game_data* gdata = &usr->gdata;
   tcontext* ctx = env->ctx;
 
-  // Only render if the bot is active and game is playing
+  // Only render if debug/logs mode is active, the bot is active and game is playing
+  if (!usrs->debug_logs_enabled) return;
   if (!usrs->hotkeys[HOTKEY_BOT].active) return;
   if (tdarray_length(gdata->data.snakes) == 0) return;
 

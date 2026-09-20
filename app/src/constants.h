@@ -73,7 +73,7 @@
 #define APP_VERSION "1.0.0"
 #endif
 #ifndef SETTINGS_VERSION
-#define SETTINGS_VERSION "1.4"
+#define SETTINGS_VERSION "1.5"
 #endif
 
 typedef enum conn_status {

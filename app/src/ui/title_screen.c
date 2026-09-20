@@ -355,6 +355,30 @@ void ui_title_screen(tenv* env) {
   igTextColored((ImVec4){0.20f, 0.85f, 0.45f, 1.0f}, "%s", version_str);
   igPopFont();
 
+  // Top-left: Debug & Telemetry status toggle pill
+  igSetCursorPos((ImVec2){24.0f, 14.0f});
+  igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_SMALL],
+             usr->imgui_data.regular_font_bold[FONT_SIZE_SMALL]->LegacySize);
+  igPushStyleVar_Float(ImGuiStyleVar_FrameRounding, 8.0f);
+  if (usrs->debug_logs_enabled) {
+    igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.12f, 0.38f, 0.45f, 0.90f});
+    igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.16f, 0.48f, 0.58f, 1.0f});
+    if (igButton("🛠️ LOGS & DEBUG: ACTIVO", (ImVec2){200.0f, 32.0f})) {
+      usrs->debug_logs_enabled = false;
+      save_user_settings(usrs);
+    }
+  } else {
+    igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.20f, 0.22f, 0.26f, 0.70f});
+    igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.28f, 0.30f, 0.35f, 0.90f});
+    if (igButton("🛠️ LOGS & DEBUG: INACTIVO", (ImVec2){200.0f, 32.0f})) {
+      usrs->debug_logs_enabled = true;
+      save_user_settings(usrs);
+    }
+  }
+  igPopStyleColor(2);
+  igPopStyleVar(1);
+  igPopFont();
+
   usr->r->global.bg_opacity = 0;
   usr->r->global.bd_opacity = 0;
   usr->r->global.minimap_opacity = 0;
@@ -534,7 +558,31 @@ void ui_title_screen(tenv* env) {
 
   igSpacing();
 
-  // 5. Secondary Buttons Row: Controles, Aspectos, Ajustes
+  // 5. Button: Toggle Logs & Debug
+  igSetCursorPosX(center_x);
+  igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
+             usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
+  if (usrs->debug_logs_enabled) {
+    igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.14f, 0.38f, 0.44f, 1.0f});
+    igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.18f, 0.48f, 0.55f, 1.0f});
+    if (igButton("🛠️  Logs y Debug: ACTIVADO (Desactivar)", (ImVec2){menu_w, 48.0f})) {
+      usrs->debug_logs_enabled = false;
+      save_user_settings(usrs);
+    }
+  } else {
+    igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.22f, 0.24f, 0.28f, 1.0f});
+    igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.28f, 0.32f, 0.38f, 1.0f});
+    if (igButton("🛠️  Logs y Debug: DESACTIVADO (Activar)", (ImVec2){menu_w, 48.0f})) {
+      usrs->debug_logs_enabled = true;
+      save_user_settings(usrs);
+    }
+  }
+  igPopStyleColor(2);
+  igPopFont();
+
+  igSpacing();
+
+  // 6. Secondary Buttons Row: Controles, Aspectos, Ajustes
   float third_btn_w = (menu_w - 2.0f * style->ItemSpacing.x) / 3.0f;
   igSetCursorPosX(center_x);
   igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],

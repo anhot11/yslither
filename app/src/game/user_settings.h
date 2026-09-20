@@ -78,6 +78,7 @@ typedef struct user_settings {
   bool bot_visual_food;      // Ver linea verde hacia el objetivo de comida
   bool bot_auto_turbo;       // Permitir turbo inteligente en situaciones seguras
   bool bot_auto_start;       // Activar el bot automaticamente al iniciar partida
+  bool debug_logs_enabled;   // Modo Debug & Registro de Telemetria/Logs (default: true)
 
   gameplay_mode modes[2];
 
