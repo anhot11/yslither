@@ -31,7 +31,7 @@
 #define MAX_BODY_PTS 8192
 #define MAX_HULL_PTS 32
 #define MAX_INSIDE_PTS 512
-#define MAX_COLL_PTS 1024
+#define MAX_COLL_PTS 1536
 
 typedef struct {
   float x, y;
@@ -413,13 +413,14 @@ static void get_collision_points(game_data* gdata) {
     }
 
     int pn = tdarray_length(s->pts);
-    int step = (pn > 120) ? 3 : 2;
-    for (int j = 0; j < pn; j += step) {
+    for (int j = 0; j < pn; j++) {
       body_part* po = s->pts + j;
       if (po->dying) continue;
       float pd2 = dist2(B.x, B.y, po->xx, po->yy);
       if (pd2 > (1400.0f * 1400.0f)) continue;
-      coll_pt bp = {po->xx, po->yy, pd2, sr * 1.35f, i, 1};
+      // Dense sampling: within 650 px sample EVERY single segment so no gaps exist between spheres
+      if (pd2 > (650.0f * 650.0f) && (j % 2 != 0)) continue;
+      coll_pt bp = {po->xx, po->yy, pd2, sr * 1.45f, i, 1};
       add_coll_angle(&bp);
       if (B.coll_pts_n < MAX_COLL_PTS)
         B.coll_pts[B.coll_pts_n++] = bp;
@@ -463,13 +464,15 @@ static void evaluate_best_evasion_heading(game_data* gdata) {
 
   float preferred_goal_ang = atan2f(B.goal.y - B.y, B.goal.x - B.x);
 
+  // Critical clearance threshold below which a ray leads to certain collision
+  float hard_stop = B.radius * 2.2f + B.width * 1.5f;
+
   for (int k = 0; k < MAXARC; k++) {
     float ray_ang = k * ARC_SIZE;
     float rca = cosf(ray_ang);
     float rsa = sinf(ray_ang);
 
     float min_clearance = 1600.0f;
-    float hazard_penalty = 1.0f;
 
     // Raycast against all detected obstacles and predicted paths
     for (int i = 0; i < B.coll_pts_n; i++) {
@@ -479,19 +482,11 @@ static void evaluate_best_evasion_heading(game_data* gdata) {
       float proj = vx * rca + vy * rsa;
       if (proj > 0.0f) {
         float perp2 = (vx * vx + vy * vy) - (proj * proj);
-        float req_clear = cp->r + B.radius * 1.70f;
+        // Enemy heads have dynamic danger buffer, bodies have standard buffer
+        float req_clear = cp->r + ((cp->type == 0) ? (B.radius * 2.2f) : (B.radius * 1.65f));
         if (perp2 < req_clear * req_clear) {
           float hit_d = proj - sqrtf(fmaxf(0.0f, req_clear * req_clear - perp2));
           if (hit_d < min_clearance) min_clearance = fmaxf(0.0f, hit_d);
-        }
-      }
-
-      // Strong repulsion from enemy heads within 600 px
-      if (cp->type == 0 && cp->d2 < (600.0f * 600.0f)) {
-        float ang_to_threat = atan2f(vy, vx);
-        float d_ang = fabsf(ang_between(ray_ang, ang_to_threat));
-        if (d_ang < ((float)M_PI * 0.45f)) {
-          hazard_penalty *= 0.10f;
         }
       }
     }
@@ -506,33 +501,57 @@ static void evaluate_best_evasion_heading(game_data* gdata) {
       }
     }
 
-    // Non-linear quadratic safety clearance curve:
-    // If clearance < 750px, penalize heavily so safety strictly overrides goal bonus
-    float clearance_score;
-    if (min_clearance < 750.0f) {
-      float norm = min_clearance / 750.0f;
-      clearance_score = norm * norm * 750.0f;
-    } else {
-      clearance_score = min_clearance;
+    // Hard collision cutoff: rays with obstacle inside hard_stop are strictly disqualified
+    if (min_clearance <= hard_stop) {
+      continue;
     }
 
-    // Proximity hazard cutoff: severe penalty for rays with clearance < 180px
-    if (min_clearance < 180.0f) {
-      hazard_penalty *= 0.01f;
-    }
+    // Steep cubic clearance scoring:
+    // Guarantees that open escape corridors (1000+ px) crush cramped alleys (250 px)
+    float eff_clearance = (min_clearance - hard_stop) / (1600.0f - hard_stop);
+    float clearance_score = eff_clearance * eff_clearance * eff_clearance * 1600.0f;
 
-    // Goal alignment bonus (preferred navigation heading from delay_action)
+    // Goal alignment bonus (subtle tie-breaker, never overrules clearance)
     float goal_diff = fabsf(ang_between(ray_ang, preferred_goal_ang));
-    float goal_bonus = 1.0f + 0.25f * cosf(goal_diff);
+    float goal_bonus = 1.0f + 0.20f * cosf(goal_diff);
 
-    // Smoothness bonus (prefer keeping current forward momentum)
+    // Smoothness / turning agility factor: slightly favor gentle turns over extreme U-turns
     float delta_ang = fabsf(ang_between(ray_ang, B.ang));
-    float smooth_bonus = 1.0f + 0.15f * cosf(delta_ang);
+    float turn_smoothness = 1.0f - 0.20f * (delta_ang / (float)M_PI);
 
-    float score = clearance_score * hazard_penalty * goal_bonus * smooth_bonus;
+    float score = clearance_score * goal_bonus * turn_smoothness;
     if (score > best_score) {
       best_score = score;
       best_angle = ray_ang;
+    }
+  }
+
+  // Fallback if all 32 rays were disqualified: pick the ray with absolute maximum clearance
+  if (best_score <= -1e8f) {
+    float max_c = -1.0f;
+    for (int k = 0; k < MAXARC; k++) {
+      float ray_ang = k * ARC_SIZE;
+      float rca = cosf(ray_ang);
+      float rsa = sinf(ray_ang);
+      float min_c = 1600.0f;
+      for (int i = 0; i < B.coll_pts_n; i++) {
+        coll_pt* cp = &B.coll_pts[i];
+        float vx = cp->x - B.x;
+        float vy = cp->y - B.y;
+        float proj = vx * rca + vy * rsa;
+        if (proj > 0.0f) {
+          float perp2 = (vx * vx + vy * vy) - (proj * proj);
+          float req_clear = cp->r + B.radius * 1.5f;
+          if (perp2 < req_clear * req_clear) {
+            float hit_d = proj - sqrtf(fmaxf(0.0f, req_clear * req_clear - perp2));
+            if (hit_d < min_c) min_c = fmaxf(0.0f, hit_d);
+          }
+        }
+      }
+      if (min_c > max_c) {
+        max_c = min_c;
+        best_angle = ray_ang;
+      }
     }
   }
 
@@ -544,10 +563,8 @@ static bool check_collision(game_data* gdata) {
   if (B.coll_pts_n == 0) return false;
 
   bool immediate_threat = false;
-  float nearest_threat_d2 = 9999999.0f;
-  int nearest_threat_idx = -1;
 
-  float warn_dist = fmaxf(340.0f, B.width * 16.0f * B.speed_mult);
+  float warn_dist = fmaxf(340.0f, B.width * 14.0f * B.speed_mult);
   float warn_dist2 = warn_dist * warn_dist;
 
   for (int i = 0; i < B.coll_pts_n; i++) {
@@ -557,26 +574,20 @@ static bool check_collision(game_data* gdata) {
 
     if (eff_dist2 < warn_dist2) {
       float ang_to_pt = atan2f(cp->y - B.y, cp->x - B.x);
-      // Wide 140-degree frontal protection arc
-      if (fabsf(ang_between(ang_to_pt, B.ang)) < ((float)M_PI * 0.70f)) {
+      // Frontal danger arc strictly limited to forward hemisphere (+-80 degrees)
+      // Obstacles behind our lateral axis (rear hemisphere) cannot be hit by our head!
+      float d_heading = fabsf(ang_between(ang_to_pt, B.ang));
+      if (d_heading < ((float)M_PI * 0.44f)) {
         immediate_threat = true;
-        if (cp->d2 < nearest_threat_d2) {
-          nearest_threat_d2 = cp->d2;
-          nearest_threat_idx = i;
-        }
+        break;
       }
     }
   }
 
   if (immediate_threat) {
     evaluate_best_evasion_heading(gdata);
-    // Emergency boost evasion: engage boost when threat is immediate (< 160 px) or during sharp escape whip (< 350 px, turn > 60 deg)
-    float turn_delta = fabsf(ang_between(atan2f(B.goal.y - B.y, B.goal.x - B.x), B.ang));
-    if (nearest_threat_idx >= 0 && (nearest_threat_d2 < (160.0f * 160.0f) || (nearest_threat_d2 < (350.0f * 350.0f) && turn_delta > ((float)M_PI * 0.33f)))) {
-      gdata->bot.output.accel = true;
-    } else {
-      gdata->bot.output.accel = false;
-    }
+    // Never turbo into an evasion or turning maneuver! Normal speed guarantees tightest turning circle!
+    gdata->bot.output.accel = false;
     return true;
   }
 
@@ -588,7 +599,7 @@ static bool check_encircle(game_data* gdata) {
   if (!B.enable_encircle) return false;
   int en[512];
   memset(en, 0, sizeof(en));
-  int high = 0, high_si = 0, en_all = 0;
+  int high = 0, en_all = 0;
 
   for (int i = 0; i < MAXARC; i++) {
     if (!B.coll_angles_set[i]) continue;
@@ -596,7 +607,6 @@ static bool check_encircle(game_data* gdata) {
     if (ca->si >= 0 && ca->si < 512) {
       if (++en[ca->si] > high) {
         high = en[ca->si];
-        high_si = ca->si;
       }
     }
     float ed = B.radius * ENCIRCLE_DIST_MULT;
@@ -605,12 +615,7 @@ static bool check_encircle(game_data* gdata) {
 
   if (high > (int)(MAXARC * ENCIRCLE_THRESH) || en_all > (int)(MAXARC * ENCIRCLE_ALL_THRESH)) {
     evaluate_best_evasion_heading(gdata);
-    int ns = tdarray_length(gdata->data.snakes);
-    if (high != MAXARC && high_si < ns && gdata->data.snakes[high_si].sp > 10.0f) {
-      gdata->bot.output.accel = true;
-    } else {
-      gdata->bot.output.accel = false;
-    }
+    gdata->bot.output.accel = false; // Stay at controlled base speed to navigate out of the coil
     return true;
   }
   gdata->bot.output.accel = false;
@@ -1138,17 +1143,21 @@ void sbot_go(tenv* env) {
     follow_circle_self(gdata);
   } else if (in_collision) {
     B.delay_frame = COLLISION_DELAY;
-    // Smart boost whip evasion is already assigned by check_collision
+    bot->output.accel = false;
   } else {
     delay_action(gdata);
 
     // Hunting mode turbo towards food when safe
     if (usrs->bot_mode == 1 && usrs->bot_auto_turbo && B.has_food &&
         B.current_food.sz >= 2.0f && B.current_food.d2 > (150.0f * 150.0f) && B.current_food.d2 < (750.0f * 750.0f)) {
-      // Only engage hunting turbo if no enemy heads within 600 px
+      // Only engage hunting turbo if no enemy heads within 650 px AND no obstacles within 450 px
       bool safe_to_turbo = true;
       for (int i = 0; i < B.coll_pts_n; i++) {
-        if (B.coll_pts[i].type == 0 && B.coll_pts[i].d2 < (600.0f * 600.0f)) {
+        if (B.coll_pts[i].type == 0 && B.coll_pts[i].d2 < (650.0f * 650.0f)) {
+          safe_to_turbo = false;
+          break;
+        }
+        if (B.coll_pts[i].d2 < (450.0f * 450.0f)) {
           safe_to_turbo = false;
           break;
         }
