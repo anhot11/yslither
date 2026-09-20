@@ -285,6 +285,14 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
     if (cd <= fd + (B.radius * B.radius_mult * B.speed_mult) / 1.5f) return;
   }
 
+  // Reject food outside safe orbit band (near outer wall or center pit)
+  float food_dx = fx - gdata->data.grd;
+  float food_dy = fy - gdata->data.grd;
+  float food_dist_ctr = sqrtf(food_dx * food_dx + food_dy * food_dy);
+  if (food_dist_ctr > (gdata->data.flux_grd - 1200.0f) || food_dist_ctr < (gdata->data.grd * 0.30f)) {
+    return;
+  }
+
   // Survival Defense: evaluate risk from enemy snake heads and bodies
   float risk_factor = 1.0f;
   int ns = tdarray_length(gdata->data.snakes);
@@ -934,24 +942,22 @@ static void delay_action(game_data* gdata) {
 
   if (playing) {
     if (B.stage == 0) {
+      float dx = B.x - gdata->data.grd;
+      float dy = B.y - gdata->data.grd;
+      float dist_ctr = sqrtf(dx * dx + dy * dy);
+      float ang_from_ctr = atan2f(dy, dx);
+
       compute_food_goal(gdata);
-      if (B.has_food) {
+      // Border safety and center safety strictly override food pursuit
+      if (dist_ctr > (gdata->data.flux_grd - 1400.0f)) {
+        B.goal = heading_abs(ang_from_ctr + (float)M_PI); // Steer directly inward
+      } else if (dist_ctr < (gdata->data.grd * 0.35f)) {
+        B.goal = heading_abs(ang_from_ctr); // Steer outward away from pit
+      } else if (B.has_food) {
         B.goal = (v2){B.current_food.x, B.current_food.y};
       } else {
-        // Safe Orbiting Band (35% to 78% map radius, avoiding center death pit and border wall)
-        float dx = B.x - gdata->data.grd;
-        float dy = B.y - gdata->data.grd;
-        float dist_ctr = sqrtf(dx * dx + dy * dy);
-        float ang_from_ctr = atan2f(dy, dx);
-        float safe_ang;
-        if (dist_ctr < gdata->data.grd * 0.35f) {
-          safe_ang = ang_from_ctr; // Steer outward away from chaotic center
-        } else if (dist_ctr > gdata->data.grd * 0.78f) {
-          safe_ang = ang_from_ctr + (float)M_PI; // Steer inward away from border wall
-        } else {
-          // Tangential cruise: smooth circular patrol in fertile sweet spot
-          safe_ang = ang_from_ctr + (float)M_PI * 0.50f;
-        }
+        // Tangential cruise: smooth circular patrol in fertile sweet spot
+        float safe_ang = ang_from_ctr + (float)M_PI * 0.50f;
         B.goal = heading_abs(safe_ang);
       }
     } else if (B.stage == 1) {

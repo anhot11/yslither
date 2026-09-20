@@ -112,8 +112,10 @@ void flight_recorder_on_death(tenv* env) {
 
   // Diagnose death cause
   const char* cause = "COLISION CON SERPIENTE ENEMIGA";
-  float dist_to_center = sqrtf(last_tf->my_x * last_tf->my_x + last_tf->my_y * last_tf->my_y);
-  if (dist_to_center >= (gdata->data.grd - 60.0f)) {
+  float c_dx = last_tf->my_x - gdata->data.grd;
+  float c_dy = last_tf->my_y - gdata->data.grd;
+  float dist_to_center = sqrtf(c_dx * c_dx + c_dy * c_dy);
+  if (dist_to_center >= (gdata->data.flux_grd - 60.0f)) {
     cause = "COLISION CON BORDE DEL MAPA";
   } else if (last_tf->nearest_threat_dist < 70.0f) {
     cause = "CORTE FRONTAL / INTERCEPCION RAPIDA";
