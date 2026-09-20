@@ -59,6 +59,16 @@
 #define HOTKEY_QUIT 7
 #define NUM_HOTKEYS 8
 
+#ifndef GLFW_KEY_N
+#define GLFW_KEY_N 78
+#endif
+#ifndef GLFW_KEY_M
+#define GLFW_KEY_M 77
+#endif
+#ifndef GLFW_KEY_F11
+#define GLFW_KEY_F11 300
+#endif
+
 typedef enum conn_status {
   DISCONNECTED = 0,
   CONNECTING = 1,
