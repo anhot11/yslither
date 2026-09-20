@@ -1,6 +1,11 @@
 #include "sbot.h"
 
 #include <math.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846f
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -248,13 +253,23 @@ static inline bool is_left(v2 start, v2 end, v2 p) {
 
 static void add_coll_angle(coll_pt* sp) {
   float ang = atan2f(roundf(sp->y - B.y), roundf(sp->x - B.x));
-  int ai = ang_index(ang);
-  float adj = sqrtf(sp->d2) - sp->r;
-  float ad2 = roundf(adj * adj);
-  if (!B.coll_angles_set[ai] || B.coll_angles[ai].d2 > ad2) {
-    B.coll_angles[ai] =
-        (coll_ang){roundf(sp->x), roundf(sp->y), ang, ad2, sp->r, sp->si, ai};
-    B.coll_angles_set[ai] = true;
+  float d = sqrtf(sp->d2);
+  float effective_r = sp->r + B.radius * 1.5f;
+  float half_span = (d > effective_r) ? asinf(fminf(0.99f, effective_r / d)) : (float)M_PI;
+  int span_sectors = (int)ceilf(half_span / ARC_SIZE);
+  if (span_sectors > 15) span_sectors = 15;
+
+  int base_ai = ang_index(ang);
+  float adj = d - sp->r;
+  float ad2 = (adj > 0.0f) ? roundf(adj * adj) : 0.0f;
+
+  for (int step = -span_sectors; step <= span_sectors; step++) {
+    int ai = (base_ai + step + MAXARC) % MAXARC;
+    if (!B.coll_angles_set[ai] || B.coll_angles[ai].d2 > ad2) {
+      B.coll_angles[ai] =
+          (coll_ang){roundf(sp->x), roundf(sp->y), ang, ad2, sp->r, sp->si, ai};
+      B.coll_angles_set[ai] = true;
+    }
   }
 }
 
@@ -269,18 +284,28 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
     if (cd <= fd + (B.radius * B.radius_mult * B.speed_mult) / 1.5f) return;
   }
 
-  // Survival Defense: evaluate risk from enemy snake heads
+  // Survival Defense: evaluate risk from enemy snake heads and bodies
   float risk_factor = 1.0f;
   int ns = tdarray_length(gdata->data.snakes);
   for (int i = 0; i < ns; i++) {
     snake* s = gdata->data.snakes + i;
     if (s->id == B.id || s->dead) continue;
     float enemy_d2 = dist2(fx, fy, s->xx, s->yy);
-    float danger_zone = (B.width * 12.0f) * (B.width * 12.0f);
+    float danger_zone = (B.width * 14.0f) * (B.width * 14.0f);
     if (enemy_d2 < danger_zone) {
-      // If enemy head is closer to the food than our head is, skip entirely
-      if (enemy_d2 < fd2) return;
-      risk_factor += (danger_zone / (enemy_d2 + 1.0f)) * 3.0f;
+      // If enemy head is closer to food than our head is, skip entirely
+      if (enemy_d2 < fd2 * 1.30f) return;
+      risk_factor += (danger_zone / (enemy_d2 + 1.0f)) * 4.0f;
+    }
+
+    // Reject food that hugs an enemy body (pinch trap)
+    int pn = tdarray_length(s->pts);
+    for (int j = 0; j < pn; j += 4) {
+      body_part* po = s->pts + j;
+      if (po->dying) continue;
+      if (dist2(fx, fy, po->xx, po->yy) < (B.width * 3.5f) * (B.width * 3.5f)) {
+        return;
+      }
     }
   }
 
@@ -311,7 +336,6 @@ static void get_collision_points(game_data* gdata) {
   B.coll_pts_n = 0;
   memset(B.coll_angles_set, 0, sizeof(B.coll_angles_set));
 
-  float far_d2 = (B.width * 55.0f) * (B.width * 55.0f);
   int ns = tdarray_length(gdata->data.snakes);
 
   for (int i = 0; i < ns; i++) {
@@ -332,25 +356,27 @@ static void get_collision_points(game_data* gdata) {
     add_coll_angle(&head);
     if (B.coll_pts_n < MAX_COLL_PTS) B.coll_pts[B.coll_pts_n++] = head;
 
-    // Predictive trajectory: project enemy head ~8-12 frames forward
-    float pred_dist = s->sp * 9.0f;
-    float pred_x = s->xx + cosf(s->ang) * pred_dist;
-    float pred_y = s->yy + sinf(s->ang) * pred_dist;
-    float pred_d2 = dist2(B.x, B.y, pred_x, pred_y);
-    coll_pt pred_head = {pred_x, pred_y, pred_d2, head_buffer, i, 0};
-    add_coll_angle(&pred_head);
-    if (B.coll_pts_n < MAX_COLL_PTS) B.coll_pts[B.coll_pts_n++] = pred_head;
+    // Predictive trajectory sweep: project enemy head across 4 to 22 frames forward
+    float max_pred = (s->sp > 9.0f) ? 22.0f : 14.0f;
+    for (float t = 3.5f; t <= max_pred; t += 3.5f) {
+      float pred_x = s->xx + cosf(s->ang) * (s->sp * t);
+      float pred_y = s->yy + sinf(s->ang) * (s->sp * t);
+      float pred_d2 = dist2(B.x, B.y, pred_x, pred_y);
+      coll_pt pred_head = {pred_x, pred_y, pred_d2, head_buffer * (1.0f + t * 0.03f), i, 0};
+      add_coll_angle(&pred_head);
+      if (B.coll_pts_n < MAX_COLL_PTS) B.coll_pts[B.coll_pts_n++] = pred_head;
+    }
 
     int pn = tdarray_length(s->pts);
-    for (int j = 0; j < pn; j++) {
+    int step = (pn > 80) ? 3 : 2;
+    for (int j = 0; j < pn; j += step) {
       body_part* po = s->pts + j;
       if (po->dying) continue;
       float pd2 = dist2(B.x, B.y, po->xx, po->yy);
-      if (pd2 > far_d2) continue;
-      coll_pt bp = {po->xx, po->yy, pd2, sr, i, 1};
+      if (pd2 > (550.0f * 550.0f)) continue;
+      coll_pt bp = {po->xx, po->yy, pd2, sr * 1.35f, i, 1};
       add_coll_angle(&bp);
-      float tr = B.head_circle.r + sr;
-      if (pd2 <= tr * tr && B.coll_pts_n < MAX_COLL_PTS)
+      if (B.coll_pts_n < MAX_COLL_PTS)
         B.coll_pts[B.coll_pts_n++] = bp;
     }
   }
@@ -359,17 +385,17 @@ static void get_collision_points(game_data* gdata) {
   float view_ang = atan2f(gdata->data.view_yy - gdata->data.grd,
                           gdata->data.view_xx - gdata->data.grd);
   float dist_to_ctr = sqrtf(dist2(B.x, B.y, gdata->data.grd, gdata->data.grd));
-  bool near_wall = (gdata->data.flux_grd - dist_to_ctr) < 1200.0f;
+  bool near_wall = (gdata->data.flux_grd - dist_to_ctr) < 1400.0f;
 
   if (near_wall) {
     float bpw = BORDER_PT_RADIUS * 2.0f;
     float brad = gdata->data.flux_grd + BORDER_PT_RADIUS;
-    for (int k = -4; k <= 4; k++) {
+    for (int k = -5; k <= 5; k++) {
       float wa = view_ang + (k * bpw) / gdata->data.flux_grd;
       float wx = gdata->data.grd + brad * cosf(wa);
       float wy = gdata->data.grd + brad * sinf(wa);
       float wd2 = dist2(B.x, B.y, wx, wy);
-      coll_pt wp = {wx, wy, wd2, BORDER_PT_RADIUS, -1, 2};
+      coll_pt wp = {wx, wy, wd2, BORDER_PT_RADIUS * 1.5f, -1, 2};
       if (B.coll_pts_n < MAX_COLL_PTS) B.coll_pts[B.coll_pts_n++] = wp;
       add_coll_angle(&wp);
     }
@@ -378,94 +404,113 @@ static void get_collision_points(game_data* gdata) {
   qsort(B.coll_pts, B.coll_pts_n, sizeof(coll_pt), coll_pt_cmp);
 }
 
-static bool in_front(float px, float py) {
-  float ang = atan2f(roundf(py - B.y), roundf(px - B.x));
-  return fabsf(ang_between(ang, B.ang)) < FRONT_ANGLE;
-}
+// Unified 360-degree Raycast Clearance Evaluator
+static void evaluate_best_evasion_heading(game_data* gdata) {
+  float best_score = -1e9f;
+  float best_angle = B.ang;
+  float map_grd = gdata->data.grd;
+  float map_flux = gdata->data.flux_grd;
 
-// Smooth Tangential Avoidance: avoid 180 snap turns that crash into the snake's own neck
-static void avoid_point(isect* ip) {
-  v2 head = {B.x, B.y};
-  v2 end = {B.x + 2000.0f * B.ca, B.y + 2000.0f * B.sa};
-  v2 pt = {ip->x, ip->y};
-  float turn_offset = (float)M_PI * 0.55f;
-  float new_ang =
-      is_left(head, end, pt) ? ip->a - turn_offset : ip->a + turn_offset;
-  B.goal = heading_abs(new_ang);
-}
+  float dx = B.x - map_grd;
+  float dy = B.y - map_grd;
+  float dist_to_ctr = sqrtf(dx * dx + dy * dy);
+  float ang_to_ctr = atan2f(map_grd - B.y, map_grd - B.x);
 
-static void heading_best_angle(void) {
-  typedef struct {
-    int s, e, sz;
-  } oa;
-  oa opens[MAXARC];
-  int no = 0, open_start = -1;
-  int best_ai = -1;
-  float best_d = -1.0f;
+  for (int k = 0; k < MAXARC; k++) {
+    float ray_ang = k * ARC_SIZE;
+    float rca = cosf(ray_ang);
+    float rsa = sinf(ray_ang);
 
-  for (int i = 0; i < MAXARC; i++) {
-    if (!B.coll_angles_set[i]) {
-      if (open_start < 0) open_start = i;
-    } else {
-      float d = B.coll_angles[i].d2;
-      if (best_ai < 0 || (d > best_d && d != 0.0f)) {
-        best_d = d;
-        best_ai = i;
+    float min_clearance = 1500.0f;
+    float head_penalty = 1.0f;
+
+    // Raycast against all detected obstacles and predicted paths
+    for (int i = 0; i < B.coll_pts_n; i++) {
+      coll_pt* cp = &B.coll_pts[i];
+      float vx = cp->x - B.x;
+      float vy = cp->y - B.y;
+      float proj = vx * rca + vy * rsa;
+      if (proj > 0.0f) {
+        float perp2 = (vx * vx + vy * vy) - (proj * proj);
+        float req_clear = cp->r + B.radius * 1.6f;
+        if (perp2 < req_clear * req_clear) {
+          float hit_d = proj - sqrtf(fmaxf(0.0f, req_clear * req_clear - perp2));
+          if (hit_d < min_clearance) min_clearance = hit_d;
+        }
       }
-      if (open_start >= 0) {
-        opens[no++] = (oa){open_start, i - 1, i - 1 - open_start};
-        open_start = -1;
-      }
-    }
-  }
-  if (open_start >= 0) {
-    if (no > 0) {
-      opens[0].s = open_start;
-      opens[0].sz = opens[0].e - open_start;
-      if (opens[0].sz < 0) opens[0].sz += MAXARC;
-    } else {
-      opens[no++] = (oa){open_start, open_start, 0};
-    }
-  }
 
-  if (no > 0) {
-    for (int a = 0; a < no - 1; a++) {
-      for (int b = a + 1; b < no; b++) {
-        if (opens[b].sz > opens[a].sz) {
-          oa t = opens[a];
-          opens[a] = opens[b];
-          opens[b] = t;
+      // Strong repulsion from enemy heads within 450 px
+      if (cp->type == 0 && cp->d2 < (450.0f * 450.0f)) {
+        float ang_to_threat = atan2f(vy, vx);
+        float d_ang = fabsf(ang_between(ray_ang, ang_to_threat));
+        if (d_ang < ((float)M_PI * 0.40f)) {
+          head_penalty *= 0.12f;
         }
       }
     }
-    float mid = (opens[0].e - opens[0].sz / 2.0f) * ARC_SIZE;
-    B.goal = heading_abs(mid);
-  } else if (best_ai >= 0) {
-    B.goal = heading_abs(best_ai * ARC_SIZE);
+
+    // Map border clearance along ray
+    float border_clearance = map_flux - dist_to_ctr;
+    if (border_clearance < 1800.0f) {
+      float ang_diff_border = fabsf(ang_between(ray_ang, ang_to_ctr));
+      // If ray points away from center towards border:
+      if (ang_diff_border > ((float)M_PI * 0.45f)) {
+        float outward_factor = (ang_diff_border - (float)M_PI * 0.45f) / ((float)M_PI * 0.55f);
+        min_clearance = fminf(min_clearance, border_clearance * (1.0f - outward_factor * 0.75f));
+      }
+    }
+
+    // Smoothness bonus (prefer keeping current forward momentum over sharp hairpin turns)
+    float delta_ang = fabsf(ang_between(ray_ang, B.ang));
+    float smooth_bonus = 1.0f - 0.35f * (delta_ang / (float)M_PI);
+
+    float score = min_clearance * head_penalty * smooth_bonus;
+    if (score > best_score) {
+      best_score = score;
+      best_angle = ray_ang;
+    }
   }
+
+  B.goal = heading_abs(best_angle);
 }
 
 static bool check_collision(game_data* gdata) {
   get_collision_points(gdata);
   if (B.coll_pts_n == 0) return false;
 
+  bool immediate_threat = false;
+  float nearest_threat_d2 = 9999999.0f;
+  int nearest_threat_idx = -1;
+
   for (int i = 0; i < B.coll_pts_n; i++) {
     coll_pt* cp = B.coll_pts + i;
     circ col = {cp->x, cp->y, cp->r};
     isect ip;
-    if (circle_intersect(B.head_circle, col, &ip) && in_front(ip.x, ip.y)) {
-      if (cp->type == 0 && cp->si >= 0) {
-        snake* s = gdata->data.snakes + cp->si;
-        // Emergency boost evasion only if enemy is charging fast at us
-        gdata->bot.output.accel = (s->sp > 10.0f);
-      } else {
-        // Conserve mass when dodging bodies or borders
-        gdata->bot.output.accel = false;
+    if (circle_intersect(B.head_circle, col, &ip)) {
+      float ang_to_pt = atan2f(cp->y - B.y, cp->x - B.x);
+      // Wide 130-degree frontal protection arc
+      if (fabsf(ang_between(ang_to_pt, B.ang)) < ((float)M_PI * 0.65f)) {
+        immediate_threat = true;
+        if (cp->d2 < nearest_threat_d2) {
+          nearest_threat_d2 = cp->d2;
+          nearest_threat_idx = i;
+        }
       }
-      avoid_point(&ip);
-      return true;
     }
   }
+
+  if (immediate_threat) {
+    evaluate_best_evasion_heading(gdata);
+    // Emergency boost evasion only if threat is charging dangerously close (< 100 px)
+    if (nearest_threat_idx >= 0 && nearest_threat_d2 < (100.0f * 100.0f)) {
+      coll_pt* tcp = &B.coll_pts[nearest_threat_idx];
+      gdata->bot.output.accel = (tcp->type == 0 && tcp->si >= 0);
+    } else {
+      gdata->bot.output.accel = false;
+    }
+    return true;
+  }
+
   gdata->bot.output.accel = false;
   return false;
 }
@@ -489,19 +534,14 @@ static bool check_encircle(game_data* gdata) {
     if (ca->d2 < ed * ed) en_all++;
   }
 
-  if (high > (int)(MAXARC * ENCIRCLE_THRESH)) {
-    heading_best_angle();
+  if (high > (int)(MAXARC * ENCIRCLE_THRESH) || en_all > (int)(MAXARC * ENCIRCLE_ALL_THRESH)) {
+    evaluate_best_evasion_heading(gdata);
     int ns = tdarray_length(gdata->data.snakes);
-    if (high != MAXARC && high_si < ns) {
-      gdata->bot.output.accel = gdata->data.snakes[high_si].sp > 10.0f;
+    if (high != MAXARC && high_si < ns && gdata->data.snakes[high_si].sp > 10.0f) {
+      gdata->bot.output.accel = true;
     } else {
       gdata->bot.output.accel = false;
     }
-    return true;
-  }
-  if (en_all > (int)(MAXARC * ENCIRCLE_ALL_THRESH)) {
-    heading_best_angle();
-    gdata->bot.output.accel = false;
     return true;
   }
   gdata->bot.output.accel = false;
@@ -891,8 +931,25 @@ static void delay_action(game_data* gdata) {
   if (playing) {
     if (B.stage == 0) {
       compute_food_goal(gdata);
-      B.goal = B.has_food ? (v2){B.current_food.x, B.current_food.y}
-                          : (v2){gdata->data.grd, gdata->data.grd};
+      if (B.has_food) {
+        B.goal = (v2){B.current_food.x, B.current_food.y};
+      } else {
+        // Safe Orbiting Band (35% to 78% map radius, avoiding center death pit and border wall)
+        float dx = B.x - gdata->data.grd;
+        float dy = B.y - gdata->data.grd;
+        float dist_ctr = sqrtf(dx * dx + dy * dy);
+        float ang_from_ctr = atan2f(dy, dx);
+        float safe_ang;
+        if (dist_ctr < gdata->data.grd * 0.35f) {
+          safe_ang = ang_from_ctr; // Steer outward away from chaotic center
+        } else if (dist_ctr > gdata->data.grd * 0.78f) {
+          safe_ang = ang_from_ctr + (float)M_PI; // Steer inward away from border wall
+        } else {
+          // Tangential cruise: smooth circular patrol in fertile sweet spot
+          safe_ang = ang_from_ctr + (float)M_PI * 0.50f;
+        }
+        B.goal = heading_abs(safe_ang);
+      }
     } else if (B.stage == 1) {
       to_circle(gdata);
     }
@@ -990,20 +1047,20 @@ void sbot_go(tenv* env) {
     if (B.has_food && B.stage != 0) B.has_food = false;
   }
 
+  bool in_collision = check_collision(gdata) || check_encircle(gdata);
   if (B.stage == 2) {
     bot->output.accel = false;
     follow_circle_self(gdata);
-  } else if (check_collision(gdata) || check_encircle(gdata)) {
-    if (B.delay_frame != -1) B.delay_frame = COLLISION_DELAY;
-    // Smart auto-turbo: emergency escape boost if enemy is dangerously close
-    if (usrs->bot_auto_turbo && B.coll_pts_n > 0 && B.coll_pts[0].d2 < 140.0f * 140.0f) {
+  } else if (in_collision) {
+    B.delay_frame = COLLISION_DELAY;
+    // Smart auto-turbo: emergency escape boost only if threat head is charging dangerously close (< 110px)
+    if (usrs->bot_auto_turbo && B.coll_pts_n > 0 && B.coll_pts[0].type == 0 && B.coll_pts[0].d2 < 110.0f * 110.0f) {
       bot->output.accel = true;
     } else {
       bot->output.accel = false;
     }
   } else {
     if (B.snake_len > B.follow_circle_length) B.stage = 1;
-    if (B.delay_frame == -1) B.delay_frame = ACTION_FRAMES;
     // Hunting mode turbo towards large food clusters when safe
     if (usrs->bot_mode == 1 && usrs->bot_auto_turbo && B.has_food &&
         B.current_food.sz > 3.0f && B.current_food.d2 > 180.0f * 180.0f) {
@@ -1011,9 +1068,8 @@ void sbot_go(tenv* env) {
     } else {
       bot->output.accel = false;
     }
+    delay_action(gdata);
   }
-
-  delay_action(gdata);
 
   bot->output.xm = (B.goal.x - gdata->data.view_xx) * gdata->data.gsc;
   bot->output.ym = (B.goal.y - gdata->data.view_yy) * gdata->data.gsc;
