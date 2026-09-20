@@ -7,6 +7,15 @@
 #include "redraw.h"
 #include "ui_overlay.h"
 
+#ifdef __ANDROID__
+#include <android/log.h>
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "yslither_loop", __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "yslither_loop", __VA_ARGS__)
+#else
+#define LOGI(...) printf(__VA_ARGS__)
+#define LOGE(...) printf(__VA_ARGS__)
+#endif
+
 void game_loop(tenv* env) {
   tuser_data* usr = env->usr;
   tcontext* ctx = env->ctx;
@@ -21,9 +30,10 @@ void game_loop(tenv* env) {
       usr->r->global.bd_opacity = 0;
       usr->r->global.minimap_opacity = 0;
 
-      if (glfwGetTime() > TIMEOUT) {
-        gdata->connection->is_closing = true;
-        printf("Connection timed out.");
+      double cur_t = glfwGetTime();
+      if (cur_t > TIMEOUT) {
+        if (gdata->connection) gdata->connection->is_closing = true;
+        LOGE("Connection timed out after %.2f seconds", cur_t);
       }
 
       server_poll(env);

@@ -4,6 +4,15 @@
 #include "../game/snake.h"
 #include "../user.h"
 
+#ifdef __ANDROID__
+#include <android/log.h>
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "yslither_net", __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "yslither_net", __VA_ARGS__)
+#else
+#define LOGI(...) printf(__VA_ARGS__)
+#define LOGE(...) printf(__VA_ARGS__)
+#endif
+
 void snl(game_data* gdata, snake* o) {
   float orl = o->tl;
   o->tl = o->sct + fminf(1, o->fam);
@@ -111,6 +120,7 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
 
   int m = 1;
   if (cmd == '6') {
+    LOGI("got_packet: Received server challenge packet '6', responding to spawn snake...");
     uint8_t secret[27] = {0};
     decode_secret(a, a_len, secret);
     mg_ws_send(c, secret, 27, WEBSOCKET_OP_BINARY);
@@ -372,6 +382,7 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
         gdata->data.lfesid = -1;
 
         gdata->conn = CONNECTED;
+        LOGI("Snake spawned successfully! Game is now CONNECTED!");
         if (gdata->data.protocol_version != PROTOCOL_VERSION) {
           printf("Protocol version %d is not supported.\n", gdata->data.protocol_version);
           c->is_closing = true;
@@ -1283,9 +1294,9 @@ void server_callback(struct mg_connection* c, int ev, void* ev_data) {
   game_data* gdata = &usr->gdata;
 
   if (ev == MG_EV_OPEN) {
-    printf("Connection opened\n");
+    LOGI("server_callback: Connection opened");
   } else if (ev == MG_EV_WS_OPEN) {
-    printf("Connection established\n");
+    LOGI("server_callback: WebSocket handshake established! Sending init bytes");
 
     mg_ws_send(c, (uint8_t[]){1}, 1, WEBSOCKET_OP_BINARY);
     mg_ws_send(c, (uint8_t[]){'c', 0}, 2, WEBSOCKET_OP_BINARY);
@@ -1314,10 +1325,10 @@ void server_callback(struct mg_connection* c, int ev, void* ev_data) {
       got_packet(env, a2, len);
     }
   } else if (ev == MG_EV_ERROR) {
-    printf("Connection error: %s, closing connection...\n", (char*)ev_data);
+    LOGE("server_callback: Connection error: %s, closing connection...", (char*)ev_data);
     c->is_closing = true;
   } else if (ev == MG_EV_CLOSE) {
-    printf("Connection closed\n");
+    LOGI("server_callback: Connection closed");
     gdata->closed = true;
   }
 }

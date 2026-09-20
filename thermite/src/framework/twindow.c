@@ -5,6 +5,8 @@
 
 #ifdef __ANDROID__
 
+double g_glfw_time_offset = 0.0;
+
 void twindow_request_refresh(twindow* twindow) {
   twindow->_refresh = true;
 }

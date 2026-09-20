@@ -30,6 +30,8 @@ void user_settings_default(user_settings* usr_settings) {
   usr_settings->instant_restart = false;
   usr_settings->bot_radius_mult = 20;
   usr_settings->bot_follow_circle_score = 2000;
+  strcpy(usr_settings->ipv4, "192.211.52.146:444");
+  strcpy(usr_settings->nickname, "Slither");
 
   // normal mode
   usr_settings->modes[0].food_flicker = true;

@@ -182,6 +182,42 @@ static int32_t handle_input(struct android_app* app, AInputEvent* event) {
       touch_input_up(&g_touch, id);
       return 1;
     }
+  } else if (event_type == AINPUT_EVENT_TYPE_KEY) {
+    int32_t action = AKeyEvent_getAction(event);
+    int32_t keycode = AKeyEvent_getKeyCode(event);
+    ImGuiIO* io = igGetIO_Nil();
+    if (io) {
+      if (action == AKEY_EVENT_ACTION_DOWN) {
+        if (keycode >= AKEYCODE_A && keycode <= AKEYCODE_Z) {
+          int meta = AKeyEvent_getMetaState(event);
+          bool shift = (meta & AMETA_SHIFT_ON) != 0;
+          char c = (shift ? 'A' : 'a') + (keycode - AKEYCODE_A);
+          ImGuiIO_AddInputCharacter(io, c);
+          return 1;
+        } else if (keycode >= AKEYCODE_0 && keycode <= AKEYCODE_9) {
+          char c = '0' + (keycode - AKEYCODE_0);
+          ImGuiIO_AddInputCharacter(io, c);
+          return 1;
+        } else if (keycode == AKEYCODE_SPACE) {
+          ImGuiIO_AddInputCharacter(io, ' ');
+          return 1;
+        } else if (keycode == AKEYCODE_DEL) {
+          ImGuiIO_AddKeyEvent(io, ImGuiKey_Backspace, true);
+          return 1;
+        } else if (keycode == AKEYCODE_ENTER) {
+          ImGuiIO_AddKeyEvent(io, ImGuiKey_Enter, true);
+          return 1;
+        }
+      } else if (action == AKEY_EVENT_ACTION_UP) {
+        if (keycode == AKEYCODE_DEL) {
+          ImGuiIO_AddKeyEvent(io, ImGuiKey_Backspace, false);
+          return 1;
+        } else if (keycode == AKEYCODE_ENTER) {
+          ImGuiIO_AddKeyEvent(io, ImGuiKey_Enter, false);
+          return 1;
+        }
+      }
+    }
   }
 
   return 0;

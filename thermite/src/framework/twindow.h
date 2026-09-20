@@ -6,14 +6,20 @@
 #include <android_native_app_glue.h>
 #include <time.h>
 
+extern double g_glfw_time_offset;
+
 static inline double glfwGetTime(void) {
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
-  return (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
+  double now = (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
+  return now - g_glfw_time_offset;
 }
 
 static inline void glfwSetTime(double t) {
-  (void)t;
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  double now = (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
+  g_glfw_time_offset = now - t;
 }
 #endif
 
