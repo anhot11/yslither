@@ -22,7 +22,7 @@ void imgui_init(tenv* env) {
       .DescriptorPoolSize = 0,
       .MinImageCount = env->ctx->min_image_count,
       .ImageCount = env->ctx->fif,
-      .PipelineCache = NULL,
+      .PipelineCache = VK_NULL_HANDLE,
       .PipelineInfoMain = {.RenderPass = env->ctx->renderpass,
                            .Subpass = 0,
                            .MSAASamples = VK_SAMPLE_COUNT_1_BIT},
@@ -135,7 +135,7 @@ void imgui_prerender() {
 }
 
 void imgui_render(VkCommandBuffer cmd) {
-  igImplVulkan_RenderDrawData(igGetDrawData(), cmd, NULL);
+  igImplVulkan_RenderDrawData(igGetDrawData(), cmd, VK_NULL_HANDLE);
 }
 
 void imgui_destroy() {
