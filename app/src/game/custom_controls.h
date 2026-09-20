@@ -57,6 +57,7 @@ bool custom_controls_touch_down(int pointer_id, float x, float y, float screen_w
 bool custom_controls_touch_move(int pointer_id, float x, float y, float screen_w, float screen_h, tenv* env);
 bool custom_controls_touch_up(int pointer_id, tenv* env);
 void custom_controls_reset_state(tenv* env);
+bool custom_controls_is_boost_active(void);
 
 // Renderizado en el HUD durante la partida
 void custom_controls_render_hud(tenv* env, float screen_w, float screen_h);

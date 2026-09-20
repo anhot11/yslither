@@ -11,6 +11,7 @@
 
 #include "../constants.h"
 #include "../user.h"
+#include "custom_controls.h"
 
 // yslither Survival / Ultra-Defensive Bot
 // Upgraded with 32-sector collision radar, predictive threat avoidance,
@@ -79,6 +80,8 @@ typedef struct {
   int circle_dir;
   bool enable_encircle;
   bool enable_follow_circle;
+  int bot_mode;
+  bool bot_auto_turbo;
 
   int id;
   float x, y, ang, ca, sa;
@@ -275,6 +278,9 @@ static void add_coll_angle(coll_pt* sp) {
 }
 
 static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* gdata) {
+  // 1. Hard maximum tactical horizon (950 px)
+  if (fd2 > (950.0f * 950.0f)) return;
+
   float ang = atan2f(roundf(fy - B.y), roundf(fx - B.x));
   int ai = ang_index(ang);
 
@@ -285,15 +291,26 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
     if (cd <= fd + (B.radius * B.radius_mult * B.speed_mult) / 1.5f) return;
   }
 
-  // Reject food outside safe orbit band (near outer wall or center pit)
+  // 2. Reject food outside safe arena boundaries
   float food_dx = fx - gdata->data.grd;
   float food_dy = fy - gdata->data.grd;
   float food_dist_ctr = sqrtf(food_dx * food_dx + food_dy * food_dy);
-  if (food_dist_ctr > (gdata->data.flux_grd - 1200.0f) || food_dist_ctr < (gdata->data.grd * 0.30f)) {
+  if (food_dist_ctr > (gdata->data.flux_grd - 800.0f) || food_dist_ctr < (gdata->data.flux_grd * 0.15f)) {
     return;
   }
 
-  // Survival Defense: evaluate risk from enemy snake heads and bodies
+  float fd = sqrtf(fd2);
+  float d_head = fabsf(ang_between(ang, B.ang));
+
+  // 3. Unicycle / Turning Radius Rejection (prevents spinning in circles!):
+  // If food is inside minimum turning radius and requires a sharp turn (> 45 deg),
+  // the snake physically cannot turn tightly enough to hit it in one go.
+  float min_turn_r = B.width * 2.2f;
+  if (fd < min_turn_r && d_head > ((float)M_PI * 0.25f)) {
+    return;
+  }
+
+  // 4. Survival Defense: evaluate risk from enemy snake heads and bodies
   float risk_factor = 1.0f;
   int ns = tdarray_length(gdata->data.snakes);
   for (int i = 0; i < ns; i++) {
@@ -318,16 +335,35 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
     }
   }
 
-  float score = (fsz * fsz) / (fd2 * risk_factor);
+  // 5. Intelligent Multi-factor Food Scoring:
+  // Forward orientation bonus: food ahead requires no turning (up to 1.85x bonus)
+  float forward_bonus = 1.0f + 0.85f * cosf(d_head);
+
+  // Steep quadratic proximity weighting: close food dominates distant food!
+  float dist_norm = fd / 140.0f;
+  float prox_factor = 1.0f / (1.0f + dist_norm * dist_norm);
+
+  // Value scaling (large food / dead snake chunks are attractive, capped to prevent distortion)
+  float size_val = fminf(6.0f, 1.0f + fsz * 0.5f);
+
+  // Target persistence / stickiness bonus (prevents rapid jumping between distant targets)
+  float persistence = 1.0f;
+  if (B.has_food && dist2(fx, fy, B.current_food.x, B.current_food.y) < (180.0f * 180.0f)) {
+    persistence = 1.40f;
+  }
+
+  float score = (size_val * prox_factor * forward_bonus * persistence) / risk_factor;
+
   if (!B.food_angles_set[ai]) {
     B.food_angles[ai] =
-        (food_ang){roundf(fx), roundf(fy), ang, fabsf(ang_between(ang, B.ang)),
+        (food_ang){roundf(fx), roundf(fy), ang, d_head,
                    fd2, fsz, score};
     B.food_angles_set[ai] = true;
   } else {
     food_ang* fa = &B.food_angles[ai];
     fa->sz += roundf(fsz);
     fa->score += score;
+    // Always track the closest edible food point in this sector
     if (fa->d2 > fd2) {
       fa->x = roundf(fx);
       fa->y = roundf(fy);
@@ -946,12 +982,6 @@ static void compute_food_goal(game_data* gdata) {
 }
 
 static void delay_action(game_data* gdata) {
-  if (B.delay_frame == -1) return;
-  if (B.delay_frame > 0) {
-    B.delay_frame--;
-    return;
-  }
-
   int ns = tdarray_length(gdata->data.snakes);
   bool playing = false;
   for (int i = 0; i < ns; i++) {
@@ -960,35 +990,53 @@ static void delay_action(game_data* gdata) {
       break;
     }
   }
+  if (!playing) return;
 
-  if (playing) {
-    if (B.stage == 0) {
-      float dx = B.x - gdata->data.grd;
-      float dy = B.y - gdata->data.grd;
-      float dist_ctr = sqrtf(dx * dx + dy * dy);
-      float ang_from_ctr = atan2f(dy, dx);
-
-      compute_food_goal(gdata);
-      // Border safety and center safety strictly override food pursuit
-      if (dist_ctr > (gdata->data.flux_grd - 1400.0f)) {
-        B.goal = heading_abs(ang_from_ctr + (float)M_PI); // Steer directly inward
-      } else if (dist_ctr < (gdata->data.grd * 0.35f)) {
-        B.goal = heading_abs(ang_from_ctr); // Steer outward away from pit
-      } else if (B.has_food) {
-        B.goal = (v2){B.current_food.x, B.current_food.y};
-      } else {
-        // Proportional Closed-Loop Safe Orbit Controller (Targets 55% of arena radius)
-        float target_r = gdata->data.flux_grd * 0.55f;
-        float r_err = (dist_ctr - target_r) / target_r;
-        float tilt = fmaxf(-0.60f, fminf(0.60f, r_err * 1.25f));
-        float safe_ang = ang_from_ctr + (float)M_PI * (0.50f + tilt * 0.35f);
-        B.goal = heading_abs(safe_ang);
-      }
-    } else if (B.stage == 1) {
-      to_circle(gdata);
-    }
+  if (B.delay_frame > 0) {
+    B.delay_frame--;
+    return;
   }
-  B.delay_frame = -1;
+
+  if (B.stage == 0) {
+    float dx = B.x - gdata->data.grd;
+    float dy = B.y - gdata->data.grd;
+    float dist_ctr = sqrtf(dx * dx + dy * dy);
+    float ang_from_ctr = atan2f(dy, dx);
+
+    compute_food_goal(gdata);
+
+    // Proportional Closed-Loop Safe Orbit Controller (Targets 55% of arena radius)
+    float target_r = gdata->data.flux_grd * 0.55f;
+    float r_err = (dist_ctr - target_r) / fmaxf(100.0f, target_r);
+    float tilt = fmaxf(-0.60f, fminf(0.60f, r_err * 1.25f));
+    float safe_ang = ang_from_ctr + (float)M_PI * (0.50f + tilt * 0.35f);
+
+    // Border safety and center safety strictly override food pursuit
+    if (dist_ctr > (gdata->data.flux_grd - 1200.0f)) {
+      B.goal = heading_abs(ang_from_ctr + (float)M_PI); // Steer directly inward
+    } else if (dist_ctr < (gdata->data.flux_grd * 0.15f)) {
+      B.goal = heading_abs(ang_from_ctr); // Steer outward away from pit
+    } else if (B.has_food && (B.bot_mode == 1 || (B.bot_mode == 0 && B.current_food.d2 < (350.0f * 350.0f)))) {
+      float f_dx = B.current_food.x - B.x;
+      float f_dy = B.current_food.y - B.y;
+      float f_dist = sqrtf(f_dx * f_dx + f_dy * f_dy);
+      if (f_dist < (B.radius * 1.6f)) {
+        // Food consumed! Clear target so next food is selected
+        B.has_food = false;
+        B.goal = heading_abs(B.ang);
+      } else {
+        // Project goal smoothly through the food cluster along the approach line (vacuum mode)
+        float lead = fminf(120.0f, f_dist * 0.5f);
+        B.goal = (v2){roundf(B.current_food.x + (f_dx / f_dist) * lead),
+                      roundf(B.current_food.y + (f_dy / f_dist) * lead)};
+      }
+    } else {
+      // Safe cruise orbit (renders cyan line smoothly ahead in defensive/patrol mode!)
+      B.goal = heading_abs(safe_ang);
+    }
+  } else if (B.stage == 1) {
+    to_circle(gdata);
+  }
 }
 
 static int snake_score(game_data* gdata, snake* sk) {
@@ -1081,28 +1129,39 @@ void sbot_go(tenv* env) {
     if (B.has_food && B.stage != 0) B.has_food = false;
   }
 
+  B.bot_mode = usrs->bot_mode;
+  B.bot_auto_turbo = usrs->bot_auto_turbo;
+
   bool in_collision = check_collision(gdata) || check_encircle(gdata);
   if (B.stage == 2) {
     bot->output.accel = false;
     follow_circle_self(gdata);
   } else if (in_collision) {
     B.delay_frame = COLLISION_DELAY;
-    // Smart auto-turbo: emergency escape boost if any threat is dangerously close (< 120px)
-    if (usrs->bot_auto_turbo && B.coll_pts_n > 0 && B.coll_pts[0].d2 < 120.0f * 120.0f) {
-      bot->output.accel = true;
-    } else {
-      bot->output.accel = false;
-    }
+    // Smart boost whip evasion is already assigned by check_collision
   } else {
-    if (B.snake_len > B.follow_circle_length) B.stage = 1;
-    // Hunting mode turbo towards large food clusters when safe
+    delay_action(gdata);
+
+    // Hunting mode turbo towards food when safe
     if (usrs->bot_mode == 1 && usrs->bot_auto_turbo && B.has_food &&
-        B.current_food.sz > 3.0f && B.current_food.d2 > 180.0f * 180.0f) {
-      bot->output.accel = true;
+        B.current_food.sz >= 2.0f && B.current_food.d2 > (150.0f * 150.0f) && B.current_food.d2 < (750.0f * 750.0f)) {
+      // Only engage hunting turbo if no enemy heads within 600 px
+      bool safe_to_turbo = true;
+      for (int i = 0; i < B.coll_pts_n; i++) {
+        if (B.coll_pts[i].type == 0 && B.coll_pts[i].d2 < (600.0f * 600.0f)) {
+          safe_to_turbo = false;
+          break;
+        }
+      }
+      bot->output.accel = safe_to_turbo;
     } else {
       bot->output.accel = false;
     }
-    delay_action(gdata);
+  }
+
+  // Manual player boost button always overrides the bot!
+  if (custom_controls_is_boost_active()) {
+    bot->output.accel = true;
   }
 
   bot->output.xm = (B.goal.x - gdata->data.view_xx) * gdata->data.gsc;

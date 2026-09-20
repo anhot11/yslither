@@ -338,7 +338,7 @@ void android_main(struct android_app* state) {
       if (g_env.ctx && g_env.ctx->swapchain_ok) {
         tuser_data* usr = (tuser_data*)g_env.usr;
         if (usr && g_touch.active) {
-          usr->gdata.bot.output.accel = g_touch.boost;
+          if (g_touch.boost) usr->gdata.bot.output.accel = true;
           if (g_env.ms) {
             g_env.ms->pos[0] = (float)g_env.ctx->size[0] / 2.0f + g_touch.target_x;
             g_env.ms->pos[1] = (float)g_env.ctx->size[1] / 2.0f + g_touch.target_y;

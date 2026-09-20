@@ -16,7 +16,6 @@ void ui_bot_settings(tenv* env) {
   tuser_data* usr = env->usr;
   tcontext* ctx = env->ctx;
   user_settings* usrs = &usr->usrs;
-  ImGuiStyle* style = igGetStyle();
   float screen_w = (float)ctx->size[0];
   float screen_h = (float)ctx->size[1];
 
@@ -83,7 +82,7 @@ void ui_bot_settings(tenv* env) {
 
       igSpacing();
       if (is_m0) {
-        igTextColored((ImVec4){0.25f, 0.90f, 0.50f, 1.0f}, "✓ SELECCIONADO (RECOMENDADO)");
+        igTextColored((ImVec4){0.25f, 0.90f, 0.50f, 1.0f}, "✓ SELECCIONADO");
       } else {
         if (igButton("Activar Modo Defensivo", (ImVec2){180.0f, 26.0f})) {
           usrs->bot_mode = 0;
@@ -95,7 +94,7 @@ void ui_bot_settings(tenv* env) {
 
     igSpacing();
 
-    // Mode 1: Caza / Equilibrado
+    // Mode 1: Ataque / Caza & Crecimiento (Recomendado)
     bool is_m1 = (usrs->bot_mode == 1);
     if (is_m1) {
       igPushStyleColor_Vec4(ImGuiCol_ChildBg, (ImVec4){0.28f, 0.20f, 0.10f, 0.90f});
@@ -109,20 +108,20 @@ void ui_bot_settings(tenv* env) {
       igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
                  usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
       igTextColored(is_m1 ? (ImVec4){0.98f, 0.75f, 0.25f, 1.0f} : (ImVec4){0.85f, 0.85f, 0.85f, 1.0f},
-                    "⚔️  Caza / Equilibrado");
+                    "⚔️  Ataque / Caza & Crecimiento");
       igPopFont();
 
       igPushFont(usr->imgui_data.regular_font[FONT_SIZE_SMALL],
                  usr->imgui_data.regular_font[FONT_SIZE_SMALL]->LegacySize);
       igTextColored((ImVec4){0.70f, 0.75f, 0.80f, 0.90f},
-                    "Comportamiento activo y giros mas agresivos. Persigue estelas de serpientes caidas y activa turbo inteligente hacia alimento abundante.");
+                    "Busqueda activa de comida para crecer sin morir. Prioriza alimento cercano, aspira estelas de serpientes caidas y mantiene blindaje defensivo total.");
       igPopFont();
 
       igSpacing();
       if (is_m1) {
-        igTextColored((ImVec4){0.95f, 0.70f, 0.20f, 1.0f}, "✓ SELECCIONADO");
+        igTextColored((ImVec4){0.95f, 0.70f, 0.20f, 1.0f}, "✓ SELECCIONADO (POR DEFECTO)");
       } else {
-        if (igButton("Activar Modo Caza", (ImVec2){180.0f, 26.0f})) {
+        if (igButton("Activar Modo Ataque", (ImVec2){180.0f, 26.0f})) {
           usrs->bot_mode = 1;
         }
       }
@@ -320,7 +319,7 @@ void ui_bot_settings(tenv* env) {
   igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.20f, 0.22f, 0.28f, 1.0f});
   igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.28f, 0.32f, 0.40f, 1.0f});
   if (igButton("↺  Valores por Defecto", (ImVec2){220.0f, 48.0f})) {
-    usrs->bot_mode = 0;
+    usrs->bot_mode = 1; // Ataque / Caza por defecto
     usrs->bot_visual_line = true;
     usrs->bot_visual_zones = true;
     usrs->bot_visual_radar = true;

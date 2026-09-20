@@ -1,6 +1,7 @@
 #include "input.h"
 
 #include "../user.h"
+#include "custom_controls.h"
 
 void input(tenv* env) {
   tuser_data* usr = env->usr;
@@ -73,6 +74,7 @@ void input(tenv* env) {
     gdata->data.wmd = twindow_button_down(env->wnd, GLFW_MOUSE_BUTTON_LEFT) ||
                       twindow_key_down(env->wnd, GLFW_KEY_SPACE) ||
                       twindow_key_down(env->wnd, GLFW_KEY_UP) ||
+                      custom_controls_is_boost_active() ||
                       gdata->bot.output.accel;
 
     if (gdata->data.md != gdata->data.wmd &&

@@ -187,7 +187,6 @@ static void ui_server_selector(tenv* env) {
   tuser_data* usr = env->usr;
   tcontext* ctx = env->ctx;
   user_settings* usrs = &usr->usrs;
-  ImGuiStyle* style = igGetStyle();
 
   ImVec2 modal_sz = {fminf(680.0f, ctx->size[0] * 0.95f), fminf(580.0f, ctx->size[1] * 0.92f)};
   igSetNextWindowSize(modal_sz, ImGuiCond_Always);
@@ -337,8 +336,6 @@ void ui_title_screen(tenv* env) {
   tcontext* ctx = env->ctx;
   user_settings* usrs = &usr->usrs;
   ImGuiStyle* style = igGetStyle();
-  ImGuiIO* io = igGetIO_Nil();
-  game_data* gdata = &usr->gdata;
 
   // Initialize server list on first frame
   server_list_init();
@@ -547,7 +544,7 @@ void ui_title_screen(tenv* env) {
              usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
   igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.18f, 0.36f, 0.52f, 1.0f});
   igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.24f, 0.46f, 0.66f, 1.0f});
-  const char* cur_mode_tag = (usrs->bot_mode == 1) ? "Caza" : (usrs->bot_mode == 2 ? "Auto-Coil" : "Ultra-Defensivo");
+  const char* cur_mode_tag = (usrs->bot_mode == 1) ? "Ataque/Caza" : (usrs->bot_mode == 2 ? "Auto-Coil" : "Ultra-Defensivo");
   char bot_btn_label[64];
   snprintf(bot_btn_label, sizeof(bot_btn_label), "🤖  Modo Bot: %s  ⚙", cur_mode_tag);
   if (igButton(bot_btn_label, (ImVec2){menu_w, 52.0f})) {

@@ -319,6 +319,16 @@ void custom_controls_reset_state(tenv* env) {
   }
 }
 
+bool custom_controls_is_boost_active(void) {
+  custom_controls_t* cc = &g_custom_controls;
+  for (int i = 0; i < cc->button_count; i++) {
+    if (cc->buttons[i].enabled && cc->buttons[i].action == BTN_ACTION_BOOST && cc->buttons[i].is_down) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void custom_controls_render_hud(tenv* env, float screen_w, float screen_h) {
   if (!env || !env->usr) return;
   tuser_data* usr = env->usr;

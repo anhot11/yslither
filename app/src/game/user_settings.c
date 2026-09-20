@@ -30,7 +30,7 @@ void user_settings_default(user_settings* usr_settings) {
   usr_settings->instant_restart = false;
   usr_settings->bot_radius_mult = 20;
   usr_settings->bot_follow_circle_score = 2000;
-  usr_settings->bot_mode = 0;           // Ultra-Defensivo
+  usr_settings->bot_mode = 1;           // Modo Ataque / Caza & Crecimiento por defecto
   usr_settings->bot_visual_line = true;  // Ver linea del bot
   usr_settings->bot_visual_zones = true; // Ver zonas rojas
   usr_settings->bot_visual_radar = true; // Ver circulos de radar
