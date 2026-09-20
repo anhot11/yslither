@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 199309L
 #include "server_list.h"
 
 #include <arpa/inet.h>
@@ -67,8 +68,8 @@ static int ping_one_server(const char* ip, int port) {
   if (sock < 0) return 999;
 
   struct timeval tv;
-  tv.tv_sec = 1;
-  tv.tv_usec = 200000;  // 1.2 sec timeout
+  tv.tv_sec = 0;
+  tv.tv_usec = 450000;  // 450 ms fast timeout
   setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
   setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
 
@@ -171,7 +172,7 @@ bool server_list_is_pinging(void) {
 const char* server_list_get_best_ip(void) {
   pthread_mutex_lock(&s_mutex);
   int best_ping = 9999;
-  int best_idx = 0;
+  int best_idx = -1;
 
   for (int i = 0; i < s_server_count; i++) {
     if (s_servers[i].ping_ms > 0 && s_servers[i].ping_ms < best_ping) {
@@ -181,9 +182,44 @@ const char* server_list_get_best_ip(void) {
   }
 
   static char best_addr[64];
-  snprintf(best_addr, sizeof(best_addr), "%s:%d", s_servers[best_idx].ip, s_servers[best_idx].port);
+  if (best_idx >= 0) {
+    snprintf(best_addr, sizeof(best_addr), "%s:%d", s_servers[best_idx].ip, s_servers[best_idx].port);
+  } else {
+    // Verified fast default server (Silicon Valley)
+    strncpy(best_addr, "23.29.125.178:444", sizeof(best_addr));
+  }
   pthread_mutex_unlock(&s_mutex);
   return best_addr;
+}
+
+const char* server_list_get_fallback_ip(int attempt) {
+  pthread_mutex_lock(&s_mutex);
+  int valid_indices[MAX_SERVERS];
+  int valid_count = 0;
+  for (int i = 0; i < s_server_count; i++) {
+    if (s_servers[i].ping_ms > 0 && s_servers[i].ping_ms < 999) {
+      valid_indices[valid_count++] = i;
+    }
+  }
+
+  static char fb_addr[64];
+  if (valid_count > 0) {
+    int sel = valid_indices[attempt % valid_count];
+    snprintf(fb_addr, sizeof(fb_addr), "%s:%d", s_servers[sel].ip, s_servers[sel].port);
+  } else {
+    // Fallback list of known online high-performance servers
+    static const char* const k_resilient[] = {
+      "23.29.125.178:444",
+      "23.227.195.74:444",
+      "15.204.213.229:444",
+      "15.204.212.200:444",
+      "192.211.52.146:444"
+    };
+    int n_res = sizeof(k_resilient) / sizeof(k_resilient[0]);
+    strncpy(fb_addr, k_resilient[attempt % n_res], sizeof(fb_addr));
+  }
+  pthread_mutex_unlock(&s_mutex);
+  return fb_addr;
 }
 
 const char* server_list_get_name_by_ip(const char* target_ip) {

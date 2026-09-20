@@ -1,6 +1,7 @@
 #include "loop.h"
 
 #include "../network/server.h"
+#include "../network/server_list.h"
 #include "../user.h"
 #include "input.h"
 #include "oef.h"
@@ -32,9 +33,9 @@ void game_loop(tenv* env) {
       usr->r->global.minimap_opacity = 0;
 
       double cur_t = glfwGetTime();
-      if (cur_t > TIMEOUT) {
+      if (cur_t > 3.5) { // 3.5 sec fast timeout per server attempt
         if (gdata->connection) gdata->connection->is_closing = true;
-        LOGE("Connection timed out after %.2f seconds", cur_t);
+        LOGE("Connection timed out after %.2f seconds, triggering failover...", cur_t);
       }
 
       server_poll(env);
@@ -50,12 +51,26 @@ void game_loop(tenv* env) {
       igPopStyleColor(1);
 
       if (gdata->closed) {
-        gdata->conn = DISCONNECTED;
         gdata->closed = false;
+        // Smart Automatic Failover: Try up to 3 next best servers before giving up
+        if (gdata->connect_retry_count < 3) {
+          gdata->connect_retry_count++;
+          const char* next_ip = server_list_get_fallback_ip(gdata->connect_retry_count);
+          if (next_ip && next_ip[0] != '\0') {
+            LOGI("Failover: Switching to alternative server %s (attempt %d/3)...", next_ip, gdata->connect_retry_count);
+            strncpy(usrs->ipv4, next_ip, MAX_IPV4_LEN);
+            glfwSetTime(0);
+            server_connect(env);
+            break;
+          }
+        }
+        gdata->conn = DISCONNECTED;
+        gdata->connect_retry_count = 0;
       }
       break;
     }
     case CONNECTED:
+      gdata->connect_retry_count = 0;
       time_step(env);
       flight_recorder_record_frame(env);
       input(env);

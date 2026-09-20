@@ -56,6 +56,7 @@ typedef struct game_data {
 
   bool restart_req;
   bool closed;
+  int connect_retry_count;
 
   struct {
     float grd;

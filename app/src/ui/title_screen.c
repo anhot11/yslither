@@ -527,10 +527,18 @@ void ui_title_screen(tenv* env) {
   if (igButton("\uea1c  J U G A R", (ImVec2){menu_w, 64.0f})) {
     usr->gdata.conn = CONNECTING;
     usr->gdata.curr_screen = PLAYING;
+    usr->gdata.connect_retry_count = 0;
     glfwSetTime(0);
-    if (usrs->bot_auto_start) {
-      usrs->hotkeys[HOTKEY_BOT].active = true;
+
+    // If server is invalid or empty or obsolete default, select best ping server automatically
+    if (usrs->ipv4[0] == '\0' || strcmp(usrs->ipv4, "192.211.52.146:444") == 0) {
+      const char* best = server_list_get_best_ip();
+      if (best && best[0] != '\0') {
+        strncpy(usrs->ipv4, best, MAX_IPV4_LEN);
+      }
     }
+
+    usrs->hotkeys[HOTKEY_BOT].active = usrs->bot_auto_start; // False by default
     server_connect(env);
   }
   igPopStyleColor(3);

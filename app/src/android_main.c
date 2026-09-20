@@ -113,7 +113,7 @@ static void extract_asset(AAssetManager* mgr, const char* asset_path, const char
   if (buffer) {
     fwrite(buffer, 1, asset_size, out);
   } else {
-    char chunk[8192];
+    char chunk[65536];
     int read_bytes;
     while ((read_bytes = AAsset_read(asset, chunk, sizeof(chunk))) > 0) {
       fwrite(chunk, 1, read_bytes, out);
@@ -126,9 +126,22 @@ static void extract_asset(AAssetManager* mgr, const char* asset_path, const char
 }
 
 static void extract_all_assets(AAssetManager* mgr) {
+  const char* marker_path = ".assets_extracted_v1.0.19";
+  struct stat st;
+  if (stat(marker_path, &st) == 0) {
+    LOGI("Assets already verified for v1.0.19. Skipping extraction check.");
+    return;
+  }
+
   LOGI("Checking and extracting game assets...");
   for (int i = 0; ASSET_FILES[i] != NULL; i++) {
     extract_asset(mgr, ASSET_FILES[i], ASSET_FILES[i]);
+  }
+
+  FILE* marker = fopen(marker_path, "w");
+  if (marker) {
+    fputs("v1.0.19", marker);
+    fclose(marker);
   }
   LOGI("Asset extraction check complete.");
 }

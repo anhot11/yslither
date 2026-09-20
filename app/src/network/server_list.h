@@ -21,6 +21,7 @@ int server_list_count(void);
 server_entry* server_list_get(int index);
 void server_list_refresh_pings(void);
 const char* server_list_get_best_ip(void);
+const char* server_list_get_fallback_ip(int attempt);
 const char* server_list_get_name_by_ip(const char* target_ip);
 int server_list_get_ping_by_ip(const char* target_ip);
 bool server_list_is_pinging(void);

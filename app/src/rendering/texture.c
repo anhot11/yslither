@@ -25,29 +25,32 @@ texture* create_mipmap_texture(tcontext* ctx, const char* filename) {
   uint32_t max_dim = props.limits.maxImageDimension2D;
   if (max_dim == 0) max_dim = 4096;
 
-  while ((uint32_t)w > max_dim || (uint32_t)h > max_dim) {
-    int new_w = w / 2;
-    int new_h = h / 2;
+  if ((uint32_t)w > max_dim || (uint32_t)h > max_dim) {
+    int scale = 1;
+    while ((uint32_t)(w / scale) > max_dim || (uint32_t)(h / scale) > max_dim) {
+      scale *= 2;
+    }
+    int new_w = w / scale;
+    int new_h = h / scale;
     if (new_w < 1) new_w = 1;
     if (new_h < 1) new_h = 1;
-    stbi_uc* new_data = malloc(new_w * new_h * 4);
-    if (!new_data) break;
-    for (int y = 0; y < new_h; y++) {
-      for (int x = 0; x < new_w; x++) {
-        for (int ch = 0; ch < 4; ch++) {
-          int p00 = data[((y * 2) * w + (x * 2)) * 4 + ch];
-          int p01 = data[((y * 2) * w + (x * 2 + 1)) * 4 + ch];
-          int p10 = data[((y * 2 + 1) * w + (x * 2)) * 4 + ch];
-          int p11 = data[((y * 2 + 1) * w + (x * 2 + 1)) * 4 + ch];
-          new_data[(y * new_w + x) * 4 + ch] = (stbi_uc)((p00 + p01 + p10 + p11) / 4);
+
+    uint32_t* src32 = (uint32_t*)data;
+    uint32_t* dst32 = (uint32_t*)malloc(new_w * new_h * sizeof(uint32_t));
+    if (dst32) {
+      for (int y = 0; y < new_h; y++) {
+        uint32_t* s_row = src32 + (y * scale) * w;
+        uint32_t* d_row = dst32 + y * new_w;
+        for (int x = 0; x < new_w; x++) {
+          d_row[x] = s_row[x * scale];
         }
       }
+      if (free_data) stbi_image_free(data);
+      data = (stbi_uc*)dst32;
+      free_data = true;
+      w = new_w;
+      h = new_h;
     }
-    if (free_data) stbi_image_free(data);
-    data = new_data;
-    free_data = true;
-    w = new_w;
-    h = new_h;
   }
 
   int mip_levels = (uint32_t)(floorf(log2f(GLM_MAX(w, h))) + 1);

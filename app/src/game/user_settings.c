@@ -37,8 +37,8 @@ void user_settings_default(user_settings* usr_settings) {
   usr_settings->bot_visual_food = true;  // Ver objetivo de comida
   usr_settings->bot_auto_turbo = true;
   usr_settings->bot_auto_start = false;
-  usr_settings->debug_logs_enabled = true; // Full Debug por defecto
-  strcpy(usr_settings->ipv4, "192.211.52.146:444");
+  usr_settings->debug_logs_enabled = false; // Desactivado por defecto
+  strcpy(usr_settings->ipv4, "23.29.125.178:444");
   strcpy(usr_settings->nickname, "Slither");
 
   // normal mode
