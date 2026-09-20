@@ -3,8 +3,10 @@
 #include "../util/tdarray.h"
 #include "twindow.h"
 
+#ifndef __ANDROID__
 void mouse_button_callback(GLFWwindow* window, int button, int action,
                            int mods) {
+  (void)mods;
   tenv* env = glfwGetWindowUserPointer(window);
   if (action == GLFW_PRESS)
     tdarray_push(&env->ms->buttons_pressed, &button);
@@ -22,11 +24,16 @@ void mouse_wheel_callback(GLFWwindow* window, double x, double y) {
   tenv* env = glfwGetWindowUserPointer(window);
   env->ms->dwheel = (float)y;
 }
+#endif
 
 tmouse* tmouse_create(twindow* window) {
+#ifndef __ANDROID__
   glfwSetMouseButtonCallback(window->handle, mouse_button_callback);
   glfwSetCursorPosCallback(window->handle, mouse_pos_callback);
   glfwSetScrollCallback(window->handle, mouse_wheel_callback);
+#else
+  (void)window;
+#endif
 
   tmouse* r = malloc(sizeof(tmouse));
   r->buttons_pressed = tdarray_create(int);

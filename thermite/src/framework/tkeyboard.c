@@ -3,8 +3,10 @@
 #include "../util/tdarray.h"
 #include "twindow.h"
 
+#ifndef __ANDROID__
 void key_callback(GLFWwindow* window, int key, int scancode, int action,
                   int mods) {
+  (void)scancode; (void)mods;
   tenv* env = glfwGetWindowUserPointer(window);
   if (action == GLFW_PRESS)
     tdarray_push(&env->kb->keys_pressed, &key);
@@ -16,10 +18,15 @@ void char_callback(GLFWwindow* window, unsigned int codepoint) {
   tenv* env = glfwGetWindowUserPointer(window);
   env->kb->char_pressed = (char)codepoint;
 }
+#endif
 
 tkeyboard* tkeyboard_create(twindow* window) {
+#ifndef __ANDROID__
   glfwSetKeyCallback(window->handle, key_callback);
   glfwSetCharCallback(window->handle, char_callback);
+#else
+  (void)window;
+#endif
 
   tkeyboard* r = malloc(sizeof(tkeyboard));
   r->keys_pressed = tdarray_create(int);

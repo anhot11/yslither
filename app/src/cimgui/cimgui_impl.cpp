@@ -5,11 +5,14 @@
 #include "./imgui/imgui_internal.h"
 #include "cimgui.h"
 
+#ifndef __ANDROID__
 #include "imgui/imgui_impl_glfw.h"
+#endif
 #include "imgui/imgui_impl_vulkan.h"
 
 #include "cimgui_impl.h"
 
+#ifndef __ANDROID__
 CIMGUI_API bool igImplGlfw_InitForVulkan(GLFWwindow* window,bool install_callbacks)
 {
 	return ImGui_ImplGlfw_InitForVulkan(window, install_callbacks);
@@ -22,6 +25,19 @@ CIMGUI_API void igImplGlfw_NewFrame(void)
 {
 	ImGui_ImplGlfw_NewFrame();
 }
+#else
+CIMGUI_API bool igImplGlfw_InitForVulkan(GLFWwindow* window,bool install_callbacks)
+{
+	(void)window; (void)install_callbacks;
+	return true;
+}
+CIMGUI_API void igImplGlfw_Shutdown(void)
+{
+}
+CIMGUI_API void igImplGlfw_NewFrame(void)
+{
+}
+#endif
 
 CIMGUI_API bool igImplVulkan_Init(ImGui_ImplVulkan_InitInfo* info)
 {
@@ -59,4 +75,8 @@ CIMGUI_API ImGui_ImplVulkanH_Window* ImGui_ImplVulkanH_Window_ImGui_ImplVulkanH_
 CIMGUI_API void ImGui_ImplVulkanH_Window_Construct(ImGui_ImplVulkanH_Window* self)
 {
 	IM_PLACEMENT_NEW(self) ImGui_ImplVulkanH_Window();
+}
+CIMGUI_API void ImGui_ImplVulkanH_Window_destroy(ImGui_ImplVulkanH_Window* self)
+{
+	IM_DELETE(self);
 }

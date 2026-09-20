@@ -27,7 +27,9 @@ void imgui_init(tenv* env) {
                            .Subpass = 0,
                            .MSAASamples = VK_SAMPLE_COUNT_1_BIT},
       .UseDynamicRendering = false});
+#ifndef __ANDROID__
   igImplGlfw_InitForVulkan(env->wnd->handle, true);
+#endif
   ImGuiIO* io = igGetIO_Nil();
   // io->MouseDrawCursor = true;
 
@@ -126,7 +128,9 @@ void imgui_init(tenv* env) {
 
 void imgui_prerender() {
   igImplVulkan_NewFrame();
+#ifndef __ANDROID__
   igImplGlfw_NewFrame();
+#endif
   igNewFrame();
 }
 
@@ -135,7 +139,9 @@ void imgui_render(VkCommandBuffer cmd) {
 }
 
 void imgui_destroy() {
+#ifndef __ANDROID__
   igImplGlfw_Shutdown();
+#endif
   igImplVulkan_Shutdown();
   igDestroyContext(NULL);
 }

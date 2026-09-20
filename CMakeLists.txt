@@ -35,6 +35,8 @@ file(GLOB_RECURSE APP_SOURCES
 )
 
 if(ANDROID)
+    list(FILTER APP_SOURCES EXCLUDE REGEX "imgui_impl_glfw\\.cpp$")
+
     add_definitions(
         -D__ANDROID__
         -DGLFW_INCLUDE_NONE
