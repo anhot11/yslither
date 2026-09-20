@@ -30,7 +30,7 @@
 #define MAX_BODY_PTS 8192
 #define MAX_HULL_PTS 32
 #define MAX_INSIDE_PTS 512
-#define MAX_COLL_PTS 512
+#define MAX_COLL_PTS 1024
 
 typedef struct {
   float x, y;
@@ -482,14 +482,18 @@ static bool check_collision(game_data* gdata) {
   float nearest_threat_d2 = 9999999.0f;
   int nearest_threat_idx = -1;
 
+  float warn_dist = fmaxf(340.0f, B.width * 16.0f * B.speed_mult);
+  float warn_dist2 = warn_dist * warn_dist;
+
   for (int i = 0; i < B.coll_pts_n; i++) {
     coll_pt* cp = B.coll_pts + i;
-    circ col = {cp->x, cp->y, cp->r};
-    isect ip;
-    if (circle_intersect(B.head_circle, col, &ip)) {
+    float eff_dist2 = (cp->r > 0.0f) ? (sqrtf(cp->d2) - cp->r) : sqrtf(cp->d2);
+    eff_dist2 = (eff_dist2 > 0.0f) ? (eff_dist2 * eff_dist2) : 0.0f;
+
+    if (eff_dist2 < warn_dist2) {
       float ang_to_pt = atan2f(cp->y - B.y, cp->x - B.x);
-      // Wide 130-degree frontal protection arc
-      if (fabsf(ang_between(ang_to_pt, B.ang)) < ((float)M_PI * 0.65f)) {
+      // Wide 140-degree frontal protection arc
+      if (fabsf(ang_between(ang_to_pt, B.ang)) < ((float)M_PI * 0.70f)) {
         immediate_threat = true;
         if (cp->d2 < nearest_threat_d2) {
           nearest_threat_d2 = cp->d2;
@@ -501,10 +505,9 @@ static bool check_collision(game_data* gdata) {
 
   if (immediate_threat) {
     evaluate_best_evasion_heading(gdata);
-    // Emergency boost evasion only if threat is charging dangerously close (< 100 px)
-    if (nearest_threat_idx >= 0 && nearest_threat_d2 < (100.0f * 100.0f)) {
-      coll_pt* tcp = &B.coll_pts[nearest_threat_idx];
-      gdata->bot.output.accel = (tcp->type == 0 && tcp->si >= 0);
+    // Emergency boost evasion if threat is dangerously close (< 120 px) to double turn speed
+    if (nearest_threat_idx >= 0 && nearest_threat_d2 < (120.0f * 120.0f)) {
+      gdata->bot.output.accel = true;
     } else {
       gdata->bot.output.accel = false;
     }
@@ -1053,8 +1056,8 @@ void sbot_go(tenv* env) {
     follow_circle_self(gdata);
   } else if (in_collision) {
     B.delay_frame = COLLISION_DELAY;
-    // Smart auto-turbo: emergency escape boost only if threat head is charging dangerously close (< 110px)
-    if (usrs->bot_auto_turbo && B.coll_pts_n > 0 && B.coll_pts[0].type == 0 && B.coll_pts[0].d2 < 110.0f * 110.0f) {
+    // Smart auto-turbo: emergency escape boost if any threat is dangerously close (< 120px)
+    if (usrs->bot_auto_turbo && B.coll_pts_n > 0 && B.coll_pts[0].d2 < 120.0f * 120.0f) {
       bot->output.accel = true;
     } else {
       bot->output.accel = false;
