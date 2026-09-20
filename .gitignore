@@ -10,3 +10,5 @@ downloaded_artifacts/
 .gradle/
 app/.cxx/
 local.properties
+backups/
+*.tar.gz
