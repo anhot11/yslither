@@ -26,9 +26,11 @@ add_definitions(
 # Collect sources
 file(GLOB_RECURSE THERMITE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/thermite/src/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/thermite/src/*.cpp
 )
 
 file(GLOB_RECURSE APP_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/src/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/app/src/game/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/app/src/network/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/app/src/rendering/*.c

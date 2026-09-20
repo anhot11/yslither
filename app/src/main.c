@@ -108,4 +108,6 @@ void trender(tenv* env) {
 
 void tresize(tenv* env) { ui_viewport_resize(env); }
 
+#ifndef __ANDROID__
 TDEF_ENTRY();
+#endif
