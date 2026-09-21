@@ -8,6 +8,7 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "../cimgui/cimgui.h"
 #include "../user.h"
+#include "feeder.h"
 
 #define CUSTOM_CONTROLS_FILE "custom_controls.dat"
 
@@ -25,6 +26,7 @@ const char* custom_controls_action_name(button_action_t action) {
     case BTN_ACTION_BIG_FOOD: return "Comida Grande (Tecla F)";
     case BTN_ACTION_HUD:      return "Alternar HUD (Tecla H)";
     case BTN_ACTION_QUIT:     return "Salir al Menú (Tecla Q)";
+    case BTN_ACTION_FEEDER:   return "Bots Alimentadores (Tecla B)";
     default:                  return "Ninguna";
   }
 }
@@ -41,6 +43,7 @@ const char* custom_controls_action_key_str(button_action_t action) {
     case BTN_ACTION_BIG_FOOD: return "F";
     case BTN_ACTION_HUD:      return "H";
     case BTN_ACTION_QUIT:     return "Q";
+    case BTN_ACTION_FEEDER:   return "B";
     default:                  return "-";
   }
 }
@@ -144,6 +147,21 @@ void custom_controls_init_defaults(custom_controls_t* cc) {
       .active_pointer_id = -1};
   idx++;
 
+  // 7. Feeder / Bots Comida (Botón táctil)
+  cc->buttons[idx] = (touch_button_t){
+      .enabled = true,
+      .name = "Feeder",
+      .icon = "\ue971",
+      .action = BTN_ACTION_FEEDER,
+      .pos_x = 0.82f,
+      .pos_y = 0.66f,
+      .radius = 38.0f,
+      .opacity = 0.80f,
+      .color = 0xE67E22FF, // Naranja Dorado
+      .is_down = false,
+      .active_pointer_id = -1};
+  idx++;
+
   cc->button_count = idx;
 }
 
@@ -226,6 +244,9 @@ static void trigger_action_on_down(button_action_t act, tenv* env) {
         gdata->connection->is_closing = true;
       }
       gdata->conn = DISCONNECTED;
+      break;
+    case BTN_ACTION_FEEDER:
+      feeder_toggle_enabled();
       break;
     default:
       break;
@@ -352,6 +373,7 @@ void custom_controls_render_hud(tenv* env, float screen_w, float screen_h) {
     if (btn->action == BTN_ACTION_ASSIST && usrs->hotkeys[HOTKEY_ASSIST].active) is_toggled = true;
     if (btn->action == BTN_ACTION_NAMES && usrs->hotkeys[HOTKEY_SHOW_NAMES].active) is_toggled = true;
     if (btn->action == BTN_ACTION_BIG_FOOD && usrs->hotkeys[HOTKEY_BIG_FOOD].active) is_toggled = true;
+    if (btn->action == BTN_ACTION_FEEDER && feeder_is_enabled()) is_toggled = true;
 
     // Calculate colors
     float alpha = btn->opacity;

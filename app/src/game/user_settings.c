@@ -38,6 +38,8 @@ void user_settings_default(user_settings* usr_settings) {
   usr_settings->bot_auto_turbo = true;
   usr_settings->bot_auto_start = false;
   usr_settings->debug_logs_enabled = false; // Desactivado por defecto
+  usr_settings->feeder_bots_enabled = false; // Desactivado por defecto
+  usr_settings->feeder_bot_count = 3;        // 3 bots por defecto
   strcpy(usr_settings->ipv4, "23.29.125.178:444");
   strcpy(usr_settings->nickname, "Slither");
 
@@ -101,6 +103,7 @@ void user_settings_default(user_settings* usr_settings) {
   usr_settings->hotkeys[HOTKEY_RESTART] =
       (hotkey){GLFW_KEY_R, false, 1, "Restart"};
   usr_settings->hotkeys[HOTKEY_QUIT] = (hotkey){GLFW_KEY_Q, false, 1, "Quit"};
+  usr_settings->hotkeys[HOTKEY_FEEDER] = (hotkey){GLFW_KEY_B, false, 0, "Feeder bots"};
 }
 
 void write_default_settings(user_settings* usr_settings) {

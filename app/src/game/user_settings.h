@@ -79,6 +79,8 @@ typedef struct user_settings {
   bool bot_auto_turbo;       // Permitir turbo inteligente en situaciones seguras
   bool bot_auto_start;       // Activar el bot automaticamente al iniciar partida
   bool debug_logs_enabled;   // Modo Debug & Registro de Telemetria/Logs (default: true)
+  bool feeder_bots_enabled;  // Activar enjambre de bots alimentadores suicidas
+  int feeder_bot_count;      // Cantidad de bots alimentadores (1 a 5, default: 3)
 
   gameplay_mode modes[2];
 

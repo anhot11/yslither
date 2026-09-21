@@ -18,6 +18,7 @@ typedef enum {
   BTN_ACTION_BIG_FOOD,      // Alternar tamaño de comida (Tecla F)
   BTN_ACTION_HUD,           // Alternar HUD (Tecla H)
   BTN_ACTION_QUIT,          // Salir al menú (Tecla Q)
+  BTN_ACTION_FEEDER,        // Alternar Bots Alimentadores (Comida)
   BTN_ACTION_COUNT
 } button_action_t;
 

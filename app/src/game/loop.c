@@ -8,6 +8,7 @@
 #include "redraw.h"
 #include "ui_overlay.h"
 #include "flight_recorder.h"
+#include "feeder.h"
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -75,6 +76,7 @@ void game_loop(tenv* env) {
       flight_recorder_record_frame(env);
       input(env);
       server_poll(env);
+      feeder_update(env);
       oef(env);
       redraw(env);
       ui_overlay(env);

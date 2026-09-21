@@ -1,6 +1,7 @@
 #include "ui_overlay.h"
 #include "custom_controls.h"
 #include "sbot.h"
+#include "feeder.h"
 #include "../user.h"
 #include <stdio.h>
 #include <math.h>
@@ -106,6 +107,75 @@ static void render_stats_hud(tenv* env) {
   ImDrawList_AddText_Vec2(fg_dl, (ImVec2){start2_x + pad_x, start_y + pad_y},
                           igColorConvertFloat4ToU32(ping_color),
                           ping_buf, NULL);
+
+  // --- Badge 3: World Coordinates (X, Y) ---
+  int me_x = 0;
+  int me_y = 0;
+  snake* me_s = get_snake(gdata, gdata->data.snake_id);
+  if (me_s) {
+    me_x = (int)roundf(me_s->xx);
+    me_y = (int)roundf(me_s->yy);
+  }
+  char coord_buf[48];
+  snprintf(coord_buf, sizeof(coord_buf), "Coord: (%d, %d)", me_x, me_y);
+
+  ImVec2 coord_txt_sz;
+  igCalcTextSize(&coord_txt_sz, coord_buf, NULL, false, -1);
+  float start3_x = start2_x + card2_w + 10.0f;
+  float card3_w = coord_txt_sz.x + pad_x * 2.0f;
+
+  ImDrawList_AddRectFilled(fg_dl, (ImVec2){start3_x, start_y},
+                           (ImVec2){start3_x + card3_w, start_y + card_h},
+                           igColorConvertFloat4ToU32((ImVec4){0.08f, 0.10f, 0.14f, 0.88f}), 8.0f, 0);
+  ImDrawList_AddRect(fg_dl, (ImVec2){start3_x, start_y},
+                     (ImVec2){start3_x + card3_w, start_y + card_h},
+                     igColorConvertFloat4ToU32((ImVec4){0.30f, 0.70f, 1.0f, 0.75f}), 8.0f, 0, 1.5f);
+  ImDrawList_AddText_Vec2(fg_dl, (ImVec2){start3_x + pad_x, start_y + pad_y},
+                          igColorConvertFloat4ToU32((ImVec4){0.45f, 0.85f, 1.0f, 1.0f}),
+                          coord_buf, NULL);
+
+  // --- Badge 4: Feeder Bots (Alimentadores) ---
+  bool f_enabled = feeder_is_enabled();
+  int f_active = feeder_get_active_count();
+  int f_target = feeder_get_target_count();
+  float f_dist = feeder_get_closest_dist();
+
+  char feeder_buf[48];
+  if (f_enabled) {
+    if (f_dist > 0.0f) {
+      snprintf(feeder_buf, sizeof(feeder_buf), "Bots: %d/%d (%.0fu)", f_active, f_target, f_dist);
+    } else {
+      snprintf(feeder_buf, sizeof(feeder_buf), "Bots: %d/%d", f_active, f_target);
+    }
+  } else {
+    snprintf(feeder_buf, sizeof(feeder_buf), "Bots: OFF");
+  }
+
+  ImVec2 feeder_txt_sz;
+  igCalcTextSize(&feeder_txt_sz, feeder_buf, NULL, false, -1);
+  float start4_x = start3_x + card3_w + 10.0f;
+  float card4_w = feeder_txt_sz.x + pad_x * 2.0f;
+
+  ImVec4 feeder_col = f_enabled ? (ImVec4){0.98f, 0.55f, 0.15f, 1.0f} : (ImVec4){0.60f, 0.65f, 0.70f, 0.8f};
+  ImDrawList_AddRectFilled(fg_dl, (ImVec2){start4_x, start_y},
+                           (ImVec2){start4_x + card4_w, start_y + card_h},
+                           igColorConvertFloat4ToU32((ImVec4){0.08f, 0.10f, 0.14f, 0.88f}), 8.0f, 0);
+  ImDrawList_AddRect(fg_dl, (ImVec2){start4_x, start_y},
+                     (ImVec2){start4_x + card4_w, start_y + card_h},
+                     igColorConvertFloat4ToU32((ImVec4){feeder_col.x, feeder_col.y, feeder_col.z, 0.75f}), 8.0f, 0, 1.5f);
+  ImDrawList_AddText_Vec2(fg_dl, (ImVec2){start4_x + pad_x, start_y + pad_y},
+                          igColorConvertFloat4ToU32(feeder_col),
+                          feeder_buf, NULL);
+
+  // Tap/click on Badge 4 to toggle Feeder Bots
+  if (tmouse_button_pressed(env->ms, GLFW_MOUSE_BUTTON_LEFT)) {
+    float mx = env->ms->pos[0];
+    float my = env->ms->pos[1];
+    if (mx >= start4_x && mx <= start4_x + card4_w &&
+        my >= start_y && my <= start_y + card_h) {
+      feeder_toggle_enabled();
+    }
+  }
 
   igPopFont();
 }

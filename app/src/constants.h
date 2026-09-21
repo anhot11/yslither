@@ -57,7 +57,8 @@
 #define HOTKEY_MENU 5
 #define HOTKEY_RESTART 6
 #define HOTKEY_QUIT 7
-#define NUM_HOTKEYS 8
+#define HOTKEY_FEEDER 8
+#define NUM_HOTKEYS 9
 
 #ifndef GLFW_KEY_N
 #define GLFW_KEY_N 78

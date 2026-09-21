@@ -1,4 +1,5 @@
 #include "game_data.h"
+#include "feeder.h"
 
 #include "../user.h"
 #include "../network/server.h"
@@ -578,6 +579,7 @@ void game_data_init(tenv* env) {
   game_data_reset(env);
 
   server_init(env);
+  feeder_init(env);
 }
 
 void game_data_reset(tenv* env) {
@@ -655,6 +657,7 @@ void game_data_destroy(tenv* env) {
   tuser_data* usr = env->usr;
   game_data* gdata = &usr->gdata;
 
+  feeder_destroy(env);
   server_destroy(env);
   sbot_destroy(env);
   
