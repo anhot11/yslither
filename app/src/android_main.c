@@ -126,10 +126,10 @@ static void extract_asset(AAssetManager* mgr, const char* asset_path, const char
 }
 
 static void extract_all_assets(AAssetManager* mgr) {
-  const char* marker_path = ".assets_extracted_v1.0.20";
+  const char* marker_path = ".assets_extracted_v1.0.21";
   struct stat st;
   if (stat(marker_path, &st) == 0) {
-    LOGI("Assets already verified for v1.0.20. Skipping extraction check.");
+    LOGI("Assets already verified for v1.0.21. Skipping extraction check.");
     return;
   }
 
@@ -140,7 +140,7 @@ static void extract_all_assets(AAssetManager* mgr) {
 
   FILE* marker = fopen(marker_path, "w");
   if (marker) {
-    fputs("v1.0.20", marker);
+    fputs("v1.0.21", marker);
     fclose(marker);
   }
   LOGI("Asset extraction check complete.");
@@ -304,6 +304,15 @@ static void handle_cmd(struct android_app* app, int32_t cmd) {
       g_has_window = false;
       if (g_env.wnd) {
         g_env.wnd->a_window = NULL;
+      }
+      break;
+
+    case APP_CMD_WINDOW_RESIZED:
+    case APP_CMD_WINDOW_REDRAW_NEEDED:
+    case APP_CMD_CONFIG_CHANGED:
+      LOGI("APP_CMD resize/redraw/config (cmd=%d)", cmd);
+      if (g_env.wnd) {
+        g_env.wnd->_refresh = true;
       }
       break;
 

@@ -530,8 +530,8 @@ void ui_title_screen(tenv* env) {
     usr->gdata.connect_retry_count = 0;
     glfwSetTime(0);
 
-    // If server is invalid or empty or obsolete default, select best ping server automatically
-    if (usrs->ipv4[0] == '\0' || strcmp(usrs->ipv4, "192.211.52.146:444") == 0) {
+    // If server is invalid or empty or obsolete default or unreachable, select best ping server automatically
+    if (usrs->ipv4[0] == '\0' || strcmp(usrs->ipv4, "192.211.52.146:444") == 0 || server_list_get_ping_by_ip(usrs->ipv4) == 999) {
       const char* best = server_list_get_best_ip();
       if (best && best[0] != '\0') {
         strncpy(usrs->ipv4, best, MAX_IPV4_LEN);

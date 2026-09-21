@@ -22,22 +22,34 @@ twindow* twindow_create(tenv* env, trender_func render_func,
   window->app = (struct android_app*)env->config.argv;
   if (window->app && window->app->window) {
     window->a_window = window->app->window;
-    window->size[0] = ANativeWindow_getWidth(window->a_window);
-    window->size[1] = ANativeWindow_getHeight(window->a_window);
+    int w = ANativeWindow_getWidth(window->a_window);
+    int h = ANativeWindow_getHeight(window->a_window);
+    if (w > 1 && h > 1) {
+      window->size[0] = w;
+      window->size[1] = h;
+    } else {
+      window->size[0] = 1600;
+      window->size[1] = 720;
+    }
   } else {
     window->a_window = NULL;
-    window->size[0] = 1920;
-    window->size[1] = 1080;
+    window->size[0] = 1600;
+    window->size[1] = 720;
   }
   return window;
 }
 
 void twindow_poll_input(twindow* window) {
   if (!window || !window->a_window || !window->env || !window->env->ctx) return;
-  if (window->_refresh || !window->env->ctx->swapchain_ok) {
-    window->size[0] = ANativeWindow_getWidth(window->a_window);
-    window->size[1] = ANativeWindow_getHeight(window->a_window);
-    tcontext_resize(window->env->ctx, window->env->wnd->size, window->env->config.vsync);
+  int cur_w = ANativeWindow_getWidth(window->a_window);
+  int cur_h = ANativeWindow_getHeight(window->a_window);
+  bool size_changed = (cur_w > 1 && cur_h > 1 && (cur_w != window->size[0] || cur_h != window->size[1]));
+  if (size_changed || window->_refresh || !window->env->ctx->swapchain_ok) {
+    if (cur_w > 1 && cur_h > 1) {
+      window->size[0] = cur_w;
+      window->size[1] = cur_h;
+    }
+    tcontext_resize(window->env->ctx, window->size, window->env->config.vsync);
     if (window->_resize_func) {
       window->_resize_func(window->env);
     }

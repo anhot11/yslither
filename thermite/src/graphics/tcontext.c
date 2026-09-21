@@ -248,9 +248,9 @@ void _tcontext_create_swapchain(tcontext* context, bool vsync) {
 #endif
 
   VkExtent2D swapchain_extent = capabilities.currentExtent;
-  if (swapchain_extent.width == 0xFFFFFFFF || swapchain_extent.width == 0) {
-    swapchain_extent.width = context->size[0] > 0 ? context->size[0] : 1920;
-    swapchain_extent.height = context->size[1] > 0 ? context->size[1] : 1080;
+  if (swapchain_extent.width == 0xFFFFFFFF || swapchain_extent.width <= 1 || swapchain_extent.height <= 1) {
+    swapchain_extent.width = context->size[0] > 1 ? context->size[0] : 1600;
+    swapchain_extent.height = context->size[1] > 1 ? context->size[1] : 720;
     if (swapchain_extent.width < capabilities.minImageExtent.width)
       swapchain_extent.width = capabilities.minImageExtent.width;
     if (swapchain_extent.width > capabilities.maxImageExtent.width)
@@ -591,12 +591,13 @@ void tcontext_resize(tcontext* context, const ivec2 size, bool vsync) {
   tcontext_wait_idle(context);
   context->old_swapchain = context->swapchain;
 
-  if (size[0] > 0 && size[1] > 0) {
+  if (size[0] > 1 && size[1] > 1) {
     context->size[0] = size[0];
     context->size[1] = size[1];
   }
 
-  for (int i = 0; i < context->image_count; i++) {
+  uint32_t old_image_count = context->image_count;
+  for (int i = 0; i < old_image_count; i++) {
     vkDestroyFramebuffer(context->device,
                          context->swapchain_frames[i].framebuffer, NULL);
     vkDestroyImageView(context->device, context->swapchain_frames[i].image_view,
@@ -607,6 +608,24 @@ void tcontext_resize(tcontext* context, const ivec2 size, bool vsync) {
   _tcontext_create_swapchain(context, vsync);
   vkDestroySwapchainKHR(context->device, context->old_swapchain, NULL);
   _tcontext_create_views(context);
+
+  if (context->image_count != old_image_count) {
+    for (int i = 0; i < old_image_count; i++) {
+      vkDestroySemaphore(context->device, context->render_completes[i], NULL);
+    }
+    free(context->render_completes);
+    context->render_completes =
+        malloc(context->image_count * sizeof(VkSemaphore));
+    for (int i = 0; i < context->image_count; i++) {
+      vkCreateSemaphore(
+          context->device,
+          &(VkSemaphoreCreateInfo){
+              .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+              .pNext = NULL,
+              .flags = 0},
+          NULL, &context->render_completes[i]);
+    }
+  }
 
   context->swapchain_ok = true;
 }
