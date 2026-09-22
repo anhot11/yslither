@@ -18,7 +18,7 @@ include_directories(
 add_definitions(
     -DCGLM_FORCE_DEPTH_ZERO_TO_ONE
     -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    -DAPP_VERSION="1.0.25"
+    -DAPP_VERSION="1.0.26"
     -DSETTINGS_VERSION="2.2"
     -DCIMGUI_NO_EXPORT
 )

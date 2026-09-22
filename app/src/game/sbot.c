@@ -304,7 +304,7 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
   float food_dx = fx - gdata->data.grd;
   float food_dy = fy - gdata->data.grd;
   float food_dist_ctr = sqrtf(food_dx * food_dx + food_dy * food_dy);
-  if (food_dist_ctr > (gdata->data.flux_grd - 800.0f) || food_dist_ctr < (gdata->data.flux_grd * 0.15f)) {
+  if (food_dist_ctr > (gdata->data.flux_grd - 800.0f)) {
     return;
   }
 
@@ -327,10 +327,10 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
     snake* s = gdata->data.snakes + i;
     if (s->id == B.id || s->dead) continue;
     float enemy_d2 = dist2(fx, fy, s->xx, s->yy);
-    // Strict head-safety bubble: never contest food if enemy head is within 360px and closer or cutting us off
-    if (enemy_d2 < (360.0f * 360.0f)) {
-      if (enemy_d2 < fd2 * 1.50f) return;
-      risk_factor += ((360.0f * 360.0f) / (enemy_d2 + 1.0f)) * 6.0f;
+    // Strict head-safety bubble: never contest food if enemy head is closer and within danger distance
+    if (enemy_d2 < (320.0f * 320.0f)) {
+      if (enemy_d2 < fd2 * 0.85f && enemy_d2 < (220.0f * 220.0f)) return;
+      risk_factor += ((320.0f * 320.0f) / (enemy_d2 + 1.0f)) * 4.0f;
     }
 
     // Reject food that hugs an enemy body (pinch trap) - at least 110px clearance
@@ -355,8 +355,8 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
   float dist_norm = fd / 180.0f;
   float prox_factor = 1.0f / (1.0f + dist_norm * dist_norm);
 
-  // Value scaling (dead snake chunks are heavily rewarded)
-  float size_val = 1.0f + (fsz >= 3.0f ? fsz * 2.2f : fsz * 0.85f);
+  // Value scaling (dead snake chunks and feeder mass are heavily rewarded!)
+  float size_val = 1.0f + (fsz >= 3.0f ? fsz * 4.5f : fsz * 1.0f);
 
   // Target persistence / stickiness bonus (prevents rapid jumping between distant targets)
   float persistence = 1.0f;
@@ -1158,12 +1158,10 @@ static void delay_action(game_data* gdata) {
     float tilt = fmaxf(-0.60f, fminf(0.60f, r_err * 1.25f));
     float safe_ang = ang_from_ctr + (float)M_PI * (0.50f + tilt * 0.35f);
 
-    // Border safety and center safety strictly override food pursuit
+    // Border safety strictly overrides food pursuit near the outer rim
     if (dist_ctr > (gdata->data.flux_grd - 1200.0f)) {
-      B.goal = heading_abs(ang_from_ctr + (float)M_PI); // Steer directly inward
-    } else if (dist_ctr < (gdata->data.flux_grd * 0.15f)) {
-      B.goal = heading_abs(ang_from_ctr); // Steer outward away from pit
-    } else if (B.has_food && (B.bot_mode == 1 || (B.bot_mode == 0 && B.current_food.d2 < (350.0f * 350.0f)))) {
+      B.goal = heading_abs(ang_from_ctr + (float)M_PI); // Steer directly inward away from border
+    } else if (B.has_food && B.current_food.d2 < (1400.0f * 1400.0f)) {
       float f_dx = B.current_food.x - B.x;
       float f_dy = B.current_food.y - B.y;
       float f_dist = sqrtf(f_dx * f_dx + f_dy * f_dy);

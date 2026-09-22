@@ -309,7 +309,7 @@ void ui_bot_settings(tenv* env) {
 
     igSpacing();
     igText("Cantidad de Bots Alimentadores (Verdes en Minimapa): %d bots", usrs->feeder_bot_count);
-    igSliderInt("##feeder_bot_count", &usrs->feeder_bot_count, 1, 12, "%d", ImGuiSliderFlags_None);
+    igSliderInt("##feeder_bot_count", &usrs->feeder_bot_count, 1, 4, "%d", ImGuiSliderFlags_None);
     igTextColored((ImVec4){0.20f, 0.90f, 0.45f, 0.85f},
                   "Numero de bots simultaneos que van hacia tu serpiente para alimentarte.");
   }
@@ -336,7 +336,7 @@ void ui_bot_settings(tenv* env) {
     usrs->bot_follow_circle_score = 2000;
     usrs->debug_logs_enabled = false;
     usrs->feeder_bots_enabled = false;
-    usrs->feeder_bot_count = 8;
+    usrs->feeder_bot_count = 2;
   }
   igPopStyleColor(2);
 

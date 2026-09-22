@@ -34,6 +34,7 @@ typedef struct feeder_bot {
   bool boosted;
   double last_steer_time;
   double last_ping_time;
+  double last_frame_time;
   double cooldown_until;
   char name[24];
 } feeder_bot;
@@ -42,7 +43,7 @@ static struct mg_mgr s_feeder_mgr;
 static bool s_feeder_mgr_inited = false;
 static feeder_bot s_bots[MAX_FEEDER_BOTS];
 static bool s_feeder_enabled = false;
-static int s_target_count = 8;
+static int s_target_count = 2; // Default to 2 concurrent feeder bots for maximum server stability
 static float s_closest_dist = -1.0f;
 static double s_last_bot_spawn = 0.0;
 
@@ -77,7 +78,22 @@ static void feeder_bot_on_packet(feeder_bot* bot, const uint8_t* pkt, int len, d
     int dlen = len - 1;
     if (dlen > 6) {
       int s_id = (pkt[1] << 8) | pkt[2];
+      bool is_our_bot = false;
       if (bot->snake_id == -1) {
+        if (len >= 27) {
+          int nl = pkt[22];
+          if (nl > 0 && 23 + nl <= len) {
+            if (strncmp((const char*)(pkt + 23), bot->name, strlen(bot->name)) == 0 ||
+                strncmp((const char*)(pkt + 23), "[FEED]", 6) == 0) {
+              is_our_bot = true;
+            }
+          }
+        }
+        if (!is_our_bot && bot->connecting) {
+          is_our_bot = true;
+        }
+      }
+      if (is_our_bot) {
         bot->snake_id = s_id;
         if (len >= 22) {
           float snx = (float)((pkt[16] << 16) | (pkt[17] << 8) | pkt[18]) / 5.0f;
@@ -89,43 +105,58 @@ static void feeder_bot_on_packet(feeder_bot* bot, const uint8_t* pkt, int len, d
         bot->connecting = false;
         bot->last_steer_time = 0;
         bot->last_ping_time = now;
+        bot->last_frame_time = now;
         LOGI("feeder_bot [%s]: Spawned snake_id=%d at (%.1f, %.1f)", bot->name, s_id, bot->x, bot->y);
       }
     } else if (bot->alive && dlen >= 2) {
       int s_id = (pkt[1] << 8) | pkt[2];
       if (s_id == bot->snake_id) {
-        LOGI("feeder_bot [%s]: Killed on contact with player body! Mission accomplished.", bot->name);
+        LOGI("feeder_bot [%s]: Crashed into player snake body! Mass released. Mission accomplished!", bot->name);
         bot->alive = false;
-        if (bot->c) bot->c->is_closing = true;
-        bot->cooldown_until = now + 1.0;
+        if (bot->c) {
+          bot->c->is_closing = true;
+          bot->c = NULL;
+        }
+        bot->snake_id = -1;
+        bot->cooldown_until = now + 3.0; // Stagger next respawn cleanly
       }
     }
-  } else if (cmd == '+' || cmd == '=') {
-    if (bot->alive && len >= 8) {
-      int m = 1;
-      float iang = (float)((pkt[m] << 8) | pkt[m + 1]);
-      m += 2;
-      float xx = (float)((pkt[m] << 8) | pkt[m + 1]);
-      m += 2;
-      float yy = (float)((pkt[m] << 8) | pkt[m + 1]);
-      bot->x = xx;
-      bot->y = yy;
-      bot->ang = iang * GD_K64A;
-    }
-  } else if (cmd == 'G' || cmd == 'N') {
-    if (bot->alive && len >= 3) {
-      float iang = (float)((pkt[1] << 8) | pkt[2]);
-      bot->ang = iang * GD_K64A;
-      float spd = bot->boosted ? 14.0f : 5.76f;
-      bot->x += cosf(bot->ang) * spd;
-      bot->y += sinf(bot->ang) * spd;
-    }
+  } else if (cmd == '=' && len == 7) {
+    int m = 1;
+    float iang = (float)((pkt[m] << 8) | pkt[m + 1]);
+    m += 2;
+    float xx = (float)((pkt[m] << 8) | pkt[m + 1]);
+    m += 2;
+    float yy = (float)((pkt[m] << 8) | pkt[m + 1]);
+    bot->x = xx;
+    bot->y = yy;
+    bot->ang = iang * GD_K64A;
+  } else if (cmd == '+' && len == 10) {
+    int m = 1;
+    float iang = (float)((pkt[m] << 8) | pkt[m + 1]);
+    m += 2;
+    float xx = (float)((pkt[m] << 8) | pkt[m + 1]);
+    m += 2;
+    float yy = (float)((pkt[m] << 8) | pkt[m + 1]);
+    bot->x = xx;
+    bot->y = yy;
+    bot->ang = iang * GD_K64A;
+  } else if (cmd == 'G' && len == 3) {
+    float iang = (float)((pkt[1] << 8) | pkt[2]);
+    bot->ang = iang * GD_K64A;
+  } else if (cmd == 'N' && len == 6) {
+    float iang = (float)((pkt[1] << 8) | pkt[2]);
+    bot->ang = iang * GD_K64A;
   } else if (cmd == 'v') {
     if (bot->alive) {
       LOGI("feeder_bot [%s]: Death packet 'v' received", bot->name);
       bot->alive = false;
-      if (bot->c) bot->c->is_closing = true;
-      bot->cooldown_until = now + 1.0;
+      if (bot->c) {
+        bot->c->is_closing = true;
+        bot->c = NULL;
+      }
+      bot->snake_id = -1;
+      bot->cooldown_until = now + 3.0;
     }
   }
 }
@@ -170,14 +201,16 @@ static void feeder_ws_cb(struct mg_connection* c, int ev, void* ev_data) {
       bot->alive = false;
       bot->connecting = false;
       bot->c = NULL;
-      bot->cooldown_until = now + 1.5;
+      bot->snake_id = -1;
+      bot->cooldown_until = now + 3.0;
     }
   } else if (ev == MG_EV_CLOSE) {
     if (bot) {
       bot->alive = false;
       bot->connecting = false;
       bot->c = NULL;
-      bot->cooldown_until = now + 1.0;
+      bot->snake_id = -1;
+      bot->cooldown_until = now + 3.0;
     }
   }
 }
@@ -195,6 +228,7 @@ void feeder_init(tenv* env) {
     snprintf(s_bots[i].name, sizeof(s_bots[i].name), "[FEED] #%d", i + 1);
   }
   s_closest_dist = -1.0f;
+  s_target_count = 2;
 }
 
 void feeder_update(tenv* env) {
@@ -209,9 +243,11 @@ void feeder_update(tenv* env) {
     for (int i = 0; i < MAX_FEEDER_BOTS; i++) {
       if (s_bots[i].c) {
         s_bots[i].c->is_closing = true;
+        s_bots[i].c = NULL;
       }
       s_bots[i].alive = false;
       s_bots[i].connecting = false;
+      s_bots[i].snake_id = -1;
     }
     s_closest_dist = -1.0f;
     s_last_bot_spawn = 0.0;
@@ -225,22 +261,25 @@ void feeder_update(tenv* env) {
     return;
   }
 
-  // Determine target coordinates on the player's snake:
-  // To avoid head-on collisions that could endanger the player,
-  // target a body segment safely behind the head.
+  // CRITICAL REQUIREMENT: Feeder bots must steer directly into the player snake's BODY!
+  // In Slither.io collision physics:
+  // When a snake's head hits another snake's BODY, the colliding snake dies instantly,
+  // and the snake whose body was hit takes 0 damage and survives!
+  // By targeting the midpoint of the player's body (pts_len / 2),
+  // we eliminate any risk of head-to-head collision.
+  int pts_len = tdarray_length(me->pts);
   float target_x = me->xx;
   float target_y = me->yy;
-  int pts_len = tdarray_length(me->pts);
-  if (pts_len >= 16) {
-    // Segment 10 behind head ensures the feeder strikes the body
-    int target_idx = pts_len - 1 - 10;
-    if (target_idx < 0) target_idx = 0;
-    target_x = me->pts[target_idx].xx;
-    target_y = me->pts[target_idx].yy;
-  } else if (pts_len >= 6) {
-    int target_idx = pts_len - 1 - 4;
-    target_x = me->pts[target_idx].xx;
-    target_y = me->pts[target_idx].yy;
+
+  if (pts_len >= 12) {
+    int mid_idx = pts_len / 2;
+    target_x = me->pts[mid_idx].xx;
+    target_y = me->pts[mid_idx].yy;
+  } else if (pts_len >= 4) {
+    int safe_idx = pts_len - 1 - 2;
+    if (safe_idx < 0) safe_idx = 0;
+    target_x = me->pts[safe_idx].xx;
+    target_y = me->pts[safe_idx].yy;
   }
 
   int target_count = s_target_count;
@@ -260,16 +299,18 @@ void feeder_update(tenv* env) {
     if (i >= target_count) {
       if (bot->c) {
         bot->c->is_closing = true;
+        bot->c = NULL;
       }
       bot->alive = false;
       bot->connecting = false;
+      bot->snake_id = -1;
       continue;
     }
 
     // Spawn bot if disconnected and cooldown expired
     if (!bot->c && !bot->connecting && now >= bot->cooldown_until) {
-      // Stagger bot connections by at least 800ms to avoid TCP SYN flood or IP ban from server
-      if (now - s_last_bot_spawn < 0.8) {
+      // Stagger bot connections by 3.0s to strictly respect server per-IP connection limits
+      if (now - s_last_bot_spawn < 3.0) {
         continue;
       }
       s_last_bot_spawn = now;
@@ -283,36 +324,51 @@ void feeder_update(tenv* env) {
       bot->boosted = false;
       bot->last_steer_time = 0;
       bot->last_ping_time = now;
+      bot->last_frame_time = now;
       bot->c = mg_ws_connect(&s_feeder_mgr, url, feeder_ws_cb, bot,
                              "%s:%s\r\n", "Origin", "https://slither.com");
       if (bot->c) {
         bot->connecting = true;
       } else {
-        bot->cooldown_until = now + 2.0;
+        bot->cooldown_until = now + 3.0;
       }
       break; // Only spawn one bot per frame to stagger connections cleanly
     }
 
-    // Steer and boost active bot
+    // Steer, predict position, and boost active bot
     if (bot->alive && bot->c) {
       alive_count++;
+
+      // Dead reckoning between server packets
+      float dt = (float)(now - bot->last_frame_time);
+      if (dt > 0.0f && dt < 0.25f) {
+        float spd = bot->boosted ? 840.0f : 345.0f;
+        bot->x += cosf(bot->ang) * spd * dt;
+        bot->y += sinf(bot->ang) * spd * dt;
+      }
+      bot->last_frame_time = now;
+
       float dx = target_x - bot->x;
       float dy = target_y - bot->y;
       float dist = sqrtf(dx * dx + dy * dy);
       if (dist < min_dist) min_dist = dist;
 
-      float target_ang = atan2f(dy, dx);
-      if (target_ang < 0) target_ang += PI2;
-
       // Steer every 50ms towards player's body
       if (now - bot->last_steer_time > 0.05) {
         bot->last_steer_time = now;
-        uint8_t sang = (uint8_t)roundf((target_ang / PI2) * 250.0f);
-        mg_ws_send(bot->c, &sang, 1, WEBSOCKET_OP_BINARY);
+        float target_ang = atan2f(dy, dx);
+        target_ang = fmodf(target_ang, PI2);
+        if (target_ang < 0) target_ang += PI2;
+        int sang = (int)floorf(251.0f * target_ang / PI2);
+        if (sang < 0) sang = 0;
+        if (sang > 250) sang = 250;
+        uint8_t pkt = (uint8_t)sang;
+        mg_ws_send(bot->c, &pkt, 1, WEBSOCKET_OP_BINARY);
       }
 
-      // Activate turbo boost when within 2500 units to crash into body at max velocity!
-      bool want_boost = (dist < 2500.0f);
+      // Activate turbo boost when within 2200 units of player's body to smash into body at max velocity!
+      // Also boost when far away (> 6000 units) to navigate to the player quickly across the map
+      bool want_boost = (dist < 2200.0f || dist > 6000.0f);
       if (want_boost != bot->boosted) {
         bot->boosted = want_boost;
         uint8_t cmd = want_boost ? 253 : 254;
@@ -320,7 +376,7 @@ void feeder_update(tenv* env) {
       }
 
       // Keepalive ping
-      if (now - bot->last_ping_time > 1.5) {
+      if (now - bot->last_ping_time > 1.2) {
         bot->last_ping_time = now;
         uint8_t ping_pkt = 251;
         mg_ws_send(bot->c, &ping_pkt, 1, WEBSOCKET_OP_BINARY);
@@ -343,9 +399,11 @@ void feeder_destroy(tenv* env) {
     for (int i = 0; i < MAX_FEEDER_BOTS; i++) {
       if (s_bots[i].c) {
         s_bots[i].c->is_closing = true;
+        s_bots[i].c = NULL;
       }
       s_bots[i].alive = false;
       s_bots[i].connecting = false;
+      s_bots[i].snake_id = -1;
     }
     mg_mgr_poll(&s_feeder_mgr, 0);
     mg_mgr_free(&s_feeder_mgr);

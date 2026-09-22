@@ -6,7 +6,7 @@
 struct tenv;
 typedef struct tenv tenv;
 
-#define MAX_FEEDER_BOTS 12
+#define MAX_FEEDER_BOTS 4
 
 typedef struct feeder_bot_pos {
   float x;
