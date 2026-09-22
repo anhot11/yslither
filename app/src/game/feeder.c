@@ -280,6 +280,14 @@ void feeder_update(tenv* env) {
     if (safe_idx < 0) safe_idx = 0;
     target_x = me->pts[safe_idx].xx;
     target_y = me->pts[safe_idx].yy;
+  } else if (pts_len > 0) {
+    // Small snake: target the tail (index 0) to guarantee body collision without risking head-to-head impact
+    target_x = me->pts[0].xx;
+    target_y = me->pts[0].yy;
+  } else {
+    // Fallback if no points yet: aim 120 units behind the current head heading
+    target_x = me->xx - cosf(me->ang) * 120.0f;
+    target_y = me->yy - sinf(me->ang) * 120.0f;
   }
 
   int target_count = s_target_count;
