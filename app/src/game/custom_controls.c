@@ -8,6 +8,7 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "../cimgui/cimgui.h"
 #include "../user.h"
+#include "../network/server.h"
 #include "feeder.h"
 
 #define CUSTOM_CONTROLS_FILE "custom_controls_v2.dat"
@@ -227,9 +228,12 @@ static void trigger_action_on_down(button_action_t act, tenv* env) {
     case BTN_ACTION_RESTART:
       // SAFETY: NEVER kick the player out while alive in the match!
       // Only allow restart when the snake is dead
-      if (gdata->data.dead && gdata->connection) {
-        gdata->connection->is_closing = true;
-        gdata->restart_req = true;
+      if (gdata->data.dead) {
+        server_disconnect(env);
+        game_data_reset(env);
+        usr->gdata.conn = CONNECTING;
+        glfwSetTime(0);
+        server_connect(env);
       }
       break;
     case BTN_ACTION_NAMES:
@@ -243,9 +247,11 @@ static void trigger_action_on_down(button_action_t act, tenv* env) {
       break;
     case BTN_ACTION_QUIT:
       // SAFETY: NEVER kick the player out while alive in the match!
-      if (gdata->data.dead && gdata->connection) {
-        gdata->connection->is_closing = true;
-        gdata->conn = DISCONNECTED;
+      if (gdata->data.dead) {
+        server_disconnect(env);
+        game_data_reset(env);
+        usr->gdata.conn = DISCONNECTED;
+        gdata->curr_screen = TITLE_SCREEN;
       }
       break;
     case BTN_ACTION_FEEDER:

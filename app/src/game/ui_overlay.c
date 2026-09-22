@@ -2,6 +2,7 @@
 #include "custom_controls.h"
 #include "sbot.h"
 #include "feeder.h"
+#include "../network/server.h"
 #include "../user.h"
 #include <stdio.h>
 #include <math.h>
@@ -563,10 +564,11 @@ void ui_overlay(tenv* env) {
         igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.18f, 0.80f, 0.44f, 1.0f});
         igPushStyleColor_Vec4(ImGuiCol_ButtonActive, (ImVec4){0.12f, 0.55f, 0.30f, 1.0f});
         if (igButton("\uea1c  REAPARECER", (ImVec2){210.0f, 44.0f})) {
-          if (gdata->connection) {
-            gdata->connection->is_closing = true;
-            gdata->restart_req = true;
-          }
+          server_disconnect(env);
+          game_data_reset(env);
+          usr->gdata.conn = CONNECTING;
+          glfwSetTime(0);
+          server_connect(env);
         }
         igPopStyleColor(3);
 
@@ -576,10 +578,10 @@ void ui_overlay(tenv* env) {
         igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.70f, 0.22f, 0.28f, 1.0f});
         igPushStyleColor_Vec4(ImGuiCol_ButtonActive, (ImVec4){0.45f, 0.15f, 0.18f, 1.0f});
         if (igButton("\ue9b6  Salir al Menu", (ImVec2){160.0f, 44.0f})) {
-          if (gdata->connection) {
-            gdata->connection->is_closing = true;
-            gdata->restart_req = false;
-          }
+          server_disconnect(env);
+          game_data_reset(env);
+          usr->gdata.conn = DISCONNECTED;
+          gdata->curr_screen = TITLE_SCREEN;
         }
         igPopStyleColor(3);
       }

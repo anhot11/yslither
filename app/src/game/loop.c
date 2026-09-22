@@ -102,28 +102,29 @@ void game_loop(tenv* env) {
         double dt = glfwGetTime() - gdata->data.death_time;
         if (usrs->instant_restart || usrs->hotkeys[HOTKEY_BOT].active) {
           if (dt >= 1.2) {
-            if (gdata->connection) {
-              gdata->connection->is_closing = true;
-              gdata->restart_req = true;
-            }
+            server_disconnect(env);
+            game_data_reset(env);
+            usr->gdata.conn = CONNECTING;
+            glfwSetTime(0);
+            server_connect(env);
+            return;
           }
         }
       }
 
       if (gdata->closed) {
-        flight_recorder_init();
-        game_data_reset(env);
-
-        if (gdata->restart_req) {
+        gdata->closed = false;
+        if (!gdata->data.dead) {
+          // Unexpected socket drop while alive: reconnect without kicking player out
+          LOGI("Network drop detected while alive: automatically reconnecting...");
+          server_disconnect(env);
+          game_data_reset(env);
           usr->gdata.conn = CONNECTING;
           glfwSetTime(0);
           server_connect(env);
-          gdata->restart_req = false;
-        } else {
-          usr->gdata.conn = DISCONNECTED;
-          gdata->curr_screen = TITLE_SCREEN;
+          return;
         }
-        gdata->closed = false;
+        // If dead: keep showing Game Over dialog with REAPARECER and Salir al Menu
       }
 
       break;

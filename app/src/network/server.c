@@ -37,6 +37,15 @@ void server_connect(tenv* env) {
   }
 }
 
+void server_disconnect(tenv* env) {
+  tuser_data* usr = env->usr;
+  game_data* gdata = &usr->gdata;
+  gdata->connection = NULL;
+  mg_mgr_free(&gdata->network_manager);
+  mg_mgr_init(&gdata->network_manager);
+  gdata->closed = false;
+}
+
 void server_poll(tenv* env) {
   tuser_data* usr = env->usr;
   game_data* gdata = &usr->gdata;

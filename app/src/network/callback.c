@@ -360,7 +360,7 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
         if (pts[0].dying) o.sct--;
       };
 
-      if (gdata->data.dead) {
+      if (gdata->conn == CONNECTING) {
         // player snake:
         usr->r->global.lview[0] = gdata->data.lview_xx;
         usr->r->global.lview[1] = gdata->data.lview_yy;
@@ -1360,7 +1360,10 @@ void server_callback(struct mg_connection* c, int ev, void* ev_data) {
     LOGE("server_callback: Connection error: %s, closing connection...", (char*)ev_data);
     c->is_closing = true;
   } else if (ev == MG_EV_CLOSE) {
-    LOGI("server_callback: Connection closed");
-    gdata->closed = true;
+    LOGI("server_callback: Connection closed (c=%p, active=%p)", c, gdata->connection);
+    if (c == gdata->connection) {
+      gdata->closed = true;
+      gdata->connection = NULL;
+    }
   }
 }

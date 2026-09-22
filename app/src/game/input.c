@@ -10,6 +10,7 @@ void input(tenv* env) {
   game_data* gdata = &usr->gdata;
   user_settings* usrs = &usr->usrs;
   struct mg_connection* connection = gdata->connection;
+  if (!connection || connection->is_closing) return;
 
   if (gdata->data.ctm - gdata->data.last_ping_mtm > 1000) {
     gdata->data.wfpr = false; // Watchdog: never let a dropped pong freeze pings
