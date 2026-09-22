@@ -505,7 +505,7 @@ void ui_overlay(tenv* env) {
   // Game Over overlay banner when dying
   if (gdata->data.dead && gdata->data.death_time > 0.0) {
     float card_w = fminf(460.0f, (float)ctx->size[0] * 0.85f);
-    float card_h = 160.0f;
+    float card_h = 180.0f;
     float card_x = (ctx->size[0] - card_w) * 0.5f;
     float card_y = (ctx->size[1] - card_h) * 0.35f;
 
@@ -549,11 +549,40 @@ void ui_overlay(tenv* env) {
       igTextColored((ImVec4){0.88f, 0.90f, 0.94f, 1.0f}, "%s", stats_buf);
 
       igSpacing();
-      const char* return_msg = "Regresando al menu principal...";
-      ImVec2 ret_sz;
-      igCalcTextSize(&ret_sz, return_msg, NULL, false, -1);
-      igSetCursorPosX((card_w - ret_sz.x) * 0.5f);
-      igTextColored((ImVec4){0.55f, 0.65f, 0.75f, 0.85f}, "%s", return_msg);
+      if (usrs->hotkeys[HOTKEY_BOT].active) {
+        const char* bot_msg = "Bot Activo: Reapareciendo automaticamente en 1.2s...";
+        ImVec2 bmsg_sz;
+        igCalcTextSize(&bmsg_sz, bot_msg, NULL, false, -1);
+        igSetCursorPosX((card_w - bmsg_sz.x) * 0.5f);
+        igTextColored((ImVec4){0.20f, 0.90f, 0.45f, 0.95f}, "%s", bot_msg);
+      } else {
+        float btn_row_w = 210.0f + 14.0f + 160.0f;
+        igSetCursorPosX((card_w - btn_row_w) * 0.5f);
+
+        igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.15f, 0.68f, 0.38f, 1.0f});
+        igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.18f, 0.80f, 0.44f, 1.0f});
+        igPushStyleColor_Vec4(ImGuiCol_ButtonActive, (ImVec4){0.12f, 0.55f, 0.30f, 1.0f});
+        if (igButton("\uea1c  REAPARECER", (ImVec2){210.0f, 44.0f})) {
+          if (gdata->connection) {
+            gdata->connection->is_closing = true;
+            gdata->restart_req = true;
+          }
+        }
+        igPopStyleColor(3);
+
+        igSameLine(0, 14.0f);
+
+        igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.55f, 0.18f, 0.22f, 1.0f});
+        igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.70f, 0.22f, 0.28f, 1.0f});
+        igPushStyleColor_Vec4(ImGuiCol_ButtonActive, (ImVec4){0.45f, 0.15f, 0.18f, 1.0f});
+        if (igButton("\ue9b6  Salir al Menu", (ImVec2){160.0f, 44.0f})) {
+          if (gdata->connection) {
+            gdata->connection->is_closing = true;
+            gdata->restart_req = false;
+          }
+        }
+        igPopStyleColor(3);
+      }
     }
     igEnd();
   }

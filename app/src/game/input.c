@@ -108,10 +108,13 @@ void input(tenv* env) {
         ang = me->wang;
       ang = fmodf(ang, PI2);
       if (ang < 0) ang += PI2;
-      int sang = (int)floorf((250 + 1) * ang / PI2);
+      int sang = (int)floorf(251.0f * ang / PI2);
+      if (sang < 0) sang = 0;
+      if (sang > 250) sang = 250;
       if (sang != gdata->data.lsang || heartbeat_e) {
         gdata->data.lsang = sang;
-        mg_ws_send(connection, (uint8_t[]){sang & 255}, 1, WEBSOCKET_OP_BINARY);
+        uint8_t pkt = (uint8_t)sang;
+        mg_ws_send(connection, &pkt, 1, WEBSOCKET_OP_BINARY);
       }
     }
   }

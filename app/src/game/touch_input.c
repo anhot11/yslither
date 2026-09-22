@@ -40,14 +40,17 @@ void touch_input_down(touch_state* ts, int pointer_id, float x, float y, float s
   }
 
   if (ts->mode == TOUCH_CONTROL_JOYSTICK) {
-    // Left half of screen initiates joystick
-    if (x < screen_w * 0.65f && !ts->joy_active) {
+    if (!ts->joy_active) {
       ts->joy_active = true;
       ts->joy_pointer_id = pointer_id;
       ts->joy_center_x = x;
       ts->joy_center_y = y;
       ts->joy_curr_x = x;
       ts->joy_curr_y = y;
+      float cx = screen_w * 0.5f;
+      float cy = screen_h * 0.5f;
+      ts->target_x = x - cx;
+      ts->target_y = y - cy;
       ts->active = true;
     }
   } else {

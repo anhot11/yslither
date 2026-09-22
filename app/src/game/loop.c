@@ -93,15 +93,19 @@ void game_loop(tenv* env) {
         gdata->restart_req = true;
       }
 
-      // Return to menu on death after brief explosion animation or on user tap
+      // Death handling:
+      // If Bot Mode is active OR user has instant_restart enabled:
+      // automatically respawn in the match after death explosion!
+      // Otherwise: keep in arena and let user tap "REAPARECER" or "SALIR" in the dialog!
       if (gdata->data.dead && gdata->data.death_time > 0.0) {
         flight_recorder_on_death(env);
         double dt = glfwGetTime() - gdata->data.death_time;
-        bool user_tapped = tmouse_button_pressed(env->ms, GLFW_MOUSE_BUTTON_LEFT);
-        if (dt >= 1.4 || (dt >= 0.25 && user_tapped)) {
-          if (gdata->connection) {
-            gdata->connection->is_closing = true;
-            gdata->restart_req = usrs->instant_restart;
+        if (usrs->instant_restart || usrs->hotkeys[HOTKEY_BOT].active) {
+          if (dt >= 1.2) {
+            if (gdata->connection) {
+              gdata->connection->is_closing = true;
+              gdata->restart_req = true;
+            }
           }
         }
       }

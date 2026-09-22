@@ -507,21 +507,25 @@ static void evaluate_best_evasion_heading(game_data* gdata) {
       }
 
       // Predatory Enemy Head Penalty: strictly avoid steering toward incoming enemy heads
-      if (cp->type == 0 && (vx * vx + vy * vy) < (650.0f * 650.0f)) {
+      if (cp->type == 0 && (vx * vx + vy * vy) < (800.0f * 800.0f)) {
         float head_ang = atan2f(vy, vx);
-        if (fabsf(ang_between(ray_ang, head_ang)) < ((float)M_PI * 0.45f)) {
-          hazard_factor *= 0.10f;
+        if (fabsf(ang_between(ray_ang, head_ang)) < ((float)M_PI * 0.50f)) {
+          hazard_factor *= 0.05f;
         }
       }
     }
 
-    // Map border clearance along ray
+    // Map border clearance along ray: guarantee the bot curves away from the rim!
     float border_clearance = map_flux - dist_to_ctr;
-    if (border_clearance < 2000.0f) {
+    if (border_clearance < 3000.0f) {
       float ang_diff_border = fabsf(ang_between(ray_ang, ang_to_ctr));
-      if (ang_diff_border > ((float)M_PI * 0.45f)) {
-        float outward_factor = (ang_diff_border - (float)M_PI * 0.45f) / ((float)M_PI * 0.55f);
-        min_clearance = fminf(min_clearance, border_clearance * (1.0f - outward_factor * 0.85f));
+      if (ang_diff_border > ((float)M_PI * 0.35f)) {
+        float outward_ratio = (ang_diff_border - (float)M_PI * 0.35f) / ((float)M_PI * 0.65f);
+        float penalty_clear = border_clearance * (1.0f - outward_ratio * 0.95f);
+        if (border_clearance < 1000.0f) {
+          penalty_clear = 0.0f; // Completely disqualify rays pointing outward near the wall!
+        }
+        min_clearance = fminf(min_clearance, penalty_clear);
       }
     }
 
