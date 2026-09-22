@@ -382,6 +382,9 @@ void ui_overlay(tenv* env) {
     if (pang < 0) pang += 360;
     int dst = (int)roundf(sqrtf(px * px + py * py) * 100.0f);
 
+    igPushFont(usr->imgui_data.mono_font[usrs->stats_font_size],
+               usr->imgui_data.mono_font[usrs->stats_font_size]->LegacySize);
+
     igSetCursorPosY(ctx->size[1] - (line_height * 3) - style->WindowPadding.y);
 
     igTextColored((ImVec4){1, 1, 1, 0.3}, "\ueaeb");
