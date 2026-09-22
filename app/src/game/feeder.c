@@ -22,6 +22,17 @@
 #define LOGE(...) printf(__VA_ARGS__)
 #endif
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846f
+#endif
+
+static inline float ang_between(float a, float b) {
+  float d = fmodf(a - b, (float)PI2);
+  if (d < -(float)M_PI) d += (float)PI2;
+  if (d > (float)M_PI) d -= (float)PI2;
+  return d;
+}
+
 typedef struct feeder_bot {
   int id;
   struct mg_connection* c;
