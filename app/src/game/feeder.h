@@ -6,7 +6,15 @@
 struct tenv;
 typedef struct tenv tenv;
 
-#define MAX_FEEDER_BOTS 5
+#define MAX_FEEDER_BOTS 12
+
+typedef struct feeder_bot_pos {
+  float x;
+  float y;
+  float dist;
+  bool boosted;
+  bool alive;
+} feeder_bot_pos;
 
 void feeder_init(tenv* env);
 void feeder_update(tenv* env);
@@ -19,5 +27,6 @@ bool feeder_is_enabled(void);
 void feeder_set_enabled(bool enabled);
 void feeder_toggle_enabled(void);
 float feeder_get_closest_dist(void);
+int feeder_get_bots_pos(feeder_bot_pos* out_pos, int max_count);
 
 #endif

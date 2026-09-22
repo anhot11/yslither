@@ -39,7 +39,7 @@ void user_settings_default(user_settings* usr_settings) {
   usr_settings->bot_auto_start = false;
   usr_settings->debug_logs_enabled = false; // Desactivado por defecto
   usr_settings->feeder_bots_enabled = false; // Desactivado por defecto
-  usr_settings->feeder_bot_count = 3;        // 3 bots por defecto
+  usr_settings->feeder_bot_count = 8;        // 8 bots por defecto (mas bots alimentadores)
   strcpy(usr_settings->ipv4, "23.29.125.178:444");
   strcpy(usr_settings->nickname, "Slither");
 

@@ -42,7 +42,7 @@ static struct mg_mgr s_feeder_mgr;
 static bool s_feeder_mgr_inited = false;
 static feeder_bot s_bots[MAX_FEEDER_BOTS];
 static bool s_feeder_enabled = false;
-static int s_target_count = 3;
+static int s_target_count = 8;
 static float s_closest_dist = -1.0f;
 
 static void feeder_bot_on_packet(feeder_bot* bot, const uint8_t* pkt, int len, double now) {
@@ -64,7 +64,7 @@ static void feeder_bot_on_packet(feeder_bot* bot, const uint8_t* pkt, int len, d
     uint8_t cwa[20] = {54, 206, 204, 169, 97, 178, 74,  136, 124, 117,
                        14, 210, 106, 236, 8,  208, 136, 213, 140, 111};
     memcpy(ba + 4, cwa, 20);
-    ba[24] = (uint8_t)((bot->id * 7 + 3) % 44);
+    ba[24] = 8; // Bright lime green skin for feeder bots
     ba[25] = (uint8_t)nick_len;
     memcpy(ba + 26, bot->name, nick_len);
     int bm = 26 + nick_len;
@@ -242,8 +242,12 @@ void feeder_update(tenv* env) {
   }
 
   int target_count = s_target_count;
+  if (usrs && usrs->feeder_bot_count > 0) {
+    target_count = usrs->feeder_bot_count;
+  }
   if (target_count < 1) target_count = 1;
   if (target_count > MAX_FEEDER_BOTS) target_count = MAX_FEEDER_BOTS;
+  s_target_count = target_count;
 
   float min_dist = 999999.0f;
   int alive_count = 0;
@@ -372,4 +376,20 @@ void feeder_toggle_enabled(void) {
 
 float feeder_get_closest_dist(void) {
   return s_closest_dist;
+}
+
+int feeder_get_bots_pos(feeder_bot_pos* out_pos, int max_count) {
+  if (!out_pos || max_count <= 0) return 0;
+  int count = 0;
+  for (int i = 0; i < MAX_FEEDER_BOTS && count < max_count; i++) {
+    if (s_bots[i].alive) {
+      out_pos[count].x = s_bots[i].x;
+      out_pos[count].y = s_bots[i].y;
+      out_pos[count].boosted = s_bots[i].boosted;
+      out_pos[count].dist = 0.0f;
+      out_pos[count].alive = true;
+      count++;
+    }
+  }
+  return count;
 }

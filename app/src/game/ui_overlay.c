@@ -156,7 +156,7 @@ static void render_stats_hud(tenv* env) {
   float start4_x = start3_x + card3_w + 10.0f;
   float card4_w = feeder_txt_sz.x + pad_x * 2.0f;
 
-  ImVec4 feeder_col = f_enabled ? (ImVec4){0.98f, 0.55f, 0.15f, 1.0f} : (ImVec4){0.60f, 0.65f, 0.70f, 0.8f};
+  ImVec4 feeder_col = f_enabled ? (ImVec4){0.10f, 0.95f, 0.35f, 1.0f} : (ImVec4){0.60f, 0.65f, 0.70f, 0.8f};
   ImDrawList_AddRectFilled(fg_dl, (ImVec2){start4_x, start_y},
                            (ImVec2){start4_x + card4_w, start_y + card_h},
                            igColorConvertFloat4ToU32((ImVec4){0.08f, 0.10f, 0.14f, 0.88f}), 8.0f, 0);
@@ -178,6 +178,97 @@ static void render_stats_hud(tenv* env) {
   }
 
   igPopFont();
+}
+
+static void render_minimap_bots_overlay(tenv* env, float mm_x, float mm_y, float mm_size) {
+  if (!env || !env->usr || !env->ctx) return;
+  tuser_data* usr = env->usr;
+  game_data* gdata = &usr->gdata;
+  if (gdata->conn != CONNECTED) return;
+
+  ImDrawList* dl = igGetForegroundDrawList_ViewportPtr(igGetMainViewport());
+  if (!dl) return;
+
+  float mm_cx = mm_x + mm_size * 0.5f;
+  float mm_cy = mm_y + mm_size * 0.5f;
+  float mm_rad = mm_size * 0.5f * 0.90f; // 0.90 SHADOW radius matches mm.slang
+  float arena_r = (gdata->data.grd > 0.0f) ? gdata->data.grd : 21600.0f;
+
+  snake* me = get_snake(gdata, gdata->data.snake_id);
+  if (!me && tdarray_length(gdata->data.snakes) > 0) {
+    me = gdata->data.snakes + (tdarray_length(gdata->data.snakes) - 1);
+  }
+
+  float p_scr_x = mm_cx;
+  float p_scr_y = mm_cy;
+  if (me) {
+    float p_nx = (me->xx - arena_r) / arena_r;
+    float p_ny = (me->yy - arena_r) / arena_r;
+    p_scr_x = mm_cx + p_nx * mm_rad;
+    p_scr_y = mm_cy + p_ny * mm_rad;
+  }
+
+  double now = glfwGetTime();
+
+  // 1. Draw Feeder Bots with high-visibility vibrant neon green on the minimap
+  feeder_bot_pos fbots[MAX_FEEDER_BOTS];
+  int fcount = feeder_get_bots_pos(fbots, MAX_FEEDER_BOTS);
+
+  for (int i = 0; i < fcount; i++) {
+    float b_nx = (fbots[i].x - arena_r) / arena_r;
+    float b_ny = (fbots[i].y - arena_r) / arena_r;
+    float bx = mm_cx + b_nx * mm_rad;
+    float by = mm_cy + b_ny * mm_rad;
+
+    float dist_c = sqrtf((bx - mm_cx) * (bx - mm_cx) + (by - mm_cy) * (by - mm_cy));
+    if (dist_c <= mm_rad + 4.0f) {
+      // Homing laser guide line pointing from feeder bot to player snake
+      if (me) {
+        ImDrawList_AddLine(dl, (ImVec2){bx, by}, (ImVec2){p_scr_x, p_scr_y},
+                           0x5500FF66, 1.2f);
+      }
+      // Pulsing outer aura (vibrant green glow)
+      float pulse = 5.0f + sinf((float)now * 7.0f + (float)i * 0.7f) * 1.5f;
+      ImDrawList_AddCircleFilled(dl, (ImVec2){bx, by}, pulse, 0x4400FF44, 16);
+      // Solid bright neon green core
+      ImDrawList_AddCircleFilled(dl, (ImVec2){bx, by}, 3.8f, 0xFF00FF33, 12);
+      // Bright white specular center dot
+      ImDrawList_AddCircleFilled(dl, (ImVec2){bx, by}, 1.6f, 0xFFFFFFFF, 8);
+    }
+  }
+
+  // 2. Draw all other snakes on the minimap
+  int snakes_len = tdarray_length(gdata->data.snakes);
+  for (int i = 0; i < snakes_len; i++) {
+    snake* s = &gdata->data.snakes[i];
+    if (s->id == gdata->data.snake_id || s->dead) continue;
+
+    bool is_feeder_snake = (strncmp(s->nk, "[FEED]", 6) == 0);
+    float s_nx = (s->xx - arena_r) / arena_r;
+    float s_ny = (s->yy - arena_r) / arena_r;
+    float sx = mm_cx + s_nx * mm_rad;
+    float sy = mm_cy + s_ny * mm_rad;
+
+    float dist_c = sqrtf((sx - mm_cx) * (sx - mm_cx) + (sy - mm_cy) * (sy - mm_cy));
+    if (dist_c <= mm_rad + 4.0f) {
+      if (is_feeder_snake) {
+        // Feeder bot snake in vibrant neon green
+        ImDrawList_AddCircleFilled(dl, (ImVec2){sx, sy}, 4.2f, 0xFF00FF33, 12);
+        ImDrawList_AddCircle(dl, (ImVec2){sx, sy}, 4.8f, 0xFFFFFFFF, 12, 1.2f);
+      } else {
+        // Other snakes: distinctive amber / orange marker
+        ImDrawList_AddCircleFilled(dl, (ImVec2){sx, sy}, 2.8f, 0xEEFF8800, 10);
+      }
+    }
+  }
+
+  // 3. Highlight player's position on the minimap with cyan pulsing halo
+  if (me) {
+    float p_pulse = 5.5f + sinf((float)now * 4.0f) * 1.5f;
+    ImDrawList_AddCircleFilled(dl, (ImVec2){p_scr_x, p_scr_y}, p_pulse, 0x5500E5FF, 16);
+    ImDrawList_AddCircleFilled(dl, (ImVec2){p_scr_x, p_scr_y}, 3.5f, 0xFF00E5FF, 12);
+    ImDrawList_AddCircle(dl, (ImVec2){p_scr_x, p_scr_y}, 4.0f, 0xFFFFFFFF, 12, 1.5f);
+  }
 }
 
 void ui_overlay(tenv* env) {
@@ -395,6 +486,11 @@ void ui_overlay(tenv* env) {
     igSameLine(0, -1);
     igTextColored((ImVec4){1, 1, 1, 0.7f}, "%d° %d%%", pang, dst);
     igPopFont();
+
+    // Render Feeder Bots & Snakes overlay on the minimap
+    render_minimap_bots_overlay(env, usr->r->global.minimap_circ[0],
+                                usr->r->global.minimap_circ[1],
+                                usr->r->global.minimap_circ[2]);
   }
  
   // Render live in-game stats HUD: Snake Size (Tamaño) & WiFi Ping (ms)

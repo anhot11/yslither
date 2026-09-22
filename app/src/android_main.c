@@ -126,10 +126,10 @@ static void extract_asset(AAssetManager* mgr, const char* asset_path, const char
 }
 
 static void extract_all_assets(AAssetManager* mgr) {
-  const char* marker_path = ".assets_extracted_v1.0.21";
+  const char* marker_path = ".assets_extracted_v1.0.22";
   struct stat st;
   if (stat(marker_path, &st) == 0) {
-    LOGI("Assets already verified for v1.0.21. Skipping extraction check.");
+    LOGI("Assets already verified for v1.0.22. Skipping extraction check.");
     return;
   }
 
@@ -140,7 +140,7 @@ static void extract_all_assets(AAssetManager* mgr) {
 
   FILE* marker = fopen(marker_path, "w");
   if (marker) {
-    fputs("v1.0.21", marker);
+    fputs("v1.0.22", marker);
     fclose(marker);
   }
   LOGI("Asset extraction check complete.");

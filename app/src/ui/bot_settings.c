@@ -306,6 +306,12 @@ void ui_bot_settings(tenv* env) {
     igSliderInt("##bot_circle_score", &usrs->bot_follow_circle_score, 500, 10000, "%d", ImGuiSliderFlags_None);
     igTextColored((ImVec4){0.60f, 0.65f, 0.70f, 0.85f},
                   "Masa necesaria para activar el repliegue defensivo circular.");
+
+    igSpacing();
+    igText("Cantidad de Bots Alimentadores (Verdes en Minimapa): %d bots", usrs->feeder_bot_count);
+    igSliderInt("##feeder_bot_count", &usrs->feeder_bot_count, 1, 12, "%d", ImGuiSliderFlags_None);
+    igTextColored((ImVec4){0.20f, 0.90f, 0.45f, 0.85f},
+                  "Numero de bots simultaneos que van hacia tu serpiente para alimentarte.");
   }
   igEndChild();
   igPopStyleVar(2);
@@ -328,7 +334,9 @@ void ui_bot_settings(tenv* env) {
     usrs->bot_auto_start = false;
     usrs->bot_radius_mult = 20;
     usrs->bot_follow_circle_score = 2000;
-    usrs->debug_logs_enabled = true;
+    usrs->debug_logs_enabled = false;
+    usrs->feeder_bots_enabled = false;
+    usrs->feeder_bot_count = 8;
   }
   igPopStyleColor(2);
 
