@@ -44,6 +44,7 @@ static feeder_bot s_bots[MAX_FEEDER_BOTS];
 static bool s_feeder_enabled = false;
 static int s_target_count = 8;
 static float s_closest_dist = -1.0f;
+static double s_last_bot_spawn = 0.0;
 
 static void feeder_bot_on_packet(feeder_bot* bot, const uint8_t* pkt, int len, double now) {
   if (!bot || !pkt || len <= 0) return;
@@ -213,6 +214,7 @@ void feeder_update(tenv* env) {
       s_bots[i].connecting = false;
     }
     s_closest_dist = -1.0f;
+    s_last_bot_spawn = 0.0;
     mg_mgr_poll(&s_feeder_mgr, 0);
     return;
   }
@@ -266,6 +268,12 @@ void feeder_update(tenv* env) {
 
     // Spawn bot if disconnected and cooldown expired
     if (!bot->c && !bot->connecting && now >= bot->cooldown_until) {
+      // Stagger bot connections by at least 800ms to avoid TCP SYN flood or IP ban from server
+      if (now - s_last_bot_spawn < 0.8) {
+        continue;
+      }
+      s_last_bot_spawn = now;
+
       char url[256];
       snprintf(url, sizeof(url), "ws://%s/slither", usrs->ipv4);
       bot->id = i;
@@ -282,6 +290,7 @@ void feeder_update(tenv* env) {
       } else {
         bot->cooldown_until = now + 2.0;
       }
+      break; // Only spawn one bot per frame to stagger connections cleanly
     }
 
     // Steer and boost active bot

@@ -10,7 +10,7 @@
 #include "../user.h"
 #include "feeder.h"
 
-#define CUSTOM_CONTROLS_FILE "custom_controls.dat"
+#define CUSTOM_CONTROLS_FILE "custom_controls_v2.dat"
 
 custom_controls_t g_custom_controls;
 
@@ -61,7 +61,7 @@ void custom_controls_init_defaults(custom_controls_t* cc) {
   cc->buttons[idx] = (touch_button_t){
       .enabled = true,
       .name = "Turbo",
-      .icon = "\ueaed",
+      .icon = "Turbo",
       .action = BTN_ACTION_BOOST,
       .pos_x = 0.88f,
       .pos_y = 0.78f,
@@ -102,39 +102,54 @@ void custom_controls_init_defaults(custom_controls_t* cc) {
       .active_pointer_id = -1};
   idx++;
 
-  // 4. Bot Defensivo (Tecla T)
+  // 4. Bot Defensivo / IA (Tecla T) - Botón con texto claro "BOT"
   cc->buttons[idx] = (touch_button_t){
       .enabled = true,
       .name = "Bot",
-      .icon = "\ue90c",
+      .icon = "BOT",
       .action = BTN_ACTION_BOT,
       .pos_x = 0.82f,
       .pos_y = 0.38f,
       .radius = 38.0f,
-      .opacity = 0.80f,
+      .opacity = 0.85f,
       .color = 0x8E44ADFF, // Violeta
       .is_down = false,
       .active_pointer_id = -1};
   idx++;
 
-  // 5. Asistencia (Tecla K)
+  // 5. Feeder / Bots Alimentadores - Botón con texto claro "BOTS"
   cc->buttons[idx] = (touch_button_t){
       .enabled = true,
-      .name = "Asist",
-      .icon = "\ue991",
-      .action = BTN_ACTION_ASSIST,
+      .name = "Bots",
+      .icon = "BOTS",
+      .action = BTN_ACTION_FEEDER,
       .pos_x = 0.82f,
       .pos_y = 0.52f,
       .radius = 38.0f,
+      .opacity = 0.85f,
+      .color = 0x27AE60FF, // Verde Neón Esmeralda
+      .is_down = false,
+      .active_pointer_id = -1};
+  idx++;
+
+  // 6. Asistencia (Tecla K)
+  cc->buttons[idx] = (touch_button_t){
+      .enabled = true,
+      .name = "Asist",
+      .icon = "ASIST",
+      .action = BTN_ACTION_ASSIST,
+      .pos_x = 0.82f,
+      .pos_y = 0.66f,
+      .radius = 36.0f,
       .opacity = 0.80f,
       .color = 0xD35400FF, // Naranja Ámbar
       .is_down = false,
       .active_pointer_id = -1};
   idx++;
 
-  // 6. Reiniciar Partida (Tecla R)
+  // 7. Reiniciar Partida - DESACTIVADO POR DEFECTO para que nadie sea expulsado por error
   cc->buttons[idx] = (touch_button_t){
-      .enabled = true,
+      .enabled = false,
       .name = "Reiniciar",
       .icon = "\ue9b6",
       .action = BTN_ACTION_RESTART,
@@ -143,21 +158,6 @@ void custom_controls_init_defaults(custom_controls_t* cc) {
       .radius = 34.0f,
       .opacity = 0.70f,
       .color = 0xC0392BFF, // Rojo
-      .is_down = false,
-      .active_pointer_id = -1};
-  idx++;
-
-  // 7. Feeder / Bots Comida (Botón táctil)
-  cc->buttons[idx] = (touch_button_t){
-      .enabled = true,
-      .name = "Feeder",
-      .icon = "\ue971",
-      .action = BTN_ACTION_FEEDER,
-      .pos_x = 0.82f,
-      .pos_y = 0.66f,
-      .radius = 38.0f,
-      .opacity = 0.80f,
-      .color = 0xE67E22FF, // Naranja Dorado
       .is_down = false,
       .active_pointer_id = -1};
   idx++;
@@ -225,7 +225,9 @@ static void trigger_action_on_down(button_action_t act, tenv* env) {
       usrs->hotkeys[HOTKEY_ASSIST].active ^= 1;
       break;
     case BTN_ACTION_RESTART:
-      if (gdata->connection) {
+      // SAFETY: NEVER kick the player out while alive in the match!
+      // Only allow restart when the snake is dead
+      if (gdata->data.dead && gdata->connection) {
         gdata->connection->is_closing = true;
         gdata->restart_req = true;
       }
@@ -240,10 +242,11 @@ static void trigger_action_on_down(button_action_t act, tenv* env) {
       usrs->hotkeys[HOTKEY_HUD].active ^= 1;
       break;
     case BTN_ACTION_QUIT:
-      if (gdata->connection) {
+      // SAFETY: NEVER kick the player out while alive in the match!
+      if (gdata->data.dead && gdata->connection) {
         gdata->connection->is_closing = true;
+        gdata->conn = DISCONNECTED;
       }
-      gdata->conn = DISCONNECTED;
       break;
     case BTN_ACTION_FEEDER:
       feeder_toggle_enabled();
@@ -260,6 +263,12 @@ static void trigger_action_on_up(button_action_t act, tenv* env) {
 
 bool custom_controls_touch_down(int pointer_id, float x, float y, float screen_w, float screen_h, tenv* env) {
   custom_controls_t* cc = &g_custom_controls;
+
+  // Check top-left Bots HUD badge (toggle feeder bots on direct tap)
+  if (y >= 8.0f && y <= 58.0f && x >= 330.0f && x <= 620.0f) {
+    feeder_toggle_enabled();
+    return true;
+  }
 
   for (int i = 0; i < cc->button_count; i++) {
     touch_button_t* btn = &cc->buttons[i];
@@ -392,7 +401,7 @@ void custom_controls_render_hud(tenv* env, float screen_w, float screen_h) {
     uint32_t bg_col = (a / 2 << 24) | (b / 3 << 16) | (g / 3 << 8) | (r / 3);
     uint32_t border_col = (a << 24) | (b << 16) | (g << 8) | r;
     if (btn->is_down || is_toggled) {
-      bg_col = (a << 24) | (b << 16) | (g << 8) | r;
+      bg_col = (a << 24) | (0x28 << 16) | (0xB0 << 8) | 0x20; // Verde Esmeralda Neón vibrante
       border_col = 0xFFFFFFFF;
     }
 
