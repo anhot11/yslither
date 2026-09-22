@@ -146,6 +146,14 @@ server_entry* server_list_get(int index) {
   return &s_servers[index];
 }
 
+bool server_list_get_copy(int index, server_entry* out_entry) {
+  if (index < 0 || index >= s_server_count || !out_entry) return false;
+  pthread_mutex_lock(&s_mutex);
+  *out_entry = s_servers[index];
+  pthread_mutex_unlock(&s_mutex);
+  return true;
+}
+
 void server_list_refresh_pings(void) {
   pthread_mutex_lock(&s_mutex);
   if (s_is_pinging) {

@@ -11,7 +11,7 @@
 #include "../network/server.h"
 #include "feeder.h"
 
-#define CUSTOM_CONTROLS_FILE "custom_controls_v2.dat"
+#define CUSTOM_CONTROLS_FILE "custom_controls_v3.dat"
 
 custom_controls_t g_custom_controls;
 
@@ -58,59 +58,29 @@ void custom_controls_init_defaults(custom_controls_t* cc) {
 
   int idx = 0;
 
-  // 1. Turbo / Boost (Botón principal inferior derecho)
+  // 1. Turbo / Boost (Colocado a la izquierda del minimapa para ergonomía total y sin tapar el radar)
   cc->buttons[idx] = (touch_button_t){
       .enabled = true,
       .name = "Turbo",
       .icon = "Turbo",
       .action = BTN_ACTION_BOOST,
-      .pos_x = 0.88f,
+      .pos_x = 0.76f,
       .pos_y = 0.78f,
-      .radius = 56.0f,
+      .radius = 54.0f,
       .opacity = 0.85f,
       .color = 0x27AE60FF, // Verde Neón Esmeralda
       .is_down = false,
       .active_pointer_id = -1};
   idx++;
 
-  // 2. Zoom In (Tecla N)
-  cc->buttons[idx] = (touch_button_t){
-      .enabled = true,
-      .name = "Zoom +",
-      .icon = "+",
-      .action = BTN_ACTION_ZOOM_IN,
-      .pos_x = 0.93f,
-      .pos_y = 0.38f,
-      .radius = 36.0f,
-      .opacity = 0.75f,
-      .color = 0x2980B9FF, // Azul
-      .is_down = false,
-      .active_pointer_id = -1};
-  idx++;
-
-  // 3. Zoom Out (Tecla M)
-  cc->buttons[idx] = (touch_button_t){
-      .enabled = true,
-      .name = "Zoom -",
-      .icon = "-",
-      .action = BTN_ACTION_ZOOM_OUT,
-      .pos_x = 0.93f,
-      .pos_y = 0.52f,
-      .radius = 36.0f,
-      .opacity = 0.75f,
-      .color = 0x2980B9FF, // Azul
-      .is_down = false,
-      .active_pointer_id = -1};
-  idx++;
-
-  // 4. Bot Defensivo / IA (Tecla T) - Botón con texto claro "BOT"
+  // 2. Bot Defensivo / IA (Tecla T) - Directamente accesible sobre el botón Turbo
   cc->buttons[idx] = (touch_button_t){
       .enabled = true,
       .name = "Bot",
       .icon = "BOT",
       .action = BTN_ACTION_BOT,
-      .pos_x = 0.82f,
-      .pos_y = 0.38f,
+      .pos_x = 0.76f,
+      .pos_y = 0.58f,
       .radius = 38.0f,
       .opacity = 0.85f,
       .color = 0x8E44ADFF, // Violeta
@@ -118,14 +88,14 @@ void custom_controls_init_defaults(custom_controls_t* cc) {
       .active_pointer_id = -1};
   idx++;
 
-  // 5. Feeder / Bots Alimentadores - Botón con texto claro "BOTS"
+  // 3. Feeder / Bots Alimentadores (Tecla B) - Columna vertical ergonómica
   cc->buttons[idx] = (touch_button_t){
       .enabled = true,
       .name = "Bots",
       .icon = "BOTS",
       .action = BTN_ACTION_FEEDER,
-      .pos_x = 0.82f,
-      .pos_y = 0.52f,
+      .pos_x = 0.76f,
+      .pos_y = 0.42f,
       .radius = 38.0f,
       .opacity = 0.85f,
       .color = 0x27AE60FF, // Verde Neón Esmeralda
@@ -133,17 +103,47 @@ void custom_controls_init_defaults(custom_controls_t* cc) {
       .active_pointer_id = -1};
   idx++;
 
-  // 6. Asistencia (Tecla K)
+  // 4. Asistencia / Guía Láser (Tecla K)
   cc->buttons[idx] = (touch_button_t){
       .enabled = true,
       .name = "Asist",
       .icon = "ASIST",
       .action = BTN_ACTION_ASSIST,
-      .pos_x = 0.82f,
-      .pos_y = 0.66f,
+      .pos_x = 0.76f,
+      .pos_y = 0.26f,
       .radius = 36.0f,
       .opacity = 0.80f,
       .color = 0xD35400FF, // Naranja Ámbar
+      .is_down = false,
+      .active_pointer_id = -1};
+  idx++;
+
+  // 5. Zoom In (Tecla N) - Entre el Leaderboard y el Minimapa
+  cc->buttons[idx] = (touch_button_t){
+      .enabled = true,
+      .name = "Zoom +",
+      .icon = "+",
+      .action = BTN_ACTION_ZOOM_IN,
+      .pos_x = 0.94f,
+      .pos_y = 0.35f,
+      .radius = 34.0f,
+      .opacity = 0.75f,
+      .color = 0x2980B9FF, // Azul
+      .is_down = false,
+      .active_pointer_id = -1};
+  idx++;
+
+  // 6. Zoom Out (Tecla M) - Debajo de Zoom +
+  cc->buttons[idx] = (touch_button_t){
+      .enabled = true,
+      .name = "Zoom -",
+      .icon = "-",
+      .action = BTN_ACTION_ZOOM_OUT,
+      .pos_x = 0.94f,
+      .pos_y = 0.47f,
+      .radius = 34.0f,
+      .opacity = 0.75f,
+      .color = 0x2980B9FF, // Azul
       .is_down = false,
       .active_pointer_id = -1};
   idx++;
@@ -154,7 +154,7 @@ void custom_controls_init_defaults(custom_controls_t* cc) {
       .name = "Reiniciar",
       .icon = "\ue9b6",
       .action = BTN_ACTION_RESTART,
-      .pos_x = 0.93f,
+      .pos_x = 0.88f,
       .pos_y = 0.12f,
       .radius = 34.0f,
       .opacity = 0.70f,

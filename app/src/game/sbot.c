@@ -141,6 +141,11 @@ static inline int ang_index(float angle) {
   return (i >= MAXARC) ? 0 : i;
 }
 
+static inline bool is_feeder_snake(const snake* s) {
+  if (!s) return false;
+  return strncmp(s->nk, "[FEED]", 6) == 0;
+}
+
 static inline float snake_width(float sc) { return roundf(sc * 29.0f); }
 
 static inline v2 unit_vec(v2 v) {
@@ -325,7 +330,7 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
   int ns = tdarray_length(gdata->data.snakes);
   for (int i = 0; i < ns; i++) {
     snake* s = gdata->data.snakes + i;
-    if (s->id == B.id || s->dead) continue;
+    if (s->id == B.id || s->dead || is_feeder_snake(s)) continue;
     float enemy_d2 = dist2(fx, fy, s->xx, s->yy);
     // Strict head-safety bubble: never contest food if enemy head is closer and within danger distance
     if (enemy_d2 < (320.0f * 320.0f)) {
@@ -400,7 +405,7 @@ static void get_collision_points(game_data* gdata) {
 
   for (int i = 0; i < ns; i++) {
     snake* s = gdata->data.snakes + i;
-    if (s->id == B.id || s->dead) continue;
+    if (s->id == B.id || s->dead || is_feeder_snake(s)) continue;
 
     float sr = snake_width(s->sc) / 2.0f;
     float smul = fminf(1.0f, s->sp / SPEED_BASE - 1.0f);
@@ -939,7 +944,7 @@ static void follow_circle_self(game_data* gdata) {
   int ns = tdarray_length(gdata->data.snakes);
   for (int i = 0; i < ns; i++) {
     snake* sk = gdata->data.snakes + i;
-    if (sk->id == B.id || sk->dead) continue;
+    if (sk->id == B.id || sk->dead || is_feeder_snake(sk)) continue;
 
     float ew = snake_width(sk->sc);
     v2 eh = {sk->xx, sk->yy};

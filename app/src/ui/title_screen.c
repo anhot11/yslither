@@ -243,8 +243,9 @@ static void ui_server_selector(tenv* env) {
     if (igBeginChild_Str("##srv_list", (ImVec2){-1, list_h}, true, ImGuiWindowFlags_None)) {
       int count = server_list_count();
       for (int i = 0; i < count; i++) {
-        server_entry* s = server_list_get(i);
-        if (!s) continue;
+        server_entry s_buf;
+        if (!server_list_get_copy(i, &s_buf)) continue;
+        server_entry* s = &s_buf;
 
         char srv_addr[64];
         snprintf(srv_addr, sizeof(srv_addr), "%s:%d", s->ip, s->port);
@@ -525,6 +526,7 @@ void ui_title_screen(tenv* env) {
   igPushStyleColor_Vec4(ImGuiCol_ButtonActive, (ImVec4){0.10f, 0.60f, 0.28f, 1.0f});
 
   if (igButton("\uea1c  J U G A R", (ImVec2){menu_w, 64.0f})) {
+    server_disconnect(env);
     usr->gdata.conn = CONNECTING;
     usr->gdata.curr_screen = PLAYING;
     usr->gdata.connect_retry_count = 0;

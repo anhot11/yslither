@@ -25,6 +25,10 @@ void server_connect(tenv* env) {
   game_data* gdata = &usr->gdata;
   user_settings* usrs = &usr->usrs;
 
+  if (gdata->connection != NULL) {
+    server_disconnect(env);
+  }
+
   char url[256] = {};
   sprintf(url, "ws://%s/slither", usrs->ipv4);
   LOGI("server_connect: Attempting WebSocket connection to %s", url);

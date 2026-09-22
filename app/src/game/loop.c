@@ -35,7 +35,11 @@ void game_loop(tenv* env) {
 
       double cur_t = glfwGetTime();
       if (cur_t > 3.5) { // 3.5 sec fast timeout per server attempt
-        if (gdata->connection) gdata->connection->is_closing = true;
+        if (gdata->connection) {
+          gdata->connection->is_closing = true;
+        } else {
+          gdata->closed = true;
+        }
         LOGE("Connection timed out after %.2f seconds, triggering failover...", cur_t);
       }
 
@@ -60,13 +64,16 @@ void game_loop(tenv* env) {
           if (next_ip && next_ip[0] != '\0') {
             LOGI("Failover: Switching to alternative server %s (attempt %d/3)...", next_ip, gdata->connect_retry_count);
             strncpy(usrs->ipv4, next_ip, MAX_IPV4_LEN);
+            server_disconnect(env);
             glfwSetTime(0);
             server_connect(env);
             break;
           }
         }
+        server_disconnect(env);
         gdata->conn = DISCONNECTED;
         gdata->connect_retry_count = 0;
+        gdata->curr_screen = TITLE_SCREEN;
       }
       break;
     }
@@ -85,11 +92,11 @@ void game_loop(tenv* env) {
       if (usrs->hotkeys[HOTKEY_QUIT].active ||
           (usrs->quit_mc &&
            tmouse_button_pressed(env->ms, GLFW_MOUSE_BUTTON_MIDDLE))) {
-        gdata->connection->is_closing = true;
+        if (gdata->connection) gdata->connection->is_closing = true;
       } else if (usrs->hotkeys[HOTKEY_RESTART].active ||
                  (usrs->restart_rc &&
                    tmouse_button_pressed(env->ms, GLFW_MOUSE_BUTTON_RIGHT))) {
-        gdata->connection->is_closing = true;
+        if (gdata->connection) gdata->connection->is_closing = true;
         gdata->restart_req = true;
       }
 

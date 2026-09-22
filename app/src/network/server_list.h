@@ -19,6 +19,7 @@ typedef struct {
 void server_list_init(void);
 int server_list_count(void);
 server_entry* server_list_get(int index);
+bool server_list_get_copy(int index, server_entry* out_entry);
 void server_list_refresh_pings(void);
 const char* server_list_get_best_ip(void);
 const char* server_list_get_fallback_ip(int attempt);

@@ -193,7 +193,8 @@ static void render_minimap_bots_overlay(tenv* env, float mm_x, float mm_y, float
   float mm_cx = mm_x + mm_size * 0.5f;
   float mm_cy = mm_y + mm_size * 0.5f;
   float mm_rad = mm_size * 0.5f * 0.90f; // 0.90 SHADOW radius matches mm.slang
-  float arena_r = (gdata->data.grd > 0.0f) ? gdata->data.grd : 21600.0f;
+  float cx_world = (gdata->data.grd > 0.0f) ? gdata->data.grd : 21600.0f;
+  float rad_world = (gdata->data.flux_grd > 0.0f) ? gdata->data.flux_grd : (cx_world * 0.98f);
 
   snake* me = get_snake(gdata, gdata->data.snake_id);
   if (!me && tdarray_length(gdata->data.snakes) > 0) {
@@ -203,8 +204,8 @@ static void render_minimap_bots_overlay(tenv* env, float mm_x, float mm_y, float
   float p_scr_x = mm_cx;
   float p_scr_y = mm_cy;
   if (me) {
-    float p_nx = (me->xx - arena_r) / arena_r;
-    float p_ny = (me->yy - arena_r) / arena_r;
+    float p_nx = (gdata->data.view_xx - cx_world) / rad_world;
+    float p_ny = (gdata->data.view_yy - cx_world) / rad_world;
     p_scr_x = mm_cx + p_nx * mm_rad;
     p_scr_y = mm_cy + p_ny * mm_rad;
   }
@@ -216,8 +217,8 @@ static void render_minimap_bots_overlay(tenv* env, float mm_x, float mm_y, float
   int fcount = feeder_get_bots_pos(fbots, MAX_FEEDER_BOTS);
 
   for (int i = 0; i < fcount; i++) {
-    float b_nx = (fbots[i].x - arena_r) / arena_r;
-    float b_ny = (fbots[i].y - arena_r) / arena_r;
+    float b_nx = (fbots[i].x - cx_world) / rad_world;
+    float b_ny = (fbots[i].y - cx_world) / rad_world;
     float bx = mm_cx + b_nx * mm_rad;
     float by = mm_cy + b_ny * mm_rad;
 
@@ -226,11 +227,15 @@ static void render_minimap_bots_overlay(tenv* env, float mm_x, float mm_y, float
       // Homing laser guide line pointing from feeder bot to player snake
       if (me) {
         ImDrawList_AddLine(dl, (ImVec2){bx, by}, (ImVec2){p_scr_x, p_scr_y},
-                           0x5500FF66, 1.2f);
+                           0x9900FF55, 1.6f);
+        // Directional animated pulse dot moving along the homing vector (feeder -> player)
+        float t = fmodf((float)now * 2.2f + (float)i * 0.35f, 1.0f);
+        ImVec2 pulse_pt = { bx + (p_scr_x - bx) * t, by + (p_scr_y - by) * t };
+        ImDrawList_AddCircleFilled(dl, pulse_pt, 2.2f, 0xFFFFFFFF, 8);
       }
       // Pulsing outer aura (vibrant green glow)
-      float pulse = 5.0f + sinf((float)now * 7.0f + (float)i * 0.7f) * 1.5f;
-      ImDrawList_AddCircleFilled(dl, (ImVec2){bx, by}, pulse, 0x4400FF44, 16);
+      float pulse = 5.2f + sinf((float)now * 6.0f + (float)i * 0.7f) * 1.5f;
+      ImDrawList_AddCircleFilled(dl, (ImVec2){bx, by}, pulse, 0x5500FF33, 16);
       // Solid bright neon green core
       ImDrawList_AddCircleFilled(dl, (ImVec2){bx, by}, 3.8f, 0xFF00FF33, 12);
       // Bright white specular center dot
@@ -245,8 +250,8 @@ static void render_minimap_bots_overlay(tenv* env, float mm_x, float mm_y, float
     if (s->id == gdata->data.snake_id || s->dead) continue;
 
     bool is_feeder_snake = (strncmp(s->nk, "[FEED]", 6) == 0);
-    float s_nx = (s->xx - arena_r) / arena_r;
-    float s_ny = (s->yy - arena_r) / arena_r;
+    float s_nx = (s->xx - cx_world) / rad_world;
+    float s_ny = (s->yy - cx_world) / rad_world;
     float sx = mm_cx + s_nx * mm_rad;
     float sy = mm_cy + s_ny * mm_rad;
 
@@ -312,10 +317,11 @@ void ui_overlay(tenv* env) {
   usr->r->global.minimap_opacity = 0;
   if (usrs->hotkeys[HOTKEY_HUD].active) {
     ImGuiStyle* style = igGetStyle();
+    float line_height = igGetFontSize() + style->ItemSpacing.y;
 
+#ifndef __ANDROID__
     igPushFont(usr->imgui_data.mono_font[usrs->stats_font_size],
                usr->imgui_data.mono_font[usrs->stats_font_size]->LegacySize);
-    float line_height = igGetCursorPosY();
     ImVec2 icon_sz;
     igCalcTextSize(&icon_sz, "\ue971", NULL, false, -1);
     ImVec2 char_sz;
@@ -323,7 +329,6 @@ void ui_overlay(tenv* env) {
     igTextColored((ImVec4){1, 1, 1, 0.3}, "\ue971");
     igSameLine(0, -1);
     igTextColored((ImVec4){1, 1, 1, 0.5}, usrs->nickname);
-    line_height = igGetCursorPosY() - line_height;
 
     igTextColored((ImVec4){1, 1, 1, 0.3}, "\ueaec");
     igSameLine(0, -1);
@@ -362,11 +367,11 @@ void ui_overlay(tenv* env) {
                   seconds);
     igText("");
 
-#ifndef __ANDROID__
     if (usrs->hotkeys[HOTKEY_MENU].active) {
       display_hotkeys(usr, (icon_sz.x - char_sz.x) * 0.5f,
                       usrs->stats_font_size);
     }
+    igPopFont();
 #endif
 
     float px = (((gdata->data.view_xx - gdata->data.grd) * 2) /

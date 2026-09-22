@@ -315,6 +315,17 @@ void feeder_update(tenv* env) {
       continue;
     }
 
+    // Watchdog: recycle connecting bot if handshake times out
+    if (bot->connecting && now - bot->last_frame_time > 8.0) {
+      LOGI("feeder_bot [%s]: Handshake timeout, recycling socket...", bot->name);
+      if (bot->c) {
+        bot->c->is_closing = true;
+        bot->c = NULL;
+      }
+      bot->connecting = false;
+      bot->cooldown_until = now + 3.0;
+    }
+
     // Spawn bot if disconnected and cooldown expired
     if (!bot->c && !bot->connecting && now >= bot->cooldown_until) {
       // Stagger bot connections by 3.0s to strictly respect server per-IP connection limits

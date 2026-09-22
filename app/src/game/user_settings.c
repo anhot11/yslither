@@ -19,9 +19,11 @@ void user_settings_default(user_settings* usr_settings) {
   usr_settings->laser_color[2] = 0.5f;
   usr_settings->laser_color[3] = 1;
   usr_settings->laser_thickness = 2;
-  usr_settings->cursor_size = 48;
+#ifdef __ANDROID__
+  usr_settings->minimap_size = 210;
+#else
   usr_settings->minimap_size = 300;
-  usr_settings->zoom_step = 0.1f;
+#endif
   usr_settings->snake_scores = true;
   usr_settings->restart_rc = false;
   usr_settings->quit_mc = false;

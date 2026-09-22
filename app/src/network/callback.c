@@ -360,7 +360,7 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
         if (pts[0].dying) o.sct--;
       };
 
-      if (gdata->conn == CONNECTING) {
+      if (gdata->conn == CONNECTING && strncmp(o.nk, "[FEED]", 6) != 0) {
         // player snake:
         usr->r->global.lview[0] = gdata->data.lview_xx;
         usr->r->global.lview[1] = gdata->data.lview_yy;
@@ -1341,12 +1341,14 @@ void server_callback(struct mg_connection* c, int ev, void* ev_data) {
       while (m < l) {
         int len;
         if (a[m] < 32) {
+          if (m + 1 >= l) break;
           len = a[m] << 8 | a[m + 1];
           m += 2;
         } else {
           len = a[m] - 32;
           m++;
         }
+        if (m + len > l) break;
         uint8_t* a2 = a + m;
         got_packet(env, a2, len);
         m += len;
