@@ -33,7 +33,7 @@ void game_loop(tenv* env) {
       usr->r->global.bd_opacity = 0;
       usr->r->global.minimap_opacity = 0;
 
-      double cur_t = glfwGetTime();
+      double cur_t = get_monotonic_sec() - gdata->connect_start_time;
       if (cur_t > 3.5) { // 3.5 sec fast timeout per server attempt
         if (gdata->connection) {
           gdata->connection->is_closing = true;
@@ -65,7 +65,6 @@ void game_loop(tenv* env) {
             LOGI("Failover: Switching to alternative server %s (attempt %d/3)...", next_ip, gdata->connect_retry_count);
             strncpy(usrs->ipv4, next_ip, MAX_IPV4_LEN);
             server_disconnect(env);
-            glfwSetTime(0);
             server_connect(env);
             break;
           }
@@ -106,13 +105,12 @@ void game_loop(tenv* env) {
       // Otherwise: keep in arena and let user tap "REAPARECER" or "SALIR" in the dialog!
       if (gdata->data.dead && gdata->data.death_time > 0.0) {
         flight_recorder_on_death(env);
-        double dt = glfwGetTime() - gdata->data.death_time;
+        double dt = get_monotonic_sec() - gdata->data.death_time;
         if (usrs->instant_restart || usrs->hotkeys[HOTKEY_BOT].active) {
           if (dt >= 1.2) {
             server_disconnect(env);
             game_data_reset(env);
             usr->gdata.conn = CONNECTING;
-            glfwSetTime(0);
             server_connect(env);
             return;
           }
@@ -127,7 +125,6 @@ void game_loop(tenv* env) {
           server_disconnect(env);
           game_data_reset(env);
           usr->gdata.conn = CONNECTING;
-          glfwSetTime(0);
           server_connect(env);
           return;
         }

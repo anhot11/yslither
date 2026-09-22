@@ -317,8 +317,8 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
   float d_head = fabsf(ang_between(ang, B.ang));
 
   // 3. Turning Radius Rejection for small food (prevents jittering on tiny food inside turn circle):
-  // Dead snake chunks (fsz >= 3.0f) are never rejected because our smooth arc steering loops back cleanly.
-  if (fsz < 3.0f) {
+  // Dead snake chunks and feeder drops (fsz >= 2.5f) are never rejected because our smooth arc steering loops back cleanly.
+  if (fsz < 2.5f) {
     float min_turn_r = B.width * 2.2f;
     if (fd < min_turn_r && d_head > ((float)M_PI * 0.25f)) {
       return;
@@ -353,15 +353,15 @@ static void add_food_angle(float fx, float fy, float fd2, float fsz, game_data* 
 
   // 5. Intelligent Multi-factor Food Scoring:
   // Forward orientation bonus: only prioritize forward direction for small ambient food.
-  // Dead snake chunks (fsz >= 3.0f) are not penalized for being behind us or at our tail!
-  float forward_bonus = (fsz >= 3.0f) ? 1.0f : (1.0f + 0.85f * cosf(d_head));
+  // Dead snake chunks (fsz >= 2.5f) are not penalized for being behind us or at our tail!
+  float forward_bonus = (fsz >= 2.5f) ? 1.0f : (1.0f + 0.85f * cosf(d_head));
 
   // Proximity weighting: close food is favored, but large feasts easily bridge the distance gap
   float dist_norm = fd / 180.0f;
   float prox_factor = 1.0f / (1.0f + dist_norm * dist_norm);
 
   // Value scaling (dead snake chunks and feeder mass are heavily rewarded!)
-  float size_val = 1.0f + (fsz >= 3.0f ? fsz * 4.5f : fsz * 1.0f);
+  float size_val = 1.0f + (fsz >= 2.5f ? fsz * 8.0f : fsz * 1.0f);
 
   // Target persistence / stickiness bonus (prevents rapid jumping between distant targets)
   float persistence = 1.0f;

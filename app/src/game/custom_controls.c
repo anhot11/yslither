@@ -232,7 +232,6 @@ static void trigger_action_on_down(button_action_t act, tenv* env) {
         server_disconnect(env);
         game_data_reset(env);
         usr->gdata.conn = CONNECTING;
-        glfwSetTime(0);
         server_connect(env);
       }
       break;

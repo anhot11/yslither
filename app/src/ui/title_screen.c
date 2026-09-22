@@ -530,7 +530,6 @@ void ui_title_screen(tenv* env) {
     usr->gdata.conn = CONNECTING;
     usr->gdata.curr_screen = PLAYING;
     usr->gdata.connect_retry_count = 0;
-    glfwSetTime(0);
 
     // If server is invalid or empty or obsolete default, use reliable Silicon Valley default
     if (usrs->ipv4[0] == '\0' || strcmp(usrs->ipv4, "192.211.52.146:444") == 0) {

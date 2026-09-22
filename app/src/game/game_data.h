@@ -1,6 +1,7 @@
 #ifndef GAME_DATA_H
 #define GAME_DATA_H
 
+#include <time.h>
 #include <thermite.h>
 
 #include "../external/mongoose.h"
@@ -8,6 +9,12 @@
 #include "food.h"
 #include "prey.h"
 #include "sbot.h"
+
+static inline double get_monotonic_sec(void) {
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
+}
 
 typedef struct default_skin_data {
   vec3s ec;
@@ -57,6 +64,7 @@ typedef struct game_data {
   bool restart_req;
   bool closed;
   int connect_retry_count;
+  double connect_start_time;
 
   struct {
     float grd;

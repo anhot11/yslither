@@ -387,7 +387,6 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
           printf("Protocol version %d is not supported.\n", gdata->data.protocol_version);
           c->is_closing = true;
         }
-        glfwSetTime(0);
       }
 
       o.accessory = accessory;
@@ -432,7 +431,7 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
             o->id = gdata->data.snake_id = -1;
             gdata->data.dead = true;
             if (gdata->data.death_time <= 0.0) {
-              gdata->data.death_time = glfwGetTime();
+              gdata->data.death_time = get_monotonic_sec();
             }
             if (gdata->data.score > usrs->score) {
               usrs->score = gdata->data.score;
@@ -1299,7 +1298,7 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
   } else if (cmd == 'v') {
     gdata->data.dead = true;
     if (gdata->data.death_time <= 0.0) {
-      gdata->data.death_time = glfwGetTime();
+      gdata->data.death_time = get_monotonic_sec();
     }
     gdata->data.follow_view = false;
     gdata->data.lview_xx = gdata->data.view_xx;

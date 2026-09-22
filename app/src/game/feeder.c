@@ -43,7 +43,7 @@ static struct mg_mgr s_feeder_mgr;
 static bool s_feeder_mgr_inited = false;
 static feeder_bot s_bots[MAX_FEEDER_BOTS];
 static bool s_feeder_enabled = false;
-static int s_target_count = 2; // Default to 2 concurrent feeder bots for maximum server stability
+static int s_target_count = 3; // Default to 3 concurrent feeder bots for continuous feeding chain
 static float s_closest_dist = -1.0f;
 static double s_last_bot_spawn = 0.0;
 
@@ -118,7 +118,7 @@ static void feeder_bot_on_packet(feeder_bot* bot, const uint8_t* pkt, int len, d
           bot->c = NULL;
         }
         bot->snake_id = -1;
-        bot->cooldown_until = now + 3.0; // Stagger next respawn cleanly
+        bot->cooldown_until = now + 2.5; // Smooth 2.5s respawn cycle
       }
     }
   } else if (cmd == '=' && len == 7) {
@@ -156,14 +156,14 @@ static void feeder_bot_on_packet(feeder_bot* bot, const uint8_t* pkt, int len, d
         bot->c = NULL;
       }
       bot->snake_id = -1;
-      bot->cooldown_until = now + 3.0;
+      bot->cooldown_until = now + 2.5;
     }
   }
 }
 
 static void feeder_ws_cb(struct mg_connection* c, int ev, void* ev_data) {
   feeder_bot* bot = (feeder_bot*)c->fn_data;
-  double now = glfwGetTime();
+  double now = get_monotonic_sec();
 
   if (ev == MG_EV_WS_OPEN) {
     LOGI("feeder_ws_cb [%s]: WebSocket handshake established! Sending init bytes", bot ? bot->name : "unknown");
@@ -202,7 +202,7 @@ static void feeder_ws_cb(struct mg_connection* c, int ev, void* ev_data) {
       bot->connecting = false;
       bot->c = NULL;
       bot->snake_id = -1;
-      bot->cooldown_until = now + 3.0;
+      bot->cooldown_until = now + 2.5;
     }
   } else if (ev == MG_EV_CLOSE) {
     if (bot) {
@@ -210,7 +210,7 @@ static void feeder_ws_cb(struct mg_connection* c, int ev, void* ev_data) {
       bot->connecting = false;
       bot->c = NULL;
       bot->snake_id = -1;
-      bot->cooldown_until = now + 3.0;
+      bot->cooldown_until = now + 2.5;
     }
   }
 }
@@ -228,7 +228,8 @@ void feeder_init(tenv* env) {
     snprintf(s_bots[i].name, sizeof(s_bots[i].name), "[FEED] #%d", i + 1);
   }
   s_closest_dist = -1.0f;
-  s_target_count = 2;
+  s_target_count = 3;
+  s_last_bot_spawn = 0.0;
 }
 
 void feeder_update(tenv* env) {
@@ -236,7 +237,7 @@ void feeder_update(tenv* env) {
   tuser_data* usr = env->usr;
   game_data* gdata = &usr->gdata;
   user_settings* usrs = &usr->usrs;
-  double now = glfwGetTime();
+  double now = get_monotonic_sec();
 
   // Check if feeder should be active
   if (!s_feeder_enabled || gdata->conn != CONNECTED || gdata->data.dead) {
@@ -248,6 +249,7 @@ void feeder_update(tenv* env) {
       s_bots[i].alive = false;
       s_bots[i].connecting = false;
       s_bots[i].snake_id = -1;
+      s_bots[i].cooldown_until = 0.0;
     }
     s_closest_dist = -1.0f;
     s_last_bot_spawn = 0.0;
@@ -261,34 +263,7 @@ void feeder_update(tenv* env) {
     return;
   }
 
-  // CRITICAL REQUIREMENT: Feeder bots must steer directly into the player snake's BODY!
-  // In Slither.io collision physics:
-  // When a snake's head hits another snake's BODY, the colliding snake dies instantly,
-  // and the snake whose body was hit takes 0 damage and survives!
-  // By targeting the midpoint of the player's body (pts_len / 2),
-  // we eliminate any risk of head-to-head collision.
   int pts_len = tdarray_length(me->pts);
-  float target_x = me->xx;
-  float target_y = me->yy;
-
-  if (pts_len >= 12) {
-    int mid_idx = pts_len / 2;
-    target_x = me->pts[mid_idx].xx;
-    target_y = me->pts[mid_idx].yy;
-  } else if (pts_len >= 4) {
-    int safe_idx = pts_len - 1 - 2;
-    if (safe_idx < 0) safe_idx = 0;
-    target_x = me->pts[safe_idx].xx;
-    target_y = me->pts[safe_idx].yy;
-  } else if (pts_len > 0) {
-    // Small snake: target the tail (index 0) to guarantee body collision without risking head-to-head impact
-    target_x = me->pts[0].xx;
-    target_y = me->pts[0].yy;
-  } else {
-    // Fallback if no points yet: aim 120 units behind the current head heading
-    target_x = me->xx - cosf(me->ang) * 120.0f;
-    target_y = me->yy - sinf(me->ang) * 120.0f;
-  }
 
   int target_count = s_target_count;
   if (usrs && usrs->feeder_bot_count > 0) {
@@ -316,20 +291,20 @@ void feeder_update(tenv* env) {
     }
 
     // Watchdog: recycle connecting bot if handshake times out
-    if (bot->connecting && now - bot->last_frame_time > 8.0) {
+    if (bot->connecting && now - bot->last_frame_time > 7.0) {
       LOGI("feeder_bot [%s]: Handshake timeout, recycling socket...", bot->name);
       if (bot->c) {
         bot->c->is_closing = true;
         bot->c = NULL;
       }
       bot->connecting = false;
-      bot->cooldown_until = now + 3.0;
+      bot->cooldown_until = now + 2.5;
     }
 
     // Spawn bot if disconnected and cooldown expired
     if (!bot->c && !bot->connecting && now >= bot->cooldown_until) {
-      // Stagger bot connections by 3.0s to strictly respect server per-IP connection limits
-      if (now - s_last_bot_spawn < 3.0) {
+      // Stagger bot connections by 2.8s to strictly respect server per-IP connection limits
+      if (now - s_last_bot_spawn < 2.8) {
         continue;
       }
       s_last_bot_spawn = now;
@@ -349,7 +324,7 @@ void feeder_update(tenv* env) {
       if (bot->c) {
         bot->connecting = true;
       } else {
-        bot->cooldown_until = now + 3.0;
+        bot->cooldown_until = now + 2.5;
       }
       break; // Only spawn one bot per frame to stagger connections cleanly
     }
@@ -367,13 +342,66 @@ void feeder_update(tenv* env) {
       }
       bot->last_frame_time = now;
 
+      // CRITICAL: Calculate target point on player's BODY for THIS SPECIFIC BOT.
+      // In Slither.io collision physics:
+      // When a snake's head hits another snake's BODY, the colliding snake dies instantly,
+      // and the snake whose body was hit takes 0 damage and survives!
+      // By finding the closest body segment behind the neck, we ensure:
+      // 1. Minimum transit distance into the body.
+      // 2. Direct perpendicular T-bone collision into the body.
+      // 3. Absolute prevention of head-to-head collisions.
+      float target_x = me->xx;
+      float target_y = me->yy;
+
+      if (pts_len >= 6) {
+        int safe_max = pts_len - 4; // At least 4 segments back from the head
+        float best_d2 = 1e12f;
+        int best_j = pts_len / 2;
+        for (int j = 0; j <= safe_max; j++) {
+          float bdx = bot->x - me->pts[j].xx;
+          float bdy = bot->y - me->pts[j].yy;
+          float d2 = bdx * bdx + bdy * bdy;
+          if (d2 < best_d2) {
+            best_d2 = d2;
+            best_j = j;
+          }
+        }
+        target_x = me->pts[best_j].xx;
+        target_y = me->pts[best_j].yy;
+      } else if (pts_len > 0) {
+        // Small snake: target tail point (index 0) to ensure body contact without head-to-head collision
+        target_x = me->pts[0].xx;
+        target_y = me->pts[0].yy;
+      } else {
+        // Fallback: 150 units behind head orientation
+        target_x = me->xx - cosf(me->ang) * 150.0f;
+        target_y = me->yy - sinf(me->ang) * 150.0f;
+      }
+
+      // Head-Collision Prevention / Flanking Maneuver:
+      // If the feeder bot is in front of the player snake's head (within forward 160 deg arc and < 1400u),
+      // apply lateral offset away from the player's heading vector to curve smoothly around the head
+      // and strike the body perpendicularly from the side!
+      float to_bot_x = bot->x - me->xx;
+      float to_bot_y = bot->y - me->yy;
+      float dist_head = sqrtf(to_bot_x * to_bot_x + to_bot_y * to_bot_y);
+      float ang_to_bot = atan2f(to_bot_y, to_bot_x);
+      float diff = fabsf(ang_between(ang_to_bot, me->ang));
+      if (diff < ((float)M_PI * 0.45f) && dist_head < 1400.0f) {
+        float side_cross = cosf(me->ang) * to_bot_y - sinf(me->ang) * to_bot_x;
+        float flank_sign = (side_cross >= 0.0f) ? 1.0f : -1.0f;
+        float lateral_push = (1400.0f - dist_head) * 0.35f;
+        target_x += -sinf(me->ang) * flank_sign * lateral_push;
+        target_y += cosf(me->ang) * flank_sign * lateral_push;
+      }
+
       float dx = target_x - bot->x;
       float dy = target_y - bot->y;
       float dist = sqrtf(dx * dx + dy * dy);
       if (dist < min_dist) min_dist = dist;
 
-      // Steer every 50ms towards player's body
-      if (now - bot->last_steer_time > 0.05) {
+      // Steer every 40ms (25 Hz) towards player's body
+      if (now - bot->last_steer_time > 0.04) {
         bot->last_steer_time = now;
         float target_ang = atan2f(dy, dx);
         target_ang = fmodf(target_ang, PI2);
@@ -385,9 +413,9 @@ void feeder_update(tenv* env) {
         mg_ws_send(bot->c, &pkt, 1, WEBSOCKET_OP_BINARY);
       }
 
-      // Activate turbo boost when within 2200 units of player's body to smash into body at max velocity!
-      // Also boost when far away (> 6000 units) to navigate to the player quickly across the map
-      bool want_boost = (dist < 2200.0f || dist > 6000.0f);
+      // Activate turbo boost when within 1100 units of player's body to smash into body at max velocity!
+      // Also boost when far away (> 6500 units) to navigate to the player quickly across the map
+      bool want_boost = (dist < 1100.0f || dist > 6500.0f);
       if (want_boost != bot->boosted) {
         bot->boosted = want_boost;
         uint8_t cmd = want_boost ? 253 : 254;
@@ -454,10 +482,22 @@ bool feeder_is_enabled(void) {
 
 void feeder_set_enabled(bool enabled) {
   s_feeder_enabled = enabled;
+  if (s_feeder_enabled) {
+    s_last_bot_spawn = 0.0;
+    for (int i = 0; i < MAX_FEEDER_BOTS; i++) {
+      s_bots[i].cooldown_until = 0.0;
+    }
+  }
 }
 
 void feeder_toggle_enabled(void) {
   s_feeder_enabled = !s_feeder_enabled;
+  if (s_feeder_enabled) {
+    s_last_bot_spawn = 0.0;
+    for (int i = 0; i < MAX_FEEDER_BOTS; i++) {
+      s_bots[i].cooldown_until = 0.0;
+    }
+  }
 }
 
 float feeder_get_closest_dist(void) {

@@ -36,6 +36,7 @@ void server_connect(tenv* env) {
     mg_ws_connect(&gdata->network_manager, url, server_callback, env,
                   "%s:%s\r\n",
                   "Origin", "https://slither.com");
+  gdata->connect_start_time = get_monotonic_sec();
   if (!gdata->connection) {
     LOGE("server_connect: Failed to allocate connection object!");
   }

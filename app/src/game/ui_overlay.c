@@ -520,7 +520,7 @@ void ui_overlay(tenv* env) {
 
     ImDrawList* fg_dl = igGetForegroundDrawList_ViewportPtr(igGetMainViewport());
     if (fg_dl) {
-      double dt = glfwGetTime() - gdata->data.death_time;
+      double dt = get_monotonic_sec() - gdata->data.death_time;
       float alpha = fminf(0.60f, (float)dt * 0.6f);
       ImDrawList_AddRectFilled(fg_dl, (ImVec2){0, 0}, (ImVec2){(float)ctx->size[0], (float)ctx->size[1]},
                                igColorConvertFloat4ToU32((ImVec4){0.04f, 0.05f, 0.08f, alpha}), 0, 0);
@@ -559,7 +559,9 @@ void ui_overlay(tenv* env) {
 
       igSpacing();
       if (usrs->hotkeys[HOTKEY_BOT].active) {
-        const char* bot_msg = "Bot Activo: Reapareciendo automaticamente en 1.2s...";
+        double dt = get_monotonic_sec() - gdata->data.death_time;
+        char bot_msg[64];
+        snprintf(bot_msg, sizeof(bot_msg), "Bot Activo: Reapareciendo en %.1fs...", fmaxf(0.0f, 1.2f - (float)dt));
         ImVec2 bmsg_sz;
         igCalcTextSize(&bmsg_sz, bot_msg, NULL, false, -1);
         igSetCursorPosX((card_w - bmsg_sz.x) * 0.5f);
@@ -575,7 +577,6 @@ void ui_overlay(tenv* env) {
           server_disconnect(env);
           game_data_reset(env);
           usr->gdata.conn = CONNECTING;
-          glfwSetTime(0);
           server_connect(env);
         }
         igPopStyleColor(3);
