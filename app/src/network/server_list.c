@@ -20,41 +20,41 @@
 #endif
 
 static server_entry s_servers[] = {
-    // North America (US & Canada)
-    {5724, "192.211.52.146", 444, "US West (Los Ángeles)", "US-W", -1, 40, true},
-    {4164, "23.227.195.74",  444, "US East (Atlanta)",     "US-E", -1, 45, true},
-    {7870, "15.204.212.200", 444, "US Central (Chicago)",  "US-C", -1, 35, true},
-    {8400, "23.29.125.178",  444, "US West 2 (Silicon V.)", "US-W", -1, 20, true},
-    {3619, "107.155.98.194", 444, "US South (Miami)",      "US-S", -1, 70, true},
-    {7771, "107.155.76.138", 444, "US East 2 (New York)",  "US-E", -1, 105, true},
-    {4371, "66.165.238.34",  444, "US Central 3 (Texas)",   "US-C", -1, 50, true},
-    {2260, "107.155.103.54", 444, "US East 3 (Virginia)",  "US-E", -1, 65, true},
-    {5120, "15.204.213.229", 444, "US Central 2 (Dallas)", "US-C", -1, 60, true},
-    {7531, "51.161.209.120", 444, "North America (Canadá)","NA",   -1, 40, true},
-    {8828, "148.113.20.151", 444, "North America 2",       "NA",   -1, 30, true},
+    // North America (US & Canada) - pre-sorted by performance
+    {8400, "23.29.125.178",  444, "US West 2 (Silicon V.)", "US-W", 20, 20, true},
+    {7870, "15.204.212.200", 444, "US Central (Chicago)",  "US-C", 35, 35, true},
+    {5724, "192.211.52.146", 444, "US West (Los Ángeles)", "US-W", 40, 40, true},
+    {7531, "51.161.209.120", 444, "North America (Canadá)","NA",   40, 40, true},
+    {4164, "23.227.195.74",  444, "US East (Atlanta)",     "US-E", 45, 45, true},
+    {4371, "66.165.238.34",  444, "US Central 3 (Texas)",   "US-C", 50, 50, true},
+    {5120, "15.204.213.229", 444, "US Central 2 (Dallas)", "US-C", 60, 60, true},
+    {2260, "107.155.103.54", 444, "US East 3 (Virginia)",  "US-E", 65, 65, true},
+    {3619, "107.155.98.194", 444, "US South (Miami)",      "US-S", 70, 70, true},
+    {7771, "107.155.76.138", 444, "US East 2 (New York)",  "US-E", 105, 105, true},
+    {8828, "148.113.20.151", 444, "North America 2",       "NA",   110, 30, true},
 
     // Europe
-    {6622, "198.244.231.35", 444, "Europa (Londres)",      "EU",   -1, 240, true},
-    {4369, "135.125.74.228", 444, "Europa (Frankfurt)",    "EU",   -1, 250, true},
-    {7806, "92.222.100.202", 444, "Europa (París)",        "EU",   -1, 240, true},
-    {5574, "57.128.202.109", 444, "Europa (Gravelines)",   "EU",   -1, 210, true},
-    {3586, "185.199.38.101", 444, "Europa (Varsovia)",     "EU",   -1, 180, true},
-    {9670, "217.138.162.194",444, "Europa 2 (UK)",         "EU",   -1, 190, true},
+    {6622, "198.244.231.35", 444, "Europa (Londres)",      "EU",   180, 240, true},
+    {3586, "185.199.38.101", 444, "Europa (Varsovia)",     "EU",   180, 180, true},
+    {9670, "217.138.162.194",444, "Europa 2 (UK)",         "EU",   190, 190, true},
+    {5574, "57.128.202.109", 444, "Europa (Gravelines)",   "EU",   210, 210, true},
+    {7806, "92.222.100.202", 444, "Europa (París)",        "EU",   240, 240, true},
+    {4369, "135.125.74.228", 444, "Europa (Frankfurt)",    "EU",   250, 250, true},
 
     // South America
-    {4263, "57.129.37.42",   444, "Brasil (Sao Paulo)",    "SA",   -1, 120, true},
-    {8848, "181.41.140.146", 444, "Chile (Santiago)",      "SA",   -1, 110, true},
-    {4571, "181.41.140.170", 444, "Argentina (Buenos Aires)","SA", -1, 115, true},
+    {8848, "181.41.140.146", 444, "Chile (Santiago)",      "SA",   110, 110, true},
+    {4571, "181.41.140.170", 444, "Argentina (Buenos Aires)","SA", 115, 115, true},
+    {4263, "57.129.37.42",   444, "Brasil (Sao Paulo)",    "SA",   120, 120, true},
 
     // Asia & Middle East
-    {7979, "103.4.30.88",    444, "Asia (India / Mumbai)", "AS",   -1, 80, true},
-    {2220, "15.235.218.24",  444, "Asia (Singapur)",       "AS",   -1, 95, true},
-    {3310, "45.158.39.122",  444, "Asia 2 (Tokio)",        "AS",   -1, 30, true},
-    {4490, "94.20.222.150",  444, "Medio Oriente (Dubái)", "ME",   -1, 140, true},
-    {2878, "94.72.180.82",   444, "Medio Oriente 2",       "ME",   -1, 135, true},
+    {3310, "45.158.39.122",  444, "Asia 2 (Tokio)",        "AS",   110, 30, true},
+    {7979, "103.4.30.88",    444, "Asia (India / Mumbai)", "AS",   130, 80, true},
+    {2220, "15.235.218.24",  444, "Asia (Singapur)",       "AS",   135, 95, true},
+    {2878, "94.72.180.82",   444, "Medio Oriente 2",       "ME",   135, 135, true},
+    {4490, "94.20.222.150",  444, "Medio Oriente (Dubái)", "ME",   140, 140, true},
 
     // Africa
-    {7376, "102.218.213.17", 444, "África (Johannesburgo)","AF",   -1, 50, true},
+    {7376, "102.218.213.17", 444, "África (Johannesburgo)","AF",   150, 50, true},
 };
 
 static const int s_server_count = sizeof(s_servers) / sizeof(s_servers[0]);
@@ -69,7 +69,7 @@ static int ping_one_server(const char* ip, int port) {
 
   struct timeval tv;
   tv.tv_sec = 0;
-  tv.tv_usec = 450000;  // 450 ms fast timeout
+  tv.tv_usec = 400000;  // 400 ms fast timeout
   setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
   setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
 
@@ -105,7 +105,7 @@ static int server_ping_cmp(const void* a, const void* b) {
 
 static void* ping_worker_thread(void* arg) {
   (void)arg;
-  LOGI("Starting background server ping measurement...");
+  LOGI("Starting on-demand background server ping measurement...");
 
   for (int i = 0; i < s_server_count; i++) {
     char ip[32];
@@ -120,6 +120,8 @@ static void* ping_worker_thread(void* arg) {
     pthread_mutex_lock(&s_mutex);
     s_servers[i].ping_ms = ms;
     pthread_mutex_unlock(&s_mutex);
+
+    usleep(50000); // 50ms polite pause between checks
   }
 
   pthread_mutex_lock(&s_mutex);
@@ -134,7 +136,7 @@ static void* ping_worker_thread(void* arg) {
 void server_list_init(void) {
   if (s_initialized) return;
   s_initialized = true;
-  server_list_refresh_pings();
+  // Pre-sorted with fast default servers; no launch ping burst to avoid rate limits
 }
 
 int server_list_count(void) {
