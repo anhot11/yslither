@@ -90,6 +90,19 @@ void _tdarray_clear(void* darray) {
   fields[_TDARRAY_LENGTH] = 0;
 }
 
+void _tdarray_reserve(void** darray, size_t capacity) {
+  if (!darray || !*darray) return;
+  size_t* fields = _tdarray_get_fields(*darray);
+  if (fields[_TDARRAY_CAPACITY] < capacity) {
+    void* beg = *darray - _TDARRAY_FIELD_LENGTH * sizeof(size_t);
+    beg = realloc(beg, _TDARRAY_FIELD_LENGTH * sizeof(size_t) +
+                           capacity * fields[_TDARRAY_STRIDE]);
+    *darray = beg + _TDARRAY_FIELD_LENGTH * sizeof(size_t);
+    fields = _tdarray_get_fields(*darray);
+    fields[_TDARRAY_CAPACITY] = capacity;
+  }
+}
+
 void _tdarray_destroy(void* darray) {
   size_t* fields = _tdarray_get_fields(darray);
   free(darray - _TDARRAY_FIELD_LENGTH * sizeof(size_t));

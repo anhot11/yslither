@@ -74,8 +74,17 @@ void redraw(tenv* env) {
         me = gdata->data.snakes + (tdarray_length(gdata->data.snakes) - 1);
       }
       if (me) {
-        gdata->data.view_xx = me->xx + me->fx + gdata->data.fvx;
-        gdata->data.view_yy = me->yy + me->fy + gdata->data.fvy;
+        float target_x = me->xx + me->fx + me->blend_dx + gdata->data.fvx;
+        float target_y = me->yy + me->fy + me->blend_dy + gdata->data.fvy;
+        float dt_sec = gdata->data.etm * 0.001f;
+        float cam_rate = 1.0f - expf(-18.0f * dt_sec);
+        if (gdata->data.view_xx <= 0.0f || fabsf(target_x - gdata->data.view_xx) > 1200.0f) {
+          gdata->data.view_xx = target_x;
+          gdata->data.view_yy = target_y;
+        } else {
+          gdata->data.view_xx += (target_x - gdata->data.view_xx) * cam_rate;
+          gdata->data.view_yy += (target_y - gdata->data.view_yy) * cam_rate;
+        }
       }
     }
 

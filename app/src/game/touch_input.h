@@ -32,6 +32,13 @@ typedef struct touch_state {
   float boost_center_x;
   float boost_center_y;
   float boost_radius;
+
+  // Ergonomic Control Settings (Phase 2)
+  float deadzone;
+  float sensitivity;
+  float curve_exponent;
+  bool left_handed;
+  bool haptic_requested;
 } touch_state;
 
 void touch_input_init(touch_state* ts);

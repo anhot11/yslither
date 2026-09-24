@@ -74,10 +74,13 @@ void oef(tenv* env) {
   user_settings* usrs = &usr->usrs;
   gameplay_mode* mode = usrs->modes + usrs->hotkeys[HOTKEY_ASSIST].active;
 
-  gdata->data.gsc = usrs->smooth_zoom
-                        ? glm_lerp(gdata->data.gsc, gdata->data.ms_zoom,
-                                   0.25f * gdata->data.vfr)
-                        : gdata->data.ms_zoom;
+  float dt_sec = gdata->data.etm * 0.001f;
+  if (usrs->smooth_zoom) {
+    float zoom_blend = 1.0f - expf(-10.0f * dt_sec);
+    gdata->data.gsc += (gdata->data.ms_zoom - gdata->data.gsc) * zoom_blend;
+  } else {
+    gdata->data.gsc = gdata->data.ms_zoom;
+  }
 
   // update flux:
   if (gdata->data.vfrb > 0) {

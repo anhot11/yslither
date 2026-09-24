@@ -19,10 +19,13 @@ void _tdarray_remove(void* darray, size_t i);
 size_t _tdarray_length(void* darray);
 size_t _tdarray_memory(void* darray);
 int _tdarray_find(void* darray, void* value_ptr);
+void _tdarray_reserve(void** darray_ptr, size_t capacity);
 void _tdarray_clear(void* darray);
 void _tdarray_destroy(void* darray);
 
 #define tdarray_create(type) (type*)_tdarray_create(sizeof(type))
+#define tdarray_reserve(darray_ptr, capacity) \
+  _tdarray_reserve((void**)darray_ptr, capacity)
 #define tdarray_insert(darray_ptr, i, value_ptr) \
   _tdarray_insert((void**)darray_ptr, i, value_ptr)
 #define tdarray_push(darray_ptr, value_ptr) \

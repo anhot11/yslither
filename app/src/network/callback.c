@@ -291,8 +291,10 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
         pts = gdata->data.pts_dp[pts_dp_len - 1];
         tdarray_pop(gdata->data.pts_dp);
         tdarray_clear(pts);
-      } else
+      } else {
         pts = tdarray_create(body_part);
+        tdarray_reserve(&pts, 512);
+      }
 
       body_part po = {0};
 
@@ -350,8 +352,10 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
         o.gptz = gdata->data.gptz_dp[gptz_dp_len - 1];
         tdarray_pop(gdata->data.gptz_dp);
         tdarray_clear(o.gptz);
-      } else
+      } else {
         o.gptz = tdarray_create(gpt);
+        tdarray_reserve(&o.gptz, 1024);
+      }
 
       o.pts = pts;
       if (pts) {

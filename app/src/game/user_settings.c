@@ -43,6 +43,9 @@ void user_settings_default(user_settings* usr_settings) {
   usr_settings->netcode_overlay = true;     // Overlay de Diagnostico de Netcode activado por defecto
   usr_settings->feeder_bots_enabled = false; // Desactivado por defecto
   usr_settings->feeder_bot_count = 3;        // 3 bots por defecto (estabilidad y alimentacion continua)
+  usr_settings->touch_deadzone = 12.0f;
+  usr_settings->touch_sensitivity = 1.0f;
+  usr_settings->touch_left_handed = false;
   strcpy(usr_settings->ipv4, "23.29.125.178:444");
   strcpy(usr_settings->nickname, "Slither");
 

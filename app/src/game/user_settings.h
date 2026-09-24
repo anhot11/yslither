@@ -82,6 +82,9 @@ typedef struct user_settings {
   bool netcode_overlay;      // Overlay de Diagnostico de Netcode (FPS, p95, RTT, Jitter, Interp)
   bool feeder_bots_enabled;  // Activar enjambre de bots alimentadores suicidas
   int feeder_bot_count;      // Cantidad de bots alimentadores (1 a 12, default: 8)
+  float touch_deadzone;      // Zona muerta joystick tactil (px)
+  float touch_sensitivity;   // Sensibilidad joystick tactil (multiplicador)
+  bool touch_left_handed;    // Modo zurdo (intercambia joystick y turbo)
 
   gameplay_mode modes[2];
 

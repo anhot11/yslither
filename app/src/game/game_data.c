@@ -519,10 +519,15 @@ void game_data_init(tenv* env) {
   gdata->data.mmsz = -1;
 
   gdata->data.snakes = tdarray_create(snake);
+  tdarray_reserve(&gdata->data.snakes, 128);
   gdata->data.foods = tdarray_create(food);
+  tdarray_reserve(&gdata->data.foods, 8192);
   gdata->data.preys = tdarray_create(prey);
+  tdarray_reserve(&gdata->data.preys, 64);
   gdata->data.pts_dp = tdarray_create(body_part*);
+  tdarray_reserve(&gdata->data.pts_dp, 256);
   gdata->data.gptz_dp = tdarray_create(gpt*);
+  tdarray_reserve(&gdata->data.gptz_dp, 256);
 
   gdata->data.fmlts = tdarray_create(float);
   gdata->data.fpsls = tdarray_create(float);

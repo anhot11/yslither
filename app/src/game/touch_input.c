@@ -13,6 +13,11 @@ void touch_input_init(touch_state* ts) {
   ts->boost_pointer_id = -1;
   ts->joy_radius = 120.0f;
   ts->boost_radius = 90.0f;
+  ts->deadzone = 12.0f;
+  ts->sensitivity = 1.0f;
+  ts->curve_exponent = 1.4f;
+  ts->left_handed = false;
+  ts->haptic_requested = false;
 }
 
 bool touch_input_is_boosting(void) {
@@ -20,19 +25,26 @@ bool touch_input_is_boosting(void) {
 }
 
 void touch_input_update_layout(touch_state* ts, float screen_w, float screen_h) {
-  // Boost button positioned in the bottom right corner
-  ts->boost_center_x = screen_w - 140.0f;
-  ts->boost_center_y = screen_h - 140.0f;
+  if (ts->left_handed) {
+    // Left-handed mode: boost button on the bottom-left corner
+    ts->boost_center_x = 140.0f;
+    ts->boost_center_y = screen_h - 140.0f;
+  } else {
+    // Standard mode: boost button positioned in the bottom-right corner
+    ts->boost_center_x = screen_w - 140.0f;
+    ts->boost_center_y = screen_h - 140.0f;
+  }
   ts->boost_radius = 90.0f;
 }
 
 void touch_input_down(touch_state* ts, int pointer_id, float x, float y, float screen_w, float screen_h) {
   touch_input_update_layout(ts, screen_w, screen_h);
 
-  // Check if touching boost button in the right area
+  // Check if touching boost button in the designated corner area
   float bdx = x - ts->boost_center_x;
   float bdy = y - ts->boost_center_y;
   if (bdx * bdx + bdy * bdy <= ts->boost_radius * ts->boost_radius * 1.5f) {
+    if (!ts->boost) ts->haptic_requested = true;
     ts->boost = true;
     ts->boost_active = true;
     ts->boost_pointer_id = pointer_id;
@@ -40,7 +52,8 @@ void touch_input_down(touch_state* ts, int pointer_id, float x, float y, float s
   }
 
   if (ts->mode == TOUCH_CONTROL_JOYSTICK) {
-    if (!ts->joy_active) {
+    bool side_ok = ts->left_handed ? (x >= screen_w * 0.40f) : (x <= screen_w * 0.60f);
+    if (!ts->joy_active && side_ok) {
       ts->joy_active = true;
       ts->joy_pointer_id = pointer_id;
       ts->joy_center_x = x;
@@ -65,7 +78,9 @@ void touch_input_move(touch_state* ts, int pointer_id, float x, float y, float s
   if (pointer_id == ts->boost_pointer_id) {
     float bdx = x - ts->boost_center_x;
     float bdy = y - ts->boost_center_y;
-    ts->boost = (bdx * bdx + bdy * bdy <= (ts->boost_radius * 1.8f) * (ts->boost_radius * 1.8f));
+    bool now_boost = (bdx * bdx + bdy * bdy <= (ts->boost_radius * 1.8f) * (ts->boost_radius * 1.8f));
+    if (now_boost && !ts->boost) ts->haptic_requested = true;
+    ts->boost = now_boost;
     return;
   }
 
@@ -77,10 +92,14 @@ void touch_input_move(touch_state* ts, int pointer_id, float x, float y, float s
       float dx = x - ts->joy_center_x;
       float dy = y - ts->joy_center_y;
       float d = sqrtf(dx * dx + dy * dy);
+      float dz = fmaxf(4.0f, ts->deadzone);
 
-      if (d > 10.0f) {
-        ts->target_x = dx;
-        ts->target_y = dy;
+      if (d > dz) {
+        float effective_d = (d - dz) / fmaxf(1.0f, (ts->joy_radius - dz));
+        if (effective_d > 1.0f) effective_d = 1.0f;
+        float curved_d = powf(effective_d, ts->curve_exponent) * ts->sensitivity;
+        ts->target_x = (dx / d) * curved_d * 100.0f;
+        ts->target_y = (dy / d) * curved_d * 100.0f;
         ts->active = true;
       }
     }

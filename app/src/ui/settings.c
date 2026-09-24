@@ -67,6 +67,14 @@ void ui_settings(tenv* env) {
       igText("Bot circle after score");
       igAlignTextToFramePadding();
       igText("Bot radius multiplier");
+      igAlignTextToFramePadding();
+      igText("Modo zurdo");
+      igAlignTextToFramePadding();
+      igText("Zona muerta tactil");
+      igAlignTextToFramePadding();
+      igText("Sensibilidad tactil");
+      igAlignTextToFramePadding();
+      igText("Overlay netcode");
 
       igTableSetColumnIndex(1);
       if (igCheckbox("##vsync", &usrs->vsync)) {
@@ -108,12 +116,18 @@ void ui_settings(tenv* env) {
       igSetNextItemWidth(-1);
       igSliderInt("##laser thickness", &usrs->laser_thickness, 1, 4, "%d px",
                   ImGuiSliderFlags_AlwaysClamp);
-                  igSetNextItemWidth(-1);
+      igSetNextItemWidth(-1);
       igSliderInt("##circle after", &usrs->bot_follow_circle_score, 1000, 6000, "%d",
                   ImGuiSliderFlags_AlwaysClamp);
-                  igSetNextItemWidth(-1);
+      igSetNextItemWidth(-1);
       igSliderInt("##rad mult", &usrs->bot_radius_mult, 10, 40, "%dx",
                   ImGuiSliderFlags_AlwaysClamp);
+      igCheckbox("##left handed", &usrs->touch_left_handed);
+      igSetNextItemWidth(-1);
+      igSliderFloat("##deadzone", &usrs->touch_deadzone, 4.0f, 35.0f, "%.0f px", ImGuiSliderFlags_AlwaysClamp);
+      igSetNextItemWidth(-1);
+      igSliderFloat("##sensitivity", &usrs->touch_sensitivity, 0.4f, 2.5f, "%.2fx", ImGuiSliderFlags_AlwaysClamp);
+      igCheckbox("##netcode overlay", &usrs->netcode_overlay);
       igIndent(-style->WindowPadding.x);
       igEndTable();
     }

@@ -286,6 +286,12 @@ static void handle_cmd(struct android_app* app, int32_t cmd) {
 
           tinit(&g_env);
           touch_input_init(&g_touch);
+          if (g_env.usr) {
+            tuser_data* usr = (tuser_data*)g_env.usr;
+            g_touch.deadzone = usr->usrs.touch_deadzone;
+            g_touch.sensitivity = usr->usrs.touch_sensitivity;
+            g_touch.left_handed = usr->usrs.touch_left_handed;
+          }
           custom_controls_load(&g_custom_controls);
 
           g_initialized = true;
@@ -364,6 +370,11 @@ void android_main(struct android_app* state) {
       if (g_env.wnd) twindow_poll_input(g_env.wnd);
       if (g_env.ctx && g_env.ctx->swapchain_ok) {
         tuser_data* usr = (tuser_data*)g_env.usr;
+        if (usr) {
+          g_touch.deadzone = usr->usrs.touch_deadzone;
+          g_touch.sensitivity = usr->usrs.touch_sensitivity;
+          g_touch.left_handed = usr->usrs.touch_left_handed;
+        }
         if (usr && g_touch.active) {
           if (g_env.ms) {
             g_env.ms->pos[0] = (float)g_env.ctx->size[0] / 2.0f + g_touch.target_x;
