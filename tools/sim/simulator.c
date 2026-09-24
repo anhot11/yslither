@@ -106,6 +106,43 @@ static void sim_step_subject_ai(sim_world_t* w, sim_snake_t* s, float dt) {
 
   float s_rad = 12.0f + s->mass * 0.06f;
 
+  // Pre-compute best food cluster center-of-mass & density (Hoobs / iteacher)
+  float cluster_cx = s->x, cluster_cy = s->y, cluster_val = 0.0f;
+  bool has_cluster = false;
+  float best_cl_score = -1e9f;
+
+  for (int f = 0; f < w->num_foods; f++) {
+    if (!w->foods[f].active) continue;
+    float fd2 = sim_dist2(s->x, s->y, w->foods[f].x, w->foods[f].y);
+    if (fd2 > (1000.0f * 1000.0f)) continue;
+
+    float x_sum = w->foods[f].x * w->foods[f].sz;
+    float y_sum = w->foods[f].y * w->foods[f].sz;
+    float val_sum = w->foods[f].sz;
+
+    for (int o = 0; o < w->num_foods; o++) {
+      if (f == o || !w->foods[o].active) continue;
+      float d2 = sim_dist2(w->foods[f].x, w->foods[f].y, w->foods[o].x, w->foods[o].y);
+      if (d2 < (200.0f * 200.0f)) {
+        x_sum += w->foods[o].x * w->foods[o].sz;
+        y_sum += w->foods[o].y * w->foods[o].sz;
+        val_sum += w->foods[o].sz;
+      }
+    }
+
+    float cx = x_sum / val_sum;
+    float cy = y_sum / val_sum;
+    float dist = sqrtf(sim_dist2(s->x, s->y, cx, cy));
+    float score = val_sum / (dist + 1.0f);
+    if (score > best_cl_score) {
+      best_cl_score = score;
+      cluster_cx = cx;
+      cluster_cy = cy;
+      cluster_val = val_sum;
+      has_cluster = true;
+    }
+  }
+
   // 64 directions evaluation
   for (int cand = 0; cand < 128; cand++) {
     int dir_idx = cand % 64;
@@ -183,14 +220,11 @@ static void sim_step_subject_ai(sim_world_t* w, sim_snake_t* s, float dt) {
       }
     }
 
-    // Food attraction
+    // Food attraction to best cluster centroid
     float food_score = 0.0f;
-    for (int f = 0; f < w->num_foods; f++) {
-      if (!w->foods[f].active) continue;
-      float fd2 = sim_dist2(sim_x, sim_y, w->foods[f].x, w->foods[f].y);
-      if (fd2 < (600.0f * 600.0f)) {
-        food_score += w->foods[f].sz / (1.0f + sqrtf(fd2) * 0.005f);
-      }
+    if (has_cluster) {
+      float d = sqrtf(sim_dist2(sim_x, sim_y, cluster_cx, cluster_cy));
+      food_score = cluster_val / (1.0f + d * 0.0035f);
     }
 
     float turn_penalty = weights->weight_turn_penalty * (fabsf(sim_ang_diff(target_ang, s->ang)) / (float)M_PI);

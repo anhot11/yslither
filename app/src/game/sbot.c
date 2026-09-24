@@ -16,18 +16,18 @@
 #include "touch_input.h"
 
 // ============================================================================
-// yslither Phase 3: Top-Tier Autonomous Game AI (sbot.c)
-// - 64-Direction Kinematic Rollouts with Real Turning Constraints (128 rollouts/tick)
-// - Geometric Capsule & Predictive Threat Perception
-// - Raycast Open-Corridor / Cul-de-Sac Rejection (Flood-Fill Reachable Space)
-// - Hysteresis State Machine (FARM, HUNT, ESCAPE, COIL)
-// - Mass-Positive Smart Turbo & Continuous Exponential Angle Smoothing
-// - < 0.4 ms/tick, Zero Malloc Hot Loop, ImGui Multi-Layer Visual Debug Radar
+// yslither: Autonomous Game AI (sbot.c)
+// Enhanced with state-of-the-art techniques from:
+// - Hoobs Slither Mod (iteacher): Food Cluster Center-of-Mass, Density Scoring,
+//   Polar Threat Heatmap with Velocity Prediction, Exclusion Zones (Anti-Trap)
+// - Slither.io Auto-Play Genetic Heuristics: Safe Corridor Flood-Fill & Hysteresis
+// - Real-Time Botstorm & Feast Harvesting
 // ============================================================================
 
 #define NUM_EVAL_DIRS 64
 #define NUM_ROLLOUT_SUBSTEPS 4
 #define MAX_COLL_PTS 2048
+#define MAX_EXCLUSION_ZONES 8
 #define SPEED_BASE 5.78f
 #define SPEED_BOOST 13.5f
 
@@ -55,6 +55,13 @@ typedef struct {
 } sbot_food_cand;
 
 typedef struct {
+  float x, y;
+  float radius;
+  int frames_left;
+  bool active;
+} sbot_exclusion_zone_t;
+
+typedef struct {
   float target_ang;
   bool accel;
   bool valid;
@@ -71,6 +78,9 @@ typedef struct {
   float clearance;
   float score;
   bool valid;
+  float threat_inner; // r < 240px
+  float threat_mid;   // 240 <= r < 520px
+  float threat_outer; // 520 <= r < 880px
 } sbot_radar_ray_t;
 
 typedef struct {
@@ -99,9 +109,12 @@ typedef struct {
   sbot_coll_pt coll_pts[MAX_COLL_PTS];
   int coll_pts_n;
 
-  // Food focus
+  // Food cluster focus (Center-of-Mass & Density)
   sbot_food_cand best_food;
   bool has_food;
+
+  // Exclusion Zones (Anti-Trap Memory)
+  sbot_exclusion_zone_t exclusion_zones[MAX_EXCLUSION_ZONES];
 
   // Rollouts & Radar (64 directions)
   sbot_rollout_t rollouts[NUM_EVAL_DIRS * 2]; // 64 normal + 64 turbo = 128
@@ -139,13 +152,43 @@ static inline bool is_feeder_snake(const snake* s) {
   return strncmp(s->nk, "[FEED]", 6) == 0;
 }
 
+static void sbot_add_exclusion_zone(float x, float y, float radius, int duration_frames) {
+  int slot = -1;
+  int min_frames = 999999;
+  for (int i = 0; i < MAX_EXCLUSION_ZONES; i++) {
+    if (!B.exclusion_zones[i].active) {
+      slot = i;
+      break;
+    }
+    if (B.exclusion_zones[i].frames_left < min_frames) {
+      min_frames = B.exclusion_zones[i].frames_left;
+      slot = i;
+    }
+  }
+  if (slot >= 0) {
+    B.exclusion_zones[slot] = (sbot_exclusion_zone_t){
+      .x = x, .y = y, .radius = radius, .frames_left = duration_frames, .active = true
+    };
+  }
+}
+
 // ----------------------------------------------------------------------------
 // Perception Pipeline
 // ----------------------------------------------------------------------------
 
-static void sbot_perceive_world(game_data* gdata, snake* me) {
+static void sbot_perceive_world(game_data* gdata) {
   B.coll_pts_n = 0;
   B.has_food = false;
+
+  // Update and decay exclusion zones
+  for (int i = 0; i < MAX_EXCLUSION_ZONES; i++) {
+    if (B.exclusion_zones[i].active) {
+      B.exclusion_zones[i].frames_left--;
+      if (B.exclusion_zones[i].frames_left <= 0) {
+        B.exclusion_zones[i].active = false;
+      }
+    }
+  }
 
   float world_rad = gdata->data.flux_grd > 1000.0f ? gdata->data.flux_grd : 21600.0f;
   float world_cx = gdata->data.grd > 1000.0f ? gdata->data.grd : 21600.0f;
@@ -154,7 +197,6 @@ static void sbot_perceive_world(game_data* gdata, snake* me) {
   // 1. Map Border Representation (ring of repulsive sentinel points)
   float dist_to_center = sqrtf(dist2(B.x, B.y, world_cx, world_cy));
   if (dist_to_center > (world_rad - 1800.0f)) {
-    // Generate border sentinel points along the forward and adjacent perimeter
     float base_ang = atan2f(B.y - world_cy, B.x - world_cx);
     for (float dang = -0.8f; dang <= 0.8f; dang += 0.2f) {
       float ang = base_ang + dang;
@@ -178,7 +220,7 @@ static void sbot_perceive_world(game_data* gdata, snake* me) {
 
     float s_rad = snake_width_calc(s->sc) * 0.5f;
 
-    // Rival Heads (Predictive trajectory and lethal danger zones)
+    // Rival Heads (Velocity projection and lethal danger zones)
     if (s->id != B.id) {
       float hx = s->xx;
       float hy = s->yy;
@@ -197,7 +239,6 @@ static void sbot_perceive_world(game_data* gdata, snake* me) {
     // Bodies: Continuous segment sampling with distance culling
     int pn = tdarray_length(s->pts);
     bool is_self = (s->id == B.id);
-    // For self, skip the neck region (first 10 nodes) to prevent self-collision
     int start_node = is_self ? 12 : 0;
 
     for (int j = start_node; j < pn; j++) {
@@ -207,7 +248,6 @@ static void sbot_perceive_world(game_data* gdata, snake* me) {
       float pd2 = dist2(B.x, B.y, bp->xx, bp->yy);
       if (pd2 > (1200.0f * 1200.0f)) continue;
 
-      // Dense sampling for nearby bodies (< 800px) so no gaps exist between spheres
       if (pd2 > (800.0f * 800.0f) && (j % 2 != 0)) continue;
 
       if (B.coll_pts_n < MAX_COLL_PTS) {
@@ -220,42 +260,98 @@ static void sbot_perceive_world(game_data* gdata, snake* me) {
     }
   }
 
-  // 3. Food Scanning & Clustering
+  // 3. Center-of-Mass & Density Food Clustering (Hoobs / iteacher algorithm)
   int nf = tdarray_length(gdata->data.foods);
-  float best_food_score = -1.0f;
-
-  for (int i = 0; i < nf; i++) {
-    food* f = gdata->data.foods + i;
-    float fd2 = dist2(B.x, B.y, f->xx, f->yy);
-    if (fd2 > (1100.0f * 1100.0f)) continue;
-
-    float fdist = sqrtf(fd2);
-    float fang = atan2f(f->yy - B.y, f->xx - B.x);
-    float dang = fabsf(ang_between(fang, B.ang));
-
-    // Value scaling: high bonus for dead snake remnants (sz >= 2.5f)
-    float val = 1.0f + (f->sz >= 2.5f ? f->sz * 9.0f : f->sz * 1.2f);
-    float forward_mult = (f->sz >= 2.5f) ? 1.0f : (1.0f + 0.8f * cosf(dang));
-    float prox = 1.0f / (1.0f + (fdist / 220.0f));
-
-    // Safety filter: check if food is dangerously close to an enemy body/head
-    float risk = 1.0f;
-    for (int k = 0; k < B.coll_pts_n; k++) {
-      sbot_coll_pt* cp = &B.coll_pts[k];
-      float cd2 = dist2(f->xx, f->yy, cp->x, cp->y);
-      if (cd2 < (cp->r + 40.0f) * (cp->r + 40.0f)) {
-        risk += 12.0f;
-        break;
-      }
+  if (nf > 0) {
+    sbot_food_cand pool[96];
+    int pool_n = 0;
+    for (int i = 0; i < nf && pool_n < 96; i++) {
+      food* f = gdata->data.foods + i;
+      float fd2 = dist2(B.x, B.y, f->xx, f->yy);
+      if (fd2 > (1100.0f * 1100.0f)) continue;
+      float sz = f->sz;
+      float val = 1.0f + (sz >= 2.5f ? sz * 10.0f : sz * 1.2f);
+      pool[pool_n++] = (sbot_food_cand){
+        .x = f->xx, .y = f->yy, .dist = sqrtf(fd2), .sz = sz, .value = val
+      };
     }
 
-    float fscore = (val * prox * forward_mult) / risk;
-    if (fscore > best_food_score) {
-      best_food_score = fscore;
-      B.best_food = (sbot_food_cand){
-        .x = f->xx, .y = f->yy, .dist = fdist, .sz = f->sz, .value = val
-      };
-      B.has_food = true;
+    if (pool_n > 0) {
+      const float CLUSTER_RADIUS = 220.0f;
+      const float CLUSTER_R2 = CLUSTER_RADIUS * CLUSTER_RADIUS;
+      bool used[96] = {false};
+
+      float best_cluster_score = -1e9f;
+      sbot_food_cand best_target = {0};
+
+      for (int i = 0; i < pool_n; i++) {
+        if (used[i]) continue;
+        used[i] = true;
+
+        float x_sum = pool[i].x * pool[i].value;
+        float y_sum = pool[i].y * pool[i].value;
+        float val_sum = pool[i].value;
+        int count = 1;
+
+        for (int j = i + 1; j < pool_n; j++) {
+          if (used[j]) continue;
+          if (dist2(pool[i].x, pool[i].y, pool[j].x, pool[j].y) <= CLUSTER_R2) {
+            used[j] = true;
+            x_sum += pool[j].x * pool[j].value;
+            y_sum += pool[j].y * pool[j].value;
+            val_sum += pool[j].value;
+            count++;
+          }
+        }
+
+        float cx = x_sum / val_sum;
+        float cy = y_sum / val_sum;
+        float d_to_c = sqrtf(dist2(B.x, B.y, cx, cy));
+
+        // Skip clusters inside active exclusion zones
+        bool in_exclusion = false;
+        for (int z = 0; z < MAX_EXCLUSION_ZONES; z++) {
+          if (B.exclusion_zones[z].active) {
+            float ez_d2 = dist2(cx, cy, B.exclusion_zones[z].x, B.exclusion_zones[z].y);
+            float ez_r = B.exclusion_zones[z].radius;
+            if (ez_d2 < ez_r * ez_r) {
+              in_exclusion = true;
+              break;
+            }
+          }
+        }
+        if (in_exclusion) continue;
+
+        // Safety filter near enemy bodies/heads
+        float risk = 1.0f;
+        for (int k = 0; k < B.coll_pts_n; k++) {
+          sbot_coll_pt* cp = &B.coll_pts[k];
+          float cd2 = dist2(cx, cy, cp->x, cp->y);
+          if (cd2 < (cp->r + 45.0f) * (cp->r + 45.0f)) {
+            risk += 14.0f;
+            break;
+          }
+        }
+
+        float density = val_sum / CLUSTER_R2;
+        float c_ang = atan2f(cy - B.y, cx - B.x);
+        float d_head = fabsf(ang_between(c_ang, B.ang));
+        float forward_mult = (val_sum > 15.0f) ? 1.0f : (1.0f + 0.7f * cosf(d_head));
+
+        float score = (((val_sum / (d_to_c + 1.0f)) + (density * 12.0f)) * forward_mult) / risk;
+
+        if (score > best_cluster_score) {
+          best_cluster_score = score;
+          best_target = (sbot_food_cand){
+            .x = cx, .y = cy, .dist = d_to_c, .sz = (float)count, .value = val_sum
+          };
+          B.has_food = true;
+        }
+      }
+
+      if (B.has_food) {
+        B.best_food = best_target;
+      }
     }
   }
 }
@@ -277,14 +373,33 @@ static void sbot_evaluate_kinematic_rollouts(game_data* gdata) {
   B.best_rollout_idx = 0;
   float highest_score = -1e9f;
 
+  // Initialize radar threat channels
+  for (int d = 0; d < NUM_EVAL_DIRS; d++) {
+    B.radar[d].threat_inner = 0.0f;
+    B.radar[d].threat_mid = 0.0f;
+    B.radar[d].threat_outer = 0.0f;
+  }
+
+  // Populate Polar Threat Heatmap channels from obstacles
+  for (int k = 0; k < B.coll_pts_n; k++) {
+    sbot_coll_pt* cp = &B.coll_pts[k];
+    float d = sqrtf(cp->d2);
+    float ang = atan2f(cp->y - B.y, cp->x - B.x);
+    if (ang < 0.0f) ang += PI2;
+    int sector = (int)(ang * (NUM_EVAL_DIRS / PI2)) % NUM_EVAL_DIRS;
+
+    float weight = (cp->type == COLL_TYPE_HEAD) ? 4.0f : 1.5f;
+    if (d < 240.0f) B.radar[sector].threat_inner += weight;
+    else if (d < 520.0f) B.radar[sector].threat_mid += weight;
+    else if (d < 880.0f) B.radar[sector].threat_outer += weight;
+  }
+
   for (int cand_idx = 0; cand_idx < total_candidates; cand_idx++) {
     int dir_idx = cand_idx % NUM_EVAL_DIRS;
     bool boost_mode = (cand_idx >= NUM_EVAL_DIRS);
 
     float target_ang = (float)dir_idx * (PI2 / (float)NUM_EVAL_DIRS);
     float v = boost_mode ? SPEED_BOOST : SPEED_BASE;
-
-    // Kinematic turning rate constrained by snake velocity & size
     float max_omega = B.weights.max_turn_rate_base * fminf(1.2f, 5.78f / v);
 
     sbot_rollout_t* ro = &B.rollouts[cand_idx];
@@ -305,14 +420,12 @@ static void sbot_evaluate_kinematic_rollouts(game_data* gdata) {
       float dt = dt_sub[step];
       sim_time += dt;
 
-      // Turn towards target_ang subject to maximum turning angular velocity
       float d_ang = ang_between(target_ang, sim_ang);
       float max_step_turn = max_omega * dt;
       if (d_ang > max_step_turn) d_ang = max_step_turn;
       if (d_ang < -max_step_turn) d_ang = -max_step_turn;
       sim_ang += d_ang;
 
-      // Integrate forward displacement
       sim_x += cosf(sim_ang) * (v * dt);
       sim_y += sinf(sim_ang) * (v * dt);
 
@@ -333,7 +446,6 @@ static void sbot_evaluate_kinematic_rollouts(game_data* gdata) {
         float obs_x = cp->x;
         float obs_y = cp->y;
 
-        // For enemy heads, project their future trajectory at sim_time
         if (cp->type == COLL_TYPE_HEAD) {
           obs_x += cosf(cp->ang) * (cp->speed * sim_time);
           obs_y += sinf(cp->ang) * (cp->speed * sim_time);
@@ -344,17 +456,14 @@ static void sbot_evaluate_kinematic_rollouts(game_data* gdata) {
 
         float required_clearance = B.radius + cp->r + safety_margin;
 
-        // Head vs Head logic: if rival is larger, collision is strictly lethal
         if (cp->type == COLL_TYPE_HEAD) {
           float rival_scale = 1.0f;
           if (cp->snake_idx >= 0 && cp->snake_idx < tdarray_length(gdata->data.snakes)) {
             rival_scale = gdata->data.snakes[cp->snake_idx].sc;
           }
           if (rival_scale >= (B.width / 29.0f) * 0.95f) {
-            // Larger/equal rival: extra defensive buffer
             required_clearance += 40.0f;
           } else {
-            // Smaller rival: head-cut kill opportunity!
             if (d_obs > (B.radius + cp->r + 15.0f) && d_obs < (B.radius + cp->r + 120.0f)) {
               kill_opportunity_bonus += B.weights.weight_hunt_cut * 15.0f;
             }
@@ -362,7 +471,6 @@ static void sbot_evaluate_kinematic_rollouts(game_data* gdata) {
         }
 
         if (d_obs < required_clearance) {
-          // Hard collision within kinematic horizon!
           ro->valid = false;
           ro->score = -1e8f;
           break;
@@ -375,21 +483,9 @@ static void sbot_evaluate_kinematic_rollouts(game_data* gdata) {
     ro->end_x = sim_x;
     ro->end_y = sim_y;
 
-    if (!ro->valid) {
-      // Discard invalid colliding path
-      continue;
-    }
+    if (!ro->valid) continue;
 
-    // ------------------------------------------------------------------------
-    // Multifactor Scoring of Valid Trajectories:
-    // 1. Raycast Corridor Clearance (Open Space / Anti-Cul-de-Sac)
-    // 2. Food Attraction (Mass/Distance)
-    // 3. Directional Smoothness (Turn penalty)
-    // 4. Border Repulsion
-    // 5. Boost Mass Cost
-    // ------------------------------------------------------------------------
-
-    // Raycast clearance from rollout end point along final sim_ang
+    // Raycast corridor clearance
     float ray_clearance = 1100.0f;
     float ray_dx = cosf(sim_ang);
     float ray_dy = sinf(sim_ang);
@@ -409,21 +505,17 @@ static void sbot_evaluate_kinematic_rollouts(game_data* gdata) {
     }
     ro->clearance = ray_clearance;
 
-    // Normalised open clearance score
     float clearance_score = B.weights.weight_clearance * (fminf(ray_clearance, 1000.0f) / 1000.0f);
 
-    // Food attraction score
     float food_score = 0.0f;
     if (B.has_food) {
       float d_to_food = sqrtf(dist2(sim_x, sim_y, B.best_food.x, B.best_food.y));
-      food_score = B.weights.weight_food * (B.best_food.value / (1.0f + d_to_food * 0.004f));
+      food_score = B.weights.weight_food * (B.best_food.value / (1.0f + d_to_food * 0.0035f));
     }
 
-    // Turn penalty (inercia direccional suave)
     float turn_diff = fabsf(ang_between(target_ang, B.ang));
     float turn_penalty = B.weights.weight_turn_penalty * (turn_diff / (float)M_PI);
 
-    // Border repulsion
     float border_penalty = 0.0f;
     float dist_ctr_end = sqrtf(dist2(sim_x, sim_y, world_cx, world_cy));
     if (dist_ctr_end > (world_rad - 1600.0f)) {
@@ -431,12 +523,22 @@ static void sbot_evaluate_kinematic_rollouts(game_data* gdata) {
       border_penalty = B.weights.weight_border_repulse * border_depth * border_depth;
     }
 
-    // Boost cost (penaliza turbo a menos que la ganancia de comida o kill lo justifique)
+    // Exclusion zones penalty (anti-trap memory)
+    float exclusion_penalty = 0.0f;
+    for (int z = 0; z < MAX_EXCLUSION_ZONES; z++) {
+      if (B.exclusion_zones[z].active) {
+        float ez_d2 = dist2(sim_x, sim_y, B.exclusion_zones[z].x, B.exclusion_zones[z].y);
+        float ez_r = B.exclusion_zones[z].radius;
+        if (ez_d2 < ez_r * ez_r) {
+          exclusion_penalty += 35.0f * (1.0f - sqrtf(ez_d2) / ez_r);
+        }
+      }
+    }
+
     float boost_penalty = boost_mode ? B.weights.weight_boost_cost : 0.0f;
 
-    ro->score = clearance_score + food_score + kill_opportunity_bonus - turn_penalty - border_penalty - boost_penalty;
+    ro->score = clearance_score + food_score + kill_opportunity_bonus - turn_penalty - border_penalty - exclusion_penalty - boost_penalty;
 
-    // Update radar ray metrics
     if (!boost_mode) {
       B.radar[dir_idx].dir_ang = target_ang;
       B.radar[dir_idx].clearance = ray_clearance;
@@ -450,7 +552,7 @@ static void sbot_evaluate_kinematic_rollouts(game_data* gdata) {
     }
   }
 
-  // Fallback: If ALL 128 rollouts collide, select the path with the greatest collision delay
+  // Fallback: If ALL rollouts collide, select candidate with maximum time-to-impact
   if (highest_score <= -1e7f) {
     float max_escape_dist = -1.0f;
     for (int i = 0; i < total_candidates; i++) {
@@ -467,19 +569,17 @@ static void sbot_evaluate_kinematic_rollouts(game_data* gdata) {
 // ----------------------------------------------------------------------------
 
 static void sbot_update_state_machine(game_data* gdata, user_settings* usrs) {
+  (void)gdata;
   sbot_rollout_t* best_ro = &B.rollouts[B.best_rollout_idx];
 
-  // Manual or automatic Auto-Coil mode
   if (usrs->bot_mode == 2 || (B.score_val > usrs->bot_follow_circle_score && usrs->bot_follow_circle_score > 0)) {
     B.stage = 3; // COIL
     return;
   }
 
-  // Min forward clearance to trigger emergency ESCAPE
   float forward_clearance = best_ro->clearance;
 
   if (B.stage == 2) {
-    // Currently in ESCAPE: stay in escape until clearance is safely sustained
     if (forward_clearance > B.weights.escape_exit_dist) {
       B.escape_frames_clear++;
       if (B.escape_frames_clear >= B.weights.escape_min_frames) {
@@ -490,11 +590,12 @@ static void sbot_update_state_machine(game_data* gdata, user_settings* usrs) {
       B.escape_frames_clear = 0;
     }
   } else {
-    // In FARM or HUNT: enter ESCAPE if forward clearance drops dangerously low
     if (forward_clearance < B.weights.escape_enter_dist) {
       B.stage = 2; // ESCAPE
       B.escape_frames_clear = 0;
-    } else if (usrs->bot_mode == 1 && B.has_food && B.best_food.sz >= 2.5f) {
+      // Mark current location as exclusion zone so we don't turn back into the trap
+      sbot_add_exclusion_zone(B.x, B.y, 350.0f, 180); // ~3 seconds @ 60 FPS
+    } else if (usrs->bot_mode == 1 && B.has_food && B.best_food.value >= 15.0f) {
       B.stage = 1; // HUNT (Feast or predatory intercept)
     } else {
       B.stage = 0; // FARM
@@ -544,13 +645,13 @@ void sbot_go(tenv* env) {
     B.smooth_ang_initialized = true;
   }
 
-  // 2. Perception pass
-  sbot_perceive_world(gdata, me);
+  // 2. Perception pass with Center-of-Mass & Density Food Clustering
+  sbot_perceive_world(gdata);
 
   // 3. 128 Kinematic Rollouts Evaluation (64 directions x {cruise, turbo})
   sbot_evaluate_kinematic_rollouts(gdata);
 
-  // 4. Hysteresis Mode Update
+  // 4. Hysteresis Mode Update & Exclusion Zone generation
   sbot_update_state_machine(gdata, usrs);
 
   // 5. Select Best Direction & Mass-Positive Turbo
@@ -560,13 +661,11 @@ void sbot_go(tenv* env) {
 
   if (usrs->bot_auto_turbo) {
     if (B.stage == 2) {
-      // ESCAPE: Burst turbo only if tight threat (< 180px) and escape route is open
       if (best_ro->clearance > 320.0f && best_ro->min_dist_coll < 180.0f) {
         use_turbo = true;
       }
     } else if (B.stage == 1) {
-      // HUNT / FEAST: Sprint if aligned with giant food cluster and safe
-      if (B.has_food && B.best_food.value > 12.0f && best_ro->clearance > 450.0f) {
+      if (B.has_food && B.best_food.value > 15.0f && best_ro->clearance > 450.0f) {
         float f_diff = fabsf(ang_between(atan2f(B.best_food.y - B.y, B.best_food.x - B.x), B.ang));
         if (f_diff < ((float)M_PI * 0.22f)) {
           use_turbo = true;
@@ -575,12 +674,10 @@ void sbot_go(tenv* env) {
     }
   }
 
-  // Preserve mass: never turbo if snake length is under minimum safety threshold
   if (B.snake_len < 20) {
     use_turbo = false;
   }
 
-  // Manual player boost overrides bot
   if (custom_controls_is_boost_active() || touch_input_is_boosting()) {
     use_turbo = true;
   }
@@ -593,7 +690,6 @@ void sbot_go(tenv* env) {
   float smooth_blend = 1.0f - expf(-B.weights.angle_smooth_rate * dt);
   B.smooth_ang += d_target * smooth_blend;
 
-  // Emit steering vectors to slither network/client
   bot->output.xm = (int)roundf(cosf(B.smooth_ang) * 250.0f);
   bot->output.ym = (int)roundf(sinf(B.smooth_ang) * 250.0f);
   bot->output.accel = use_turbo;
@@ -604,7 +700,7 @@ void sbot_go(tenv* env) {
 }
 
 // ----------------------------------------------------------------------------
-// Visual Debug Overlay (ImGui 64-Direction Radar & Reticle)
+// Visual Debug Overlay (ImGui 64-Direction Polar Threat Heatmap & Reticle)
 // ----------------------------------------------------------------------------
 
 void sbot_render_overlay(tenv* env) {
@@ -631,11 +727,23 @@ void sbot_render_overlay(tenv* env) {
   float head_sx = mww2 + (B.x - view_xx) * gsc;
   float head_sy = mhh2 + (B.y - view_yy) * gsc;
 
-  // 1. 64-Direction Kinematic Radar
+  // 1. Concentric Polar Threat Radar Rings (Hoobs / iteacher architecture)
   if (usrs->bot_visual_radar) {
+    // 3 Concentric rings
+    float r_in = 180.0f * gsc;
+    float r_mid = 380.0f * gsc;
+    float r_out = 600.0f * gsc;
+
+    ImDrawList_AddCircle(dl, (ImVec2){head_sx, head_sy}, r_in,
+                         igColorConvertFloat4ToU32((ImVec4){1.0f, 0.2f, 0.2f, 0.25f}), 32, 1.0f);
+    ImDrawList_AddCircle(dl, (ImVec2){head_sx, head_sy}, r_mid,
+                         igColorConvertFloat4ToU32((ImVec4){1.0f, 0.8f, 0.2f, 0.20f}), 32, 1.0f);
+    ImDrawList_AddCircle(dl, (ImVec2){head_sx, head_sy}, r_out,
+                         igColorConvertFloat4ToU32((ImVec4){0.2f, 0.8f, 1.0f, 0.15f}), 32, 1.0f);
+
     for (int i = 0; i < NUM_EVAL_DIRS; i++) {
       sbot_radar_ray_t* ray = &B.radar[i];
-      float r_len = fminf(ray->clearance, 400.0f) * gsc;
+      float r_len = fminf(ray->clearance, 420.0f) * gsc;
       if (r_len < 10.0f) r_len = 10.0f;
 
       float rx = head_sx + cosf(ray->dir_ang) * r_len;
@@ -643,11 +751,13 @@ void sbot_render_overlay(tenv* env) {
 
       ImVec4 col;
       if (!ray->valid) {
-        col = (ImVec4){0.95f, 0.15f, 0.15f, 0.35f}; // Red: Colliding
+        col = (ImVec4){0.95f, 0.15f, 0.15f, 0.35f};
+      } else if (ray->threat_inner > 0.0f) {
+        col = (ImVec4){1.0f, 0.35f, 0.15f, 0.55f}; // Amber/Orange inner danger
       } else if (ray->clearance > 600.0f) {
-        col = (ImVec4){0.15f, 0.95f, 0.35f, 0.65f}; // Green: Open space
+        col = (ImVec4){0.15f, 0.95f, 0.35f, 0.65f}; // Green open space
       } else {
-        col = (ImVec4){0.95f, 0.85f, 0.15f, 0.50f}; // Yellow: Constrained
+        col = (ImVec4){0.95f, 0.85f, 0.15f, 0.50f}; // Yellow caution
       }
 
       ImDrawList_AddLine(dl, (ImVec2){head_sx, head_sy}, (ImVec2){rx, ry},
@@ -655,11 +765,21 @@ void sbot_render_overlay(tenv* env) {
     }
   }
 
-  // 2. Chosen Trajectory & Goal Reticle
+  // 2. Active Exclusion Zones (Anti-Trap Memory)
+  for (int z = 0; z < MAX_EXCLUSION_ZONES; z++) {
+    if (B.exclusion_zones[z].active) {
+      float zx = mww2 + (B.exclusion_zones[z].x - view_xx) * gsc;
+      float zy = mhh2 + (B.exclusion_zones[z].y - view_yy) * gsc;
+      float zr = B.exclusion_zones[z].radius * gsc;
+      ImDrawList_AddCircle(dl, (ImVec2){zx, zy}, zr,
+                           igColorConvertFloat4ToU32((ImVec4){1.0f, 0.5f, 0.0f, 0.40f}), 24, 2.0f);
+    }
+  }
+
+  // 3. Chosen Trajectory & Goal Reticle
   if (usrs->bot_visual_line) {
     sbot_rollout_t* best_ro = &B.rollouts[B.best_rollout_idx];
 
-    // Draw integrated rollout trajectory path
     float prev_x = head_sx;
     float prev_y = head_sy;
     for (int step = 0; step < NUM_ROLLOUT_SUBSTEPS; step++) {
@@ -672,33 +792,35 @@ void sbot_render_overlay(tenv* env) {
       prev_y = py;
     }
 
-    // Reticle at rollout horizon
     ImDrawList_AddCircle(dl, (ImVec2){prev_x, prev_y}, 12.0f,
                          igColorConvertFloat4ToU32((ImVec4){0.0f, 1.0f, 0.90f, 0.90f}), 16, 2.0f);
     ImDrawList_AddCircleFilled(dl, (ImVec2){prev_x, prev_y}, 3.0f,
                                igColorConvertFloat4ToU32((ImVec4){1.0f, 1.0f, 1.0f, 1.0f}), 8);
   }
 
-  // 3. Target Food Vector
+  // 4. Target Food Cluster (Center-of-Mass & Total Feast Value)
   if (usrs->bot_visual_food && B.has_food) {
     float fx = mww2 + (B.best_food.x - view_xx) * gsc;
     float fy = mhh2 + (B.best_food.y - view_yy) * gsc;
 
     ImDrawList_AddLine(dl, (ImVec2){head_sx, head_sy}, (ImVec2){fx, fy},
                        igColorConvertFloat4ToU32((ImVec4){0.20f, 1.0f, 0.40f, 0.65f}), 1.8f);
-    ImDrawList_AddCircle(dl, (ImVec2){fx, fy}, 10.0f,
-                         igColorConvertFloat4ToU32((ImVec4){0.30f, 1.0f, 0.50f, 0.80f}), 12, 1.8f);
+    ImDrawList_AddCircle(dl, (ImVec2){fx, fy}, 14.0f,
+                         igColorConvertFloat4ToU32((ImVec4){0.30f, 1.0f, 0.50f, 0.85f}), 16, 2.0f);
+    ImDrawList_AddCircleFilled(dl, (ImVec2){fx, fy}, 4.0f,
+                               igColorConvertFloat4ToU32((ImVec4){0.60f, 1.0f, 0.70f, 1.0f}), 8);
   }
 
-  // 4. HUD State Badge
+  // 5. HUD State Badge
   const char* mode_name = "FARM";
-  if (B.stage == 1) mode_name = "HUNT";
+  if (B.stage == 1) mode_name = "HUNT (FEAST)";
   else if (B.stage == 2) mode_name = "ESCAPE";
   else if (B.stage == 3) mode_name = "COIL";
 
-  char badge[128];
-  snprintf(badge, sizeof(badge), "BOT TOP [%s] | 64-Dir Rollouts | Clear: %.0fpx | Turbo: %s",
+  char badge[140];
+  snprintf(badge, sizeof(badge), "BOT TOP [%s] | 64-Dir Rollouts | Clear: %.0fpx | Feast: %.0f | Turbo: %s",
            mode_name, B.rollouts[B.best_rollout_idx].clearance,
+           B.has_food ? B.best_food.value : 0.0f,
            B.target_accel ? "ON" : "OFF");
 
   ImVec2 bsz;
