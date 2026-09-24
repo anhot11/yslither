@@ -188,13 +188,15 @@ static void ui_server_selector(tenv* env) {
   tcontext* ctx = env->ctx;
   user_settings* usrs = &usr->usrs;
 
-  ImVec2 modal_sz = {fminf(680.0f, ctx->size[0] * 0.95f), fminf(580.0f, ctx->size[1] * 0.92f)};
+  static int s_selected_zone = 1; // 0=Todas, 1=🌧️ Lluvia (SnakeyRain), 2=Norteamérica, 3=Europa, 4=Sudamérica, 5=Asia/Otros
+
+  ImVec2 modal_sz = {fminf(740.0f, ctx->size[0] * 0.95f), fminf(600.0f, ctx->size[1] * 0.94f)};
   igSetNextWindowSize(modal_sz, ImGuiCond_Always);
   igSetNextWindowPos((ImVec2){(ctx->size[0] - modal_sz.x) * 0.5f,
                              (ctx->size[1] - modal_sz.y) * 0.5f},
                      ImGuiCond_Always, (ImVec2){});
 
-  igPushStyleColor_Vec4(ImGuiCol_WindowBg, (ImVec4){0.10f, 0.12f, 0.16f, 0.98f});
+  igPushStyleColor_Vec4(ImGuiCol_WindowBg, (ImVec4){0.09f, 0.11f, 0.15f, 0.98f});
   igPushStyleColor_Vec4(ImGuiCol_Border, (ImVec4){0.25f, 0.55f, 0.90f, 0.70f});
   igPushStyleVar_Float(ImGuiStyleVar_WindowRounding, 16.0f);
   igPushStyleVar_Float(ImGuiStyleVar_WindowBorderSize, 2.0f);
@@ -204,23 +206,90 @@ static void ui_server_selector(tenv* env) {
                   ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
     igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_LARGE],
                usr->imgui_data.regular_font_bold[FONT_SIZE_LARGE]->LegacySize);
-    igTextColored((ImVec4){0.35f, 0.70f, 1.0f, 1.0f}, "Seleccionar Servidor (Mejor Ping Primero)");
+    igTextColored((ImVec4){0.35f, 0.70f, 1.0f, 1.0f}, "Seleccionar Servidor y Zona");
     igPopFont();
 
     igTextColored((ImVec4){0.70f, 0.75f, 0.80f, 1.0f},
-                  "Servidores oficiales de alta velocidad con SID y medidor de ping en tiempo real:");
+                  "Servidores oficiales y Zona Lluvia (Radar en directo https://snakeyrain.com/weather/):");
     igSeparator();
     igSpacing();
 
+    // 1. Zone filter tabs (Todas, 🌧️ Zona Lluvia, Norteamérica, Europa, Sudamérica, Asia/Otros)
+    igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
+               usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
+    igPushStyleVar_Float(ImGuiStyleVar_FrameRounding, 8.0f);
+
+    const char* zone_titles[] = {"Todas", "🌧️ Zona Lluvia", "Norteamérica", "Europa", "Sudamérica", "Asia"};
+    int num_zones = 6;
+    float avail_w = modal_sz.x - 30.0f;
+    float tab_spacing = 6.0f;
+    float tab_w = (avail_w - (num_zones - 1) * tab_spacing) / num_zones;
+
+    for (int z = 0; z < num_zones; z++) {
+      if (z > 0) igSameLine(0, tab_spacing);
+      bool is_tab_active = (s_selected_zone == z);
+
+      if (z == 1) { // 🌧️ Zona Lluvia (SnakeyRain Pink/Magenta style)
+        if (is_tab_active) {
+          igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.88f, 0.18f, 0.52f, 1.0f});
+          igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.98f, 0.28f, 0.62f, 1.0f});
+        } else {
+          igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.32f, 0.10f, 0.22f, 0.90f});
+          igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.52f, 0.16f, 0.36f, 1.0f});
+        }
+      } else {
+        if (is_tab_active) {
+          igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.20f, 0.50f, 0.85f, 1.0f});
+          igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.28f, 0.60f, 0.95f, 1.0f});
+        } else {
+          igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.14f, 0.17f, 0.23f, 0.85f});
+          igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.22f, 0.28f, 0.38f, 1.0f});
+        }
+      }
+
+      if (igButton(zone_titles[z], (ImVec2){tab_w, 34.0f})) {
+        s_selected_zone = z;
+      }
+      igPopStyleColor(2);
+    }
+    igPopStyleVar(1);
+    igPopFont();
+
+    igSpacing();
+
+    // 2. Weather Status Banner if in Lluvia zone
+    if (s_selected_zone == 1) {
+      int rain_srv_count = snakeyrain_weather_count();
+      int total_storm_bots = snakeyrain_weather_total_bots();
+      bool ws_live = snakeyrain_weather_is_connected();
+
+      igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
+                 usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
+      igTextColored((ImVec4){1.0f, 0.40f, 0.70f, 1.0f}, "🌧️ SnakeyRain Weather:");
+      igSameLine(0, 6.0f);
+      if (ws_live) {
+        igTextColored((ImVec4){0.20f, 0.95f, 0.50f, 1.0f}, "En Vivo (%d tormentas activas, %d bots)",
+                      rain_srv_count, total_storm_bots);
+      } else {
+        igTextColored((ImVec4){0.95f, 0.85f, 0.25f, 1.0f}, "Radar Sincronizado (%d tormentas, %d bots)",
+                      rain_srv_count, total_storm_bots);
+      }
+      igPopFont();
+      igSpacing();
+    }
+
+    // 3. Quick Action Buttons: Auto Best Ping & Refresh
     igPushFont(usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR],
                usr->imgui_data.regular_font_bold[FONT_SIZE_REGULAR]->LegacySize);
     igPushStyleVar_Float(ImGuiStyleVar_FrameRounding, 10.0f);
 
-    // Auto best ping button
     igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.15f, 0.65f, 0.35f, 1.0f});
     igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, (ImVec4){0.20f, 0.80f, 0.42f, 1.0f});
-    if (igButton("Mejor Ping Automatico", (ImVec2){modal_sz.x * 0.58f, 46.0f})) {
-      const char* best_ip = server_list_get_best_ip();
+    const char* best_btn_txt = (s_selected_zone == 1) ? "Mejor Ping en Lluvia" : "Mejor Ping Automático";
+    if (igButton(best_btn_txt, (ImVec2){modal_sz.x * 0.52f, 42.0f})) {
+      const char* best_ip = (s_selected_zone == 1) ?
+                            server_list_get_best_ip_by_region("Lluvia") :
+                            server_list_get_best_ip();
       if (best_ip && best_ip[0] != '\0') {
         strncpy(usrs->ipv4, best_ip, MAX_IPV4_LEN);
         save_user_settings(usrs);
@@ -228,9 +297,10 @@ static void ui_server_selector(tenv* env) {
       }
     }
     igPopStyleColor(2);
-    igSameLine(0, -1);
+    igSameLine(0, 10.0f);
 
-    if (igButton("Actualizar Pings", (ImVec2){-1, 46.0f})) {
+    const char* refresh_btn_txt = (s_selected_zone == 1) ? "Actualizar Radar Lluvia" : "Actualizar Pings";
+    if (igButton(refresh_btn_txt, (ImVec2){-1, 42.0f})) {
       server_list_refresh_pings();
     }
     igPopStyleVar(1);
@@ -238,32 +308,61 @@ static void ui_server_selector(tenv* env) {
 
     igSpacing();
 
-    // Server list scrollable container
-    float list_h = modal_sz.y - 180.0f;
+    // 4. Server list scrollable container
+    float list_h = modal_sz.y - (s_selected_zone == 1 ? 230.0f : 205.0f);
     if (igBeginChild_Str("##srv_list", (ImVec2){-1, list_h}, true, ImGuiWindowFlags_None)) {
       int count = server_list_count();
+      int shown_cards = 0;
+
       for (int i = 0; i < count; i++) {
         server_entry s_buf;
         if (!server_list_get_copy(i, &s_buf)) continue;
         server_entry* s = &s_buf;
 
+        // Zone filtering logic
+        bool is_rain = (strcmp(s->region, "Lluvia") == 0);
+        bool matches = false;
+        if (s_selected_zone == 0) {
+          matches = true; // Todas
+        } else if (s_selected_zone == 1) {
+          matches = is_rain; // 🌧️ Zona Lluvia
+        } else if (s_selected_zone == 2) {
+          matches = (!is_rain && (strcmp(s->region, "US-W") == 0 || strcmp(s->region, "US-C") == 0 ||
+                                  strcmp(s->region, "US-E") == 0 || strcmp(s->region, "US-S") == 0 ||
+                                  strcmp(s->region, "NA") == 0));
+        } else if (s_selected_zone == 3) {
+          matches = (!is_rain && strcmp(s->region, "EU") == 0);
+        } else if (s_selected_zone == 4) {
+          matches = (!is_rain && strcmp(s->region, "SA") == 0);
+        } else if (s_selected_zone == 5) {
+          matches = (!is_rain && (strcmp(s->region, "AS") == 0 || strcmp(s->region, "ME") == 0 ||
+                                  strcmp(s->region, "AF") == 0));
+        }
+        if (!matches) continue;
+        shown_cards++;
+
         char srv_addr[64];
         snprintf(srv_addr, sizeof(srv_addr), "%s:%d", s->ip, s->port);
-        bool is_selected = (strcmp(usrs->ipv4, srv_addr) == 0);
+        bool is_selected = (strcmp(usrs->ipv4, srv_addr) == 0 || strcmp(usrs->ipv4, s->full_addr) == 0);
 
         igPushID_Int(i);
         if (is_selected) {
-          igPushStyleColor_Vec4(ImGuiCol_ChildBg, (ImVec4){0.15f, 0.28f, 0.40f, 0.80f});
+          igPushStyleColor_Vec4(ImGuiCol_ChildBg, is_rain ?
+                                (ImVec4){0.35f, 0.12f, 0.28f, 0.85f} :
+                                (ImVec4){0.15f, 0.28f, 0.40f, 0.80f});
         } else {
-          igPushStyleColor_Vec4(ImGuiCol_ChildBg, (ImVec4){0.12f, 0.14f, 0.18f, 0.60f});
+          igPushStyleColor_Vec4(ImGuiCol_ChildBg, is_rain ?
+                                (ImVec4){0.16f, 0.11f, 0.18f, 0.70f} :
+                                (ImVec4){0.12f, 0.14f, 0.18f, 0.60f});
         }
         igPushStyleVar_Float(ImGuiStyleVar_ChildRounding, 8.0f);
 
+        float card_h = is_rain ? 60.0f : 54.0f;
         char child_id[32];
         snprintf(child_id, sizeof(child_id), "srv_card_%d", i);
-        if (igBeginChild_Str(child_id, (ImVec2){-1, 54}, true, ImGuiWindowFlags_None)) {
+        if (igBeginChild_Str(child_id, (ImVec2){-1, card_h}, true, ImGuiWindowFlags_None)) {
           // Ping badge
-          igSetCursorPos((ImVec2){10, 14});
+          igSetCursorPos((ImVec2){10, is_rain ? 18 : 14});
           if (s->ping_ms < 0) {
             igTextColored((ImVec4){0.35f, 0.70f, 1.0f, 1.0f}, "[Midiendo...]");
           } else if (s->ping_ms < 100) {
@@ -278,31 +377,64 @@ static void ui_server_selector(tenv* env) {
 
           // SID badge
           igSameLine(115, -1);
-          igSetCursorPosY(14);
-          if (s->sid > 0) {
+          igSetCursorPosY(is_rain ? 10 : 14);
+          if (is_rain) {
+            igTextColored((ImVec4){1.0f, 0.40f, 0.75f, 1.0f}, "#%s", s->sid_str[0] ? s->sid_str : "----");
+          } else if (s->sid > 0) {
             igTextColored((ImVec4){0.40f, 0.80f, 0.95f, 1.0f}, "#%04d", s->sid);
           } else {
             igTextColored((ImVec4){0.40f, 0.80f, 0.95f, 0.4f}, "#----");
           }
 
-          // Region & address
-          igSameLine(175, -1);
-          igSetCursorPosY(14);
-          igTextColored((ImVec4){1.0f, 1.0f, 1.0f, 1.0f}, "%s", s->name);
-          igSameLine(390, -1);
-          igSetCursorPosY(14);
-          igTextColored((ImVec4){0.60f, 0.65f, 0.70f, 1.0f}, "%s", srv_addr);
+          // Server details
+          if (is_rain) {
+            // Row 1: City & Continent
+            igSameLine(175, -1);
+            igSetCursorPosY(10);
+            igTextColored((ImVec4){1.0f, 1.0f, 1.0f, 1.0f}, "🌧️ %s (%s)", s->city, s->cont);
+
+            // Row 2: Storm details (Bots, State, Players, Address)
+            igSetCursorPos((ImVec2){175, 34});
+            igTextColored((ImVec4){1.0f, 0.35f, 0.65f, 1.0f}, "🌧️ %d Bots", s->bots_alive);
+
+            igSameLine(280, -1);
+            igSetCursorPosY(34);
+            if (strcmp(s->storm_state, "rain") == 0) {
+              igTextColored((ImVec4){0.20f, 0.90f, 1.0f, 1.0f}, "[TORMENTA]");
+            } else {
+              igTextColored((ImVec4){0.80f, 0.60f, 1.0f, 1.0f}, "[%s]", s->storm_state);
+            }
+
+            igSameLine(380, -1);
+            igSetCursorPosY(34);
+            igTextColored((ImVec4){0.65f, 0.70f, 0.80f, 1.0f}, "👥 %d Jug.", s->players);
+
+            igSameLine(480, -1);
+            igSetCursorPosY(34);
+            igTextColored((ImVec4){0.50f, 0.55f, 0.65f, 1.0f}, "%s", srv_addr);
+          } else {
+            // Standard official server card
+            igSameLine(175, -1);
+            igSetCursorPosY(14);
+            igTextColored((ImVec4){1.0f, 1.0f, 1.0f, 1.0f}, "%s", s->name);
+
+            igSameLine(390, -1);
+            igSetCursorPosY(14);
+            igTextColored((ImVec4){0.60f, 0.65f, 0.70f, 1.0f}, "%s", srv_addr);
+          }
 
           // Select button
           igSameLine(-1, -1);
-          igSetCursorPos((ImVec2){modal_sz.x - 170.0f, 8.0f});
+          igSetCursorPos((ImVec2){modal_sz.x - 145.0f, is_rain ? 12.0f : 8.0f});
           igPushStyleVar_Float(ImGuiStyleVar_FrameRounding, 6.0f);
           if (is_selected) {
-            igPushStyleColor_Vec4(ImGuiCol_Button, (ImVec4){0.10f, 0.45f, 0.25f, 1.0f});
-            igButton("Activo", (ImVec2){100, 36});
+            igPushStyleColor_Vec4(ImGuiCol_Button, is_rain ?
+                                  (ImVec4){0.70f, 0.15f, 0.40f, 1.0f} :
+                                  (ImVec4){0.10f, 0.45f, 0.25f, 1.0f});
+            igButton("Activo", (ImVec2){95, 36});
             igPopStyleColor(1);
           } else {
-            if (igButton("Elegir", (ImVec2){100, 36})) {
+            if (igButton("Elegir", (ImVec2){95, 36})) {
               strncpy(usrs->ipv4, srv_addr, MAX_IPV4_LEN);
               save_user_settings(usrs);
               s_show_server_selector = false;
@@ -315,13 +447,18 @@ static void ui_server_selector(tenv* env) {
         igPopStyleColor(1);
         igPopID();
       }
+
+      if (shown_cards == 0) {
+        igSetCursorPos((ImVec2){20, 20});
+        igTextColored((ImVec4){0.70f, 0.70f, 0.70f, 1.0f}, "No hay servidores disponibles en esta zona actualmente.");
+      }
     }
     igEndChild();
 
     igSpacing();
     igSetCursorPosX((modal_sz.x - 160.0f) * 0.5f);
     igPushStyleVar_Float(ImGuiStyleVar_FrameRounding, 8.0f);
-    if (igButton("Cerrar", (ImVec2){160.0f, 44.0f})) {
+    if (igButton("Cerrar", (ImVec2){160.0f, 40.0f})) {
       s_show_server_selector = false;
     }
     igPopStyleVar(1);
