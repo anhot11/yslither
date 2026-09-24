@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 199309L
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
 #include "snakeyrain_weather.h"
 
 #include <arpa/inet.h>
@@ -44,9 +46,9 @@ static int s_rain_server_count = 0;
 static bool s_connected = false;
 static bool s_initialized = false;
 static bool s_running = false;
+static bool s_is_rain_pinging = false;
 
 static pthread_mutex_t s_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t s_cond = PTHREAD_COND_INITIALIZER;
 static pthread_t s_thread;
 static bool s_force_refresh = false;
 
@@ -56,7 +58,7 @@ static int ping_one(const char* ip, int port) {
 
   struct timeval tv;
   tv.tv_sec = 0;
-  tv.tv_usec = 350000;  // 350 ms timeout
+  tv.tv_usec = 300000;  // 300 ms timeout
   setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
   setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
 
@@ -82,7 +84,8 @@ static int ping_one(const char* ip, int port) {
   return 999;
 }
 
-static void update_pings(void) {
+static void* rain_ping_thread_worker(void* arg) {
+  (void)arg;
   int count;
   char ips[MAX_RAIN_SERVERS][32];
   int ports[MAX_RAIN_SERVERS];
@@ -91,18 +94,44 @@ static void update_pings(void) {
   count = s_rain_server_count;
   for (int i = 0; i < count; i++) {
     strncpy(ips[i], s_rain_servers[i].ip, sizeof(ips[i]) - 1);
+    ips[i][sizeof(ips[i]) - 1] = '\0';
     ports[i] = s_rain_servers[i].port;
   }
   pthread_mutex_unlock(&s_mutex);
 
-  for (int i = 0; i < count; i++) {
+  for (int i = 0; i < count && s_running; i++) {
     int p = ping_one(ips[i], ports[i]);
     pthread_mutex_lock(&s_mutex);
     if (i < s_rain_server_count) {
       s_rain_servers[i].ping_ms = p;
     }
-    struct timespec ts = {.tv_sec = 0, .tv_nsec = 25000000L};
-    nanosleep(&ts, NULL);  // 25ms polite delay
+    pthread_mutex_unlock(&s_mutex);
+    struct timespec ts = {.tv_sec = 0, .tv_nsec = 20000000L};
+    nanosleep(&ts, NULL);  // 20ms polite delay
+  }
+
+  pthread_mutex_lock(&s_mutex);
+  s_is_rain_pinging = false;
+  pthread_mutex_unlock(&s_mutex);
+  return NULL;
+}
+
+static void update_pings(void) {
+  pthread_mutex_lock(&s_mutex);
+  if (s_is_rain_pinging || !s_running) {
+    pthread_mutex_unlock(&s_mutex);
+    return;
+  }
+  s_is_rain_pinging = true;
+  pthread_mutex_unlock(&s_mutex);
+
+  pthread_t tid;
+  if (pthread_create(&tid, NULL, rain_ping_thread_worker, NULL) == 0) {
+    pthread_detach(tid);
+  } else {
+    pthread_mutex_lock(&s_mutex);
+    s_is_rain_pinging = false;
+    pthread_mutex_unlock(&s_mutex);
   }
 }
 
@@ -256,7 +285,7 @@ static void* weather_worker_thread(void* arg) {
       while (s_running && !s_force_refresh) {
         mg_mgr_poll(&mgr, 100);
 
-        // Ping refresh every 30 seconds while connected
+        // Periodic ping refresh every 30 seconds
         if (time(NULL) - start_time >= 30) {
           start_time = time(NULL);
           update_pings();
@@ -266,7 +295,6 @@ static void* weather_worker_thread(void* arg) {
         bool connected = s_connected;
         pthread_mutex_unlock(&s_mutex);
         if (!connected && time(NULL) - start_time > 10) {
-          // Disconnected or stalled
           break;
         }
       }
@@ -304,6 +332,7 @@ void snakeyrain_weather_init(void) {
   pthread_mutex_unlock(&s_mutex);
 
   pthread_create(&s_thread, NULL, weather_worker_thread, NULL);
+  update_pings();
 }
 
 void snakeyrain_weather_destroy(void) {
@@ -324,6 +353,7 @@ void snakeyrain_weather_refresh(void) {
   pthread_mutex_lock(&s_mutex);
   s_force_refresh = true;
   pthread_mutex_unlock(&s_mutex);
+  update_pings();
 }
 
 int snakeyrain_weather_count(void) {
