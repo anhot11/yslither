@@ -84,39 +84,46 @@ void input(tenv* env) {
                       (usrs->hotkeys[HOTKEY_BOT].active && gdata->bot.output.accel);
 
     if (gdata->data.md != gdata->data.wmd &&
-        gdata->data.ctm - gdata->data.last_accel_mtm > 150) {
+        gdata->data.ctm - gdata->data.last_accel_mtm > 35.0f) {
       gdata->data.md = gdata->data.wmd;
       gdata->data.last_accel_mtm = gdata->data.ctm;
       mg_ws_send(connection, (uint8_t[]){gdata->data.md ? 253 : 254}, 1,
                  WEBSOCKET_OP_BINARY);
     }
 
-    bool want_e = false;
-    if (xm != gdata->data.lsxm || ym != gdata->data.lsym) want_e = true;
-    bool heartbeat_e = (gdata->data.ctm - gdata->data.last_e_mtm > 350);
-    me->eang = atan2f(ym, xm);
     float ang;
-    if ((want_e && gdata->data.ctm - gdata->data.last_e_mtm > 50) || heartbeat_e) {
-      want_e = false;
+    float d2 = (float)(xm * xm + ym * ym);
+    if (d2 > 100.0f) {
+      ang = atan2f((float)ym, (float)xm);
+      me->eang = ang;
+    } else {
+      ang = me->wang;
+    }
+    ang = fmodf(ang, (float)PI2);
+    if (ang < 0.0f) ang += (float)PI2;
+    int sang = (int)floorf(251.0f * ang / (float)PI2);
+    if (sang < 0) sang = 0;
+    if (sang > 250) sang = 250;
+
+    int sang_diff = abs(sang - gdata->data.lsang);
+    if (sang_diff > 125) sang_diff = 251 - sang_diff;
+
+    // Adaptive transmission interval:
+    // Fast turn (>= 12 sectors / ~17 deg): 15ms latency
+    // Normal turn (> 0 sectors): 25ms latency (40 Hz)
+    // Heartbeat: 250ms
+    float time_since_e = gdata->data.ctm - gdata->data.last_e_mtm;
+    bool fast_turn = (sang_diff >= 12 && time_since_e >= 15.0f);
+    bool normal_turn = (sang_diff > 0 && time_since_e >= 25.0f);
+    bool heartbeat = (time_since_e >= 250.0f);
+
+    if (fast_turn || normal_turn || heartbeat) {
       gdata->data.last_e_mtm = gdata->data.ctm;
       gdata->data.lsxm = xm;
       gdata->data.lsym = ym;
-      float d2 = xm * xm + ym * ym;
-      if (d2 > 256) {
-        ang = atan2f(ym, xm);
-        me->eang = ang;
-      } else
-        ang = me->wang;
-      ang = fmodf(ang, PI2);
-      if (ang < 0) ang += PI2;
-      int sang = (int)floorf(251.0f * ang / PI2);
-      if (sang < 0) sang = 0;
-      if (sang > 250) sang = 250;
-      if (sang != gdata->data.lsang || heartbeat_e) {
-        gdata->data.lsang = sang;
-        uint8_t pkt = (uint8_t)sang;
-        mg_ws_send(connection, &pkt, 1, WEBSOCKET_OP_BINARY);
-      }
+      gdata->data.lsang = sang;
+      uint8_t pkt = (uint8_t)sang;
+      mg_ws_send(connection, &pkt, 1, WEBSOCKET_OP_BINARY);
     }
   }
 

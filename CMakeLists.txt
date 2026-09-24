@@ -18,7 +18,7 @@ include_directories(
 add_definitions(
     -DCGLM_FORCE_DEPTH_ZERO_TO_ONE
     -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    -DAPP_VERSION="1.0.29"
+    -DAPP_VERSION="1.0.32"
     -DSETTINGS_VERSION="2.5"
     -DCIMGUI_NO_EXPORT
 )
@@ -67,25 +67,54 @@ if(ANDROID)
     )
 else()
     # Desktop build
-    add_definitions(
-        -DGLFW_INCLUDE_NONE
-        -DGLFW_INCLUDE_VULKAN
-    )
-
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
-    file(GLOB_RECURSE GLFW_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/*.c)
+    set(GLFW_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/context.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/init.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/input.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/monitor.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/platform.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/vulkan.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/window.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/egl_context.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/osmesa_context.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/posix_time.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/posix_thread.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/posix_module.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/posix_poll.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/linux_joystick.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/x11_init.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/x11_monitor.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/x11_window.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/xkb_unicode.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/glx_context.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/null_init.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/null_monitor.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/null_window.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/glfw/src/null_joystick.c
+    )
+    add_library(glfw STATIC ${GLFW_SOURCES})
+    target_compile_definitions(glfw PRIVATE _GLFW_X11)
+    target_include_directories(glfw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
 
     add_executable(yslither
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/main.c
         ${THERMITE_SOURCES}
         ${APP_SOURCES}
-        ${GLFW_SOURCES}
+    )
+
+    target_compile_definitions(yslither PRIVATE
+        GLFW_INCLUDE_NONE
+        GLFW_INCLUDE_VULKAN
     )
 
     find_package(Vulkan REQUIRED)
+    find_package(X11 REQUIRED)
 
     target_link_libraries(yslither
+        glfw
         Vulkan::Vulkan
+        ${X11_LIBRARIES}
         m
         pthread
         dl

@@ -210,8 +210,8 @@ void redraw(tenv* env) {
     int sct = o->sct + o->rsc;
 
     if (o->iiv) {
-      float hx = o->xx + o->fx;
-      float hy = o->yy + o->fy;
+      float hx = o->xx + o->fx + o->blend_dx;
+      float hy = o->yy + o->fy + o->blend_dy;
       float px = hx;
       float py = hy;
       float a = o->alive_amt * (1 - o->dead_amt);
@@ -230,8 +230,8 @@ void redraw(tenv* env) {
         sprintf(nk_label_buff, "%s%s", o->nk, score_rep_str);
 
         if (o->id != gdata->data.snake_id) {
-          float ntx = o->xx + o->fx;
-          float nty = o->yy + o->fy;
+          float ntx = o->xx + o->fx + o->blend_dx;
+          float nty = o->yy + o->fy + o->blend_dy;
 
           ImVec2 tsize;
           ImVec2 nsize;

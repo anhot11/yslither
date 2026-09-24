@@ -19,6 +19,28 @@
 #define LOGE(...) printf(__VA_ARGS__)
 #endif
 
+static double s_last_telemetry_log_sec = 0.0;
+
+static void log_netcode_telemetry(tenv* env) {
+  double now = get_monotonic_sec();
+  if (now - s_last_telemetry_log_sec < 1.0) return;
+  s_last_telemetry_log_sec = now;
+
+  game_data* gdata = &env->usr->gdata;
+  user_settings* usrs = &env->usr->usrs;
+  if (!usrs->netcode_overlay && !usrs->debug_logs_enabled) return;
+
+  FILE* f = fopen("netcode_telemetry.log", "a");
+  if (f) {
+    int fps_val = gdata->data.fps > 0 ? gdata->data.fps : (int)roundf(1000.0f / fmaxf(1.0f, gdata->frame_time_cur));
+    fprintf(f, "[NETCODE] Time=%.1fs | FPS=%d | Frame=%.1fms (p95=%.1fms) | RTT=%.1fms | Jitter=%.1fms | Interp=%.1fms | Correc=%d/s | Srv=%s\n",
+            now, fps_val, gdata->frame_time_cur, gdata->frame_time_p95,
+            gdata->net_rtt, gdata->net_jitter, gdata->net_interp_delay,
+            gdata->net_corrections_sec, usrs->ipv4);
+    fclose(f);
+  }
+}
+
 void game_loop(tenv* env) {
   tuser_data* usr = env->usr;
   tcontext* ctx = env->ctx;
@@ -86,6 +108,7 @@ void game_loop(tenv* env) {
       oef(env);
       redraw(env);
       ui_overlay(env);
+      log_netcode_telemetry(env);
 
       // special hotkeys
       if (usrs->hotkeys[HOTKEY_QUIT].active ||

@@ -121,7 +121,8 @@ static void* ping_worker_thread(void* arg) {
     s_servers[i].ping_ms = ms;
     pthread_mutex_unlock(&s_mutex);
 
-    usleep(50000); // 50ms polite pause between checks
+    struct timespec ts = {.tv_sec = 0, .tv_nsec = 50000000L};
+    nanosleep(&ts, NULL); // 50ms polite pause between checks
   }
 
   pthread_mutex_lock(&s_mutex);

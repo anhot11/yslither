@@ -79,6 +79,7 @@ typedef struct user_settings {
   bool bot_auto_turbo;       // Permitir turbo inteligente en situaciones seguras
   bool bot_auto_start;       // Activar el bot automaticamente al iniciar partida
   bool debug_logs_enabled;   // Modo Debug & Registro de Telemetria/Logs (default: true)
+  bool netcode_overlay;      // Overlay de Diagnostico de Netcode (FPS, p95, RTT, Jitter, Interp)
   bool feeder_bots_enabled;  // Activar enjambre de bots alimentadores suicidas
   int feeder_bot_count;      // Cantidad de bots alimentadores (1 a 12, default: 8)
 

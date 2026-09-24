@@ -168,6 +168,16 @@ static void render_stats_hud(tenv* env) {
                           igColorConvertFloat4ToU32(feeder_col),
                           feeder_buf, NULL);
 
+  // Tap/click on Badge 2 (Ping) to toggle Netcode Debug Overlay
+  if (tmouse_button_pressed(env->ms, GLFW_MOUSE_BUTTON_LEFT)) {
+    float mx = env->ms->pos[0];
+    float my = env->ms->pos[1];
+    if (mx >= start2_x && mx <= start2_x + card2_w &&
+        my >= start_y && my <= start_y + card_h) {
+      usr->usrs.netcode_overlay = !usr->usrs.netcode_overlay;
+    }
+  }
+
   // Tap/click on Badge 4 to toggle Feeder Bots
   if (tmouse_button_pressed(env->ms, GLFW_MOUSE_BUTTON_LEFT)) {
     float mx = env->ms->pos[0];
@@ -177,6 +187,60 @@ static void render_stats_hud(tenv* env) {
       feeder_toggle_enabled();
     }
   }
+
+  igPopFont();
+}
+
+static void render_netcode_debug_overlay(tenv* env) {
+  if (!env || !env->usr || !env->ctx) return;
+  tuser_data* usr = env->usr;
+  game_data* gdata = &usr->gdata;
+  if (!usr->usrs.netcode_overlay) return;
+  if (tdarray_length(gdata->data.snakes) == 0) return;
+
+  ImDrawList* dl = igGetForegroundDrawList_ViewportPtr(igGetMainViewport());
+  if (!dl) return;
+
+  ImFont* font = usr->imgui_data.mono_font[FONT_SIZE_REGULAR];
+  if (!font) font = igGetFont();
+  igPushFont(font, font->LegacySize);
+
+  float overlay_w = 285.0f;
+  float overlay_h = 108.0f;
+  float pad = 12.0f;
+  float pos_x = env->ctx->size[0] - overlay_w - 16.0f;
+  float pos_y = 58.0f;
+
+  // Modern semi-transparent dark HUD card with neon cyan border
+  ImDrawList_AddRectFilled(dl, (ImVec2){pos_x, pos_y},
+                           (ImVec2){pos_x + overlay_w, pos_y + overlay_h},
+                           igColorConvertFloat4ToU32((ImVec4){0.04f, 0.07f, 0.11f, 0.92f}), 8.0f, 0);
+  ImDrawList_AddRect(dl, (ImVec2){pos_x, pos_y},
+                     (ImVec2){pos_x + overlay_w, pos_y + overlay_h},
+                     igColorConvertFloat4ToU32((ImVec4){0.15f, 0.88f, 0.95f, 0.85f}), 8.0f, 0, 1.5f);
+
+  char l1[64], l2[64], l3[64], l4[64];
+  int fps_val = gdata->data.fps > 0 ? gdata->data.fps : (int)roundf(1000.0f / fmaxf(1.0f, gdata->frame_time_cur));
+  snprintf(l1, sizeof(l1), "[DIAGNOSTICO NETCODE]");
+  snprintf(l2, sizeof(l2), "FPS: %d  |  Frame: %.1fms (p95: %.1f)",
+           fps_val, gdata->frame_time_cur, gdata->frame_time_p95);
+  snprintf(l3, sizeof(l3), "RTT: %.1fms  |  Jitter: %.1fms",
+           gdata->net_rtt, gdata->net_jitter);
+  snprintf(l4, sizeof(l4), "Interp: %.1fms  |  Correc: %d/s",
+           gdata->net_interp_delay, gdata->net_corrections_sec);
+
+  float ty = pos_y + 8.0f;
+  ImDrawList_AddText_Vec2(dl, (ImVec2){pos_x + pad, ty},
+                          igColorConvertFloat4ToU32((ImVec4){0.20f, 0.95f, 0.90f, 1.0f}), l1, NULL);
+  ty += 24.0f;
+  ImDrawList_AddText_Vec2(dl, (ImVec2){pos_x + pad, ty},
+                          igColorConvertFloat4ToU32((ImVec4){0.90f, 0.95f, 1.00f, 0.95f}), l2, NULL);
+  ty += 22.0f;
+  ImDrawList_AddText_Vec2(dl, (ImVec2){pos_x + pad, ty},
+                          igColorConvertFloat4ToU32((ImVec4){0.95f, 0.85f, 0.25f, 0.95f}), l3, NULL);
+  ty += 22.0f;
+  ImDrawList_AddText_Vec2(dl, (ImVec2){pos_x + pad, ty},
+                          igColorConvertFloat4ToU32((ImVec4){0.40f, 0.92f, 0.50f, 0.95f}), l4, NULL);
 
   igPopFont();
 }
@@ -504,6 +568,9 @@ void ui_overlay(tenv* env) {
  
   // Render live in-game stats HUD: Snake Size (Tamaño) & WiFi Ping (ms)
   render_stats_hud(env);
+
+  // Render Netcode & Engine Performance Debug Overlay (FPS, Frame p95, RTT, Jitter, Interp)
+  render_netcode_debug_overlay(env);
 
   // Render visual debug overlays for Bot Mode (line, red zones, sensors, food target)
   sbot_render_overlay(env);

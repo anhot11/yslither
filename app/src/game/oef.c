@@ -6,35 +6,63 @@ void time_step(tenv* env) {
   tuser_data* usr = env->usr;
   game_data* gdata = &usr->gdata;
 
-  double time_sec = glfwGetTime();
-  gdata->data.ctm = time_sec * 1000;
+  double time_sec = get_monotonic_sec();
+  double ctm = time_sec * 1000.0;
+  if (gdata->data.ltm <= 0.0f) {
+    gdata->data.ltm = (float)(ctm - 16.666);
+    gdata->data.fps_ltm = (float)ctm;
+    gdata->net_last_stat_sec = time_sec;
+  }
+  float dt_ms = (float)(ctm - gdata->data.ltm);
+  if (dt_ms < 0.0f) dt_ms = 0.0f;
+  if (dt_ms > 120.0f) dt_ms = 120.0f; // clamp spike at 120ms (max 15.0 ticks)
+
+  gdata->data.ctm = (float)ctm;
+  gdata->data.etm = dt_ms;
 
   if (gdata->data.follow_view) gdata->data.play_etm = time_sec;
 
   gdata->data.fps_etm = (gdata->data.ctm - gdata->data.fps_ltm);
-  gdata->data.vfr = (gdata->data.ctm - gdata->data.ltm) / 8.0f;
-  if (gdata->data.vfr > 5) gdata->data.vfr = 5;
-  if (gdata->data.vfr < 0) gdata->data.vfr = 0;
+  gdata->data.vfr = dt_ms / 8.0f;
   gdata->data.avfr = gdata->data.vfr;
   gdata->data.ltm = gdata->data.ctm;
 
-  if (!gdata->data.lagging) {
-    if (gdata->data.wfpr && gdata->data.ctm - gdata->data.last_ping_mtm > 750) {
-      gdata->data.lagging = true;
+  // Frame pacing telemetry: record frame time sample for p95 calculation
+  gdata->frame_time_cur = dt_ms;
+  gdata->frame_time_samples[gdata->frame_time_idx] = dt_ms;
+  gdata->frame_time_idx = (gdata->frame_time_idx + 1) % 128;
+  if (gdata->frame_time_count < 128) gdata->frame_time_count++;
+
+  // Update p95 frame time every 16 frames
+  if (gdata->frame_time_idx % 16 == 0 && gdata->frame_time_count > 10) {
+    float sorted[128];
+    int n = gdata->frame_time_count;
+    for (int i = 0; i < n; i++) sorted[i] = gdata->frame_time_samples[i];
+    for (int i = 1; i < n; i++) {
+      float key = sorted[i];
+      int j = i - 1;
+      while (j >= 0 && sorted[j] > key) {
+        sorted[j + 1] = sorted[j];
+        j--;
+      }
+      sorted[j + 1] = key;
     }
+    int p95_idx = (int)(n * 0.95f);
+    if (p95_idx >= n) p95_idx = n - 1;
+    gdata->frame_time_p95 = sorted[p95_idx];
   }
 
-  if (gdata->data.lagging) {
-    gdata->data.lag_mult -= 0.05f * gdata->data.vfr;
-    if (gdata->data.lag_mult < .2) gdata->data.lag_mult = .2;
-  } else if (gdata->data.lag_mult < 1) {
-    gdata->data.lag_mult += 0.05f * gdata->data.vfr;
-    if (gdata->data.lag_mult >= 1) gdata->data.lag_mult = 1;
+  // Update corrections/sec rate every 1.0 second
+  if (time_sec - gdata->net_last_stat_sec >= 1.0) {
+    gdata->net_corrections_sec = gdata->net_corrections_count;
+    gdata->net_corrections_count = 0;
+    gdata->net_last_stat_sec = time_sec;
   }
 
-  if (gdata->data.vfr > 120) gdata->data.vfr = 120;
+  // Authoritative physical simulation: keep lag_mult = 1.0 (never artificially brake local client)
+  gdata->data.lag_mult = 1.0f;
+  gdata->data.lagging = false;
 
-  gdata->data.vfr *= gdata->data.lag_mult;
   float lfr = gdata->data.fr;
   gdata->data.fr += gdata->data.vfr;
   gdata->data.vfrb = (int)(floorf(gdata->data.fr) - floorf(lfr));
@@ -79,6 +107,17 @@ void oef(tenv* env) {
   int snakes_len = _tdarray_length(gdata->data.snakes);
   for (int i = snakes_len - 1; i >= 0; i--) {
     snake* o = gdata->data.snakes + i;
+
+    // Continuous exponential decay of spatial error offsets (dead reckoning)
+    float dt_sec = gdata->data.etm * 0.001f;
+    if (dt_sec > 0.0f) {
+      float decay = expf(-18.0f * dt_sec);
+      o->blend_dx *= decay;
+      o->blend_dy *= decay;
+      if (fabsf(o->blend_dx) < 0.005f) o->blend_dx = 0.0f;
+      if (fabsf(o->blend_dy) < 0.005f) o->blend_dy = 0.0f;
+    }
+
     float mang = gdata->data.mamu * gdata->data.vfr * o->scang * o->spang;
     float csp = o->sp * gdata->data.vfr / 4.0f;
     if (csp > o->msl) csp = o->msl;

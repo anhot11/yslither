@@ -804,17 +804,21 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
       if (o->wsep < mwsep) o->wsep = mwsep;
       if (adding_only) snl(gdata, o);
       if (is_my_snake) {
-        gdata->data.ovxx = o->xx + o->fx;
-        gdata->data.ovyy = o->yy + o->fy;
+        gdata->data.ovxx = o->xx + o->fx + o->blend_dx;
+        gdata->data.ovyy = o->yy + o->fy + o->blend_dy;
       }
 
       float csp = o->sp * (gdata->data.etm / 8.0f) / 4.0f;
-      csp *= gdata->data.lag_mult;
       float ochl = o->chl - 1;
       o->chl = csp / o->msl;
       dx = xx - o->xx;
       dy = yy - o->yy;
       float dchl = o->chl - ochl;
+
+      // Visual blending: compute previous on-screen position
+      float cur_visual_x = o->xx + o->fx + o->blend_dx;
+      float cur_visual_y = o->yy + o->fy + o->blend_dy;
+
       o->xx = xx;
       o->yy = yy;
       k = o->fpos;
@@ -829,12 +833,31 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
       o->fy = o->fys[o->fpos];
       o->fchl = o->fchls[o->fpos];
       o->ftg = GD_EEZ;
+
+      // Reconcile residual discrepancy into continuous exponential blend offset
+      float target_visual_x = o->xx + o->fx;
+      float target_visual_y = o->yy + o->fy;
+      float err_x = cur_visual_x - target_visual_x;
+      float err_y = cur_visual_y - target_visual_y;
+      float err_sq = err_x * err_x + err_y * err_y;
+
+      if (err_sq > (1500.0f * 1500.0f)) {
+        // Hard teleport or respawn: snap directly
+        o->blend_dx = 0.0f;
+        o->blend_dy = 0.0f;
+      } else {
+        // Smooth blending: preserve visual continuity with zero snapping
+        o->blend_dx = err_x;
+        o->blend_dy = err_y;
+        gdata->net_corrections_count++;
+        float cur_err = sqrtf(err_sq);
+        gdata->net_interp_delay = cur_err / fmaxf(1.0f, o->sp);
+      }
+
       if (is_my_snake) {
-        float lvx = gdata->data.view_xx;
-        float lvy = gdata->data.view_yy;
         if (gdata->data.follow_view) {
-          gdata->data.view_xx = o->xx + o->fx;
-          gdata->data.view_yy = o->yy + o->fy;
+          gdata->data.view_xx = o->xx + o->fx + o->blend_dx;
+          gdata->data.view_yy = o->yy + o->fy + o->blend_dy;
         }
         float dx = gdata->data.view_xx - gdata->data.ovxx;
         float dy = gdata->data.view_yy - gdata->data.ovyy;
@@ -851,19 +874,20 @@ void got_packet(tenv* env, uint8_t* a, int a_len) {
   } else if (cmd == 'p') {
     gdata->data.wfpr = false;
     float current_rtt = gdata->data.ctm - gdata->data.last_ping_mtm;
+    if (current_rtt > 0.0f && current_rtt < 3000.0f) {
+      if (gdata->net_rtt <= 0.0f) {
+        gdata->net_rtt = current_rtt;
+        gdata->net_jitter = 0.0f;
+      } else {
+        float rtt_diff = fabsf(current_rtt - gdata->net_rtt);
+        gdata->net_jitter = gdata->net_jitter * 0.875f + rtt_diff * 0.125f;
+        gdata->net_rtt = gdata->net_rtt * 0.75f + current_rtt * 0.25f;
+      }
+      gdata->data.ping = (int)roundf(gdata->net_rtt);
+    }
     gdata->data.pings[gdata->data.cping] = current_rtt;
     gdata->data.cping = (gdata->data.cping + 1) % PING_SAMPLE_COUNT;
-    if (current_rtt > 0.0f && current_rtt < 3000.0f) {
-      if (gdata->data.ping <= 0) {
-        gdata->data.ping = (int)roundf(current_rtt);
-      } else {
-        gdata->data.ping = (int)roundf(gdata->data.ping * 0.75f + current_rtt * 0.25f);
-      }
-    }
-    if (gdata->data.lagging) {
-      gdata->data.etm *= gdata->data.lag_mult;
-      gdata->data.lagging = false;
-    }
+    gdata->data.lagging = false;
   } else if (cmd == 'z') {
     gdata->data.real_flux_grd = a[m] << 16 | a[m + 1] << 8 | a[m + 2];
     m += 3;

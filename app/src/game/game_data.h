@@ -184,6 +184,20 @@ typedef struct game_data {
 
     leaderboard lb;
   } data;
+
+  // Netcode Telemetry & Diagnostics (Phase 1)
+  float net_rtt;
+  float net_jitter;
+  float net_interp_delay;
+  int net_corrections_sec;
+  int net_corrections_count;
+  double net_last_stat_sec;
+  float frame_time_cur;
+  float frame_time_p95;
+  float frame_time_samples[128];
+  int frame_time_idx;
+  int frame_time_count;
+  bool netcode_overlay_enabled;
 } game_data;
 
 void display_hotkeys(tuser_data* usr, float offset, font_size sz);
