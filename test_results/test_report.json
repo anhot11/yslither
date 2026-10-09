@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-09-22T16:58:58.044704Z",
+  "device": "192.168.7.12:33203",
+  "selected_tier": "2",
+  "tiers": {
+    "tier_2": {
+      "title": "Tier 2: Boundary & Corner Cases",
+      "tests_run": 25,
+      "passed": 24,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "duration_seconds": 110.17,
+      "failure_details": [
+        "test.test_tier2_boundary_corner.TestTier2BoundaryCorner.test_f5_01_app_background_and_resume: Traceback (most recent call last):\n  File \"/root/.gemini/antigravity-cli/scratch/yslither/test/test_tier2_boundary_corner.py\", line 170, in test_f5_01_app_background_and_resume\n    self.assert_app_alive()\n    ~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/root/.gemini/antigravity-cli/scratch/yslither/test/conftest.py\", line 44, in assert_app_alive\n    self.assertIsNotNone(pid, f\"Application {self.harness.pkg} is not running!\")\n    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: unexpectedly None : Application com.yslither.game is not running!\n"
+      ],
+      "error_details": []
+    }
+  },
+  "total_tests": 25,
+  "total_passed": 24,
+  "total_failed": 1,
+  "total_errors": 0,
+  "total_skipped": 0,
+  "duration_seconds": 111.3,
+  "status": "FAILED"
+}

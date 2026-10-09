@@ -1,0 +1,37 @@
+--------- beginning of main
+09-21 22:39:00.657 25850 25881 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-21 22:39:00.659 25850 25881 I yslither_net: server_callback: Connection opened
+09-21 22:39:00.840 25850 25881 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-21 22:39:00.940 25850 25881 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-21 22:39:01.058 25850 25881 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-21 22:39:19.535 25850 25881 I yslither_net: server_callback: Connection closed (c=0xb4000072006b73b0, active=0x0)
+09-21 22:39:19.536 25850 25881 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-21 22:39:19.537 25850 25881 I yslither_net: server_callback: Connection opened
+09-21 22:39:19.722 25850 25881 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-21 22:39:19.823 25850 25881 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-21 22:39:19.924 25850 25881 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+--------- beginning of system
+09-21 22:39:46.606 25850 25881 I yslither_net: server_callback: Connection closed (c=0xb4000072006b73b0, active=0x0)
+09-21 22:39:46.607 25850 25881 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-21 22:39:46.607 25850 25881 I yslither_net: server_callback: Connection opened
+09-21 22:39:46.782 25850 25881 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-21 22:39:46.885 25850 25881 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-21 22:39:47.001 25850 25881 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-21 22:39:57.481 25850 25881 I yslither_net: server_callback: Connection closed (c=0xb4000072006b73b0, active=0x0)
+09-21 22:39:57.482 25850 25881 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-21 22:39:57.482 25850 25881 I yslither_net: server_callback: Connection opened
+09-21 22:39:57.638 25850 25881 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-21 22:39:57.739 25850 25881 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-21 22:39:57.841 25850 25881 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-21 22:40:03.016 25850 25881 I yslither_net: server_callback: Connection closed (c=0xb4000072006b73b0, active=0x0)
+09-21 22:40:03.017 25850 25881 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-21 22:40:03.017 25850 25881 I yslither_net: server_callback: Connection opened
+09-21 22:40:03.195 25850 25881 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-21 22:40:03.296 25850 25881 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-21 22:40:03.394 25850 25881 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-21 22:40:09.536 25850 25881 I yslither_net: server_callback: Connection closed (c=0xb4000072006b73b0, active=0x0)
+09-21 22:40:09.536 25850 25881 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-21 22:40:09.536 25850 25881 I yslither_net: server_callback: Connection opened
+09-21 22:40:09.714 25850 25881 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-21 22:40:09.817 25850 25881 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-21 22:40:09.915 25850 25881 I yslither_net: Snake spawned successfully! Game is now CONNECTED!

@@ -1,0 +1,425 @@
+--------- beginning of main
+09-21 21:36:25.468   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:60.059399,dur:1015.66,max:18.20,min:14.64  
+09-21 21:36:25.716   946   956 I [BIP]   :  [BIP NL] event newaddr match dev 0
+09-21 21:36:25.717   946   956 I [BIP]   :  [BIP NL] IPv6: *:*:*:*:*:*:*:*
+09-21 21:36:25.717   946   956 I [BIP]   :  [BIP NL] addr state is 3, ipv4=*.*.*.*, ipv6=*:*:*:*:*:*:*:*
+09-21 21:36:25.717   946   956 I [BIP]   :  [BIP NL] event newaddr match dev 0
+09-21 21:36:25.717   946   956 I [BIP]   :  [BIP NL] IPv6: *:*:*:*:*:*:*:*
+09-21 21:36:25.717   946   956 I [BIP]   :  [BIP NL] addr state is 3, ipv4=*.*.*.*, ipv6=*:*:*:*:*:*:*:*
+09-21 21:36:25.942 19937 19937 E libc    : Access denied finding property "persist.device_config.runtime_native_boot.profilebootclasspath"
+09-21 21:36:25.942 19937 19937 E libc    : Access denied finding property "persist.device_config.runtime_native_boot.enable_apex_image"
+09-21 21:36:25.942 19937 19937 I AndroidRuntime: Using default boot image
+09-21 21:36:25.942 19937 19937 E libc    : Access denied finding property "persist.device_config.runtime_native_boot.disable_lock_profiling"
+09-21 21:36:25.942 19937 19937 I AndroidRuntime: Leaving lock profiling enabled
+09-21 21:36:25.943 19937 19937 E libc    : Access denied finding property "persist.device_config.runtime_native_boot.enable_generational_cc"
+09-21 21:36:26.207   590  1032 I BufferQueueProducer: [StatusBar#0](this:0xb4000071604b3ee8,id:8,api:1,p:1584,c:590) queueBuffer: fps=0.37 dur=2698.47 max=2698.47 min=2698.47
+09-21 21:36:26.235 19937 19937 I app_process: The ClassLoaderContext is a special shared library.
+09-21 21:36:26.272 19937 19937 W main    : type=1400 audit(0.0:1105204): avc: denied { read } for name="u:object_r:vendor_exported_default_prop:s0" dev="tmpfs" ino=562 scontext=u:r:shell:s0 tcontext=u:object_r:vendor_exported_default_prop:s0 tclass=file permissive=0
+09-21 21:36:26.272 19937 19937 W main    : type=1400 audit(0.0:1105205): avc: denied { read } for name="u:object_r:vendor_exported_default_prop:s0" dev="tmpfs" ino=562 scontext=u:r:shell:s0 tcontext=u:object_r:vendor_exported_default_prop:s0 tclass=file permissive=0
+09-21 21:36:26.275 19937 19937 E libc    : Access denied finding property "ro.vendor.tran.hardware"
+09-21 21:36:26.275 19937 19937 E libc    : Access denied finding property "ro.vendor.tran.cpu_model"
+09-21 21:36:26.279 19937 19937 W app_process: JNI RegisterNativeMethods: attempt to register 0 native methods for android.media.AudioAttributes
+09-21 21:36:26.303 19937 19937 W System  : ClassLoader referenced unknown path: /system/framework/mediatek-cta.jar
+09-21 21:36:26.304 19937 19937 W CtaManagerFactory: CtaManagerFactoryImpl not found
+09-21 21:36:26.326   575   652 I libPowerHal: [perfLockAcq] idx:0 hdl:7480 hint:25 pid:575 duration:500 => ret_hdl:7480
+09-21 21:36:26.326   575   652 I libPowerHal: [PE] scn:0 hdl:7480 hint:25 comm:mtkpower@1.0-se pid:575
+09-21 21:36:26.327   575   652 I libPowerHal: MTKPOWER_HINT_APP_TOUCH: cpu_ctrl set cpu freq: 2301000 -1 1800000 -1
+09-21 21:36:26.327   575   652 I libPowerHal: [PE] MTKPOWER_HINT_APP_TOUCH update cmd:3408600 param:1
+09-21 21:36:26.327   575   652 I libPowerHal: [perfLockRel] hdl:7479, idx:-1
+09-21 21:36:26.340   590  1032 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.02 dur=1016.39 max=18.73 min=14.33
+09-21 21:36:26.344   575   652 I libPowerHal: [perfLockAcq] idx:1 hdl:7481 hint:25 pid:575 duration:500 => ret_hdl:7481
+09-21 21:36:26.344   575   652 I libPowerHal: [PE] scn:1 hdl:7481 hint:25 comm:mtkpower@1.0-se pid:575
+09-21 21:36:26.344   575   652 I libPowerHal: [perfLockRel] hdl:7480, idx:0
+09-21 21:36:26.344   575   652 I libPowerHal: [PD] scn:0 hdl:7480 hint:25 comm:mtkpower@1.0-se pid:575
+09-21 21:36:26.356 18815 18843 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-21 21:36:26.357 18815 18843 I yslither_net: server_callback: Connection opened
+09-21 21:36:26.468   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.990829,dur:1000.15,max:17.76,min:15.12  
+09-21 21:36:26.489  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:26.572  6221  6221 W proot   : type=1400 audit(0.0:1105206): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:26.572  6221  6221 W proot   : type=1400 audit(0.0:1105207): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:26.572 22563 22563 W adb     : type=1400 audit(0.0:1105208): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:26.591 18815 18843 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-21 21:36:26.707 18815 18843 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-21 21:36:26.824 18815 18843 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-21 21:36:26.844   575   652 I mtkpower@impl: [powerd_req] TIMER_MSG_PERF_LOCK_TIMEOUT hdl:7481
+09-21 21:36:26.844   575   652 I libPowerHal: [perfLockRel] hdl:7481, idx:1
+09-21 21:36:26.844   575   652 I libPowerHal: [PD] scn:1 hdl:7481 hint:25 comm:mtkpower@1.0-se pid:575
+09-21 21:36:26.845   575   652 I libPowerHal: MTKPOWER_HINT_APP_TOUCH: cpu_ctrl set cpu freq: -1 -1 -1 -1
+09-21 21:36:26.845   575   652 I libPowerHal: [PD] MTKPOWER_HINT_APP_TOUCH update cmd:3408600 param:0
+09-21 21:36:27.276 15973 15973 W ThreadPoolForeg: type=1400 audit(0.0:1105209): avc: denied { write } for name="traced_producer" dev="tmpfs" ino=13797 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:traced_producer_socket:s0 tclass=sock_file permissive=0 app=com.termux.api
+09-21 21:36:27.344   590  1032 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.77 dur=1003.86 max=19.20 min=14.18
+09-21 21:36:27.470   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.856361,dur:1002.40,max:18.56,min:14.43  
+09-21 21:36:27.572  6221  6221 W proot   : type=1400 audit(0.0:1105210): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:27.572  6221  6221 W proot   : type=1400 audit(0.0:1105211): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:27.572 22563 22563 W adb     : type=1400 audit(0.0:1105212): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:28.345   590  1032 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.91 dur=1001.44 max=19.11 min=14.10
+09-21 21:36:28.364  6221  6221 W proot   : type=1400 audit(0.0:1105213): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:28.364  6221  6221 W proot   : type=1400 audit(0.0:1105214): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:28.364  6221  6221 W proot   : type=1400 audit(0.0:1105215): avc: denied { setattr } for name="fd" dev="proc" ino=7749860 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:28.364  6221  6221 W proot   : type=1400 audit(0.0:1105216): avc: denied { setattr } for name="fd" dev="proc" ino=7749860 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:28.364  6221  6221 W proot   : type=1400 audit(0.0:1105217): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:28.364  6221  6221 W proot   : type=1400 audit(0.0:1105218): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:28.471   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.990158,dur:1000.16,max:18.31,min:14.30  
+09-21 21:36:28.997 19955 19955 E libc    : Access denied finding property "persist.device_config.runtime_native_boot.profilebootclasspath"
+09-21 21:36:28.997 19955 19955 E libc    : Access denied finding property "persist.device_config.runtime_native_boot.enable_apex_image"
+09-21 21:36:28.997 19955 19955 I AndroidRuntime: Using default boot image
+09-21 21:36:28.998 19955 19955 E libc    : Access denied finding property "persist.device_config.runtime_native_boot.disable_lock_profiling"
+09-21 21:36:28.998 19955 19955 I AndroidRuntime: Leaving lock profiling enabled
+09-21 21:36:28.998 19955 19955 E libc    : Access denied finding property "persist.device_config.runtime_native_boot.enable_generational_cc"
+09-21 21:36:29.312 19955 19955 I app_process: The ClassLoaderContext is a special shared library.
+09-21 21:36:29.353 19955 19955 E libc    : Access denied finding property "ro.vendor.tran.hardware"
+09-21 21:36:29.354 19955 19955 E libc    : Access denied finding property "ro.vendor.tran.cpu_model"
+09-21 21:36:29.356   590  1032 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.32 dur=1011.24 max=18.93 min=13.71
+09-21 21:36:29.357 19955 19955 W app_process: JNI RegisterNativeMethods: attempt to register 0 native methods for android.media.AudioAttributes
+09-21 21:36:29.378 19955 19955 W System  : ClassLoader referenced unknown path: /system/framework/mediatek-cta.jar
+09-21 21:36:29.379 19955 19955 W CtaManagerFactory: CtaManagerFactoryImpl not found
+09-21 21:36:29.397   575   652 I libPowerHal: [perfLockAcq] idx:0 hdl:7482 hint:25 pid:575 duration:500 => ret_hdl:7482
+09-21 21:36:29.397   575   652 I libPowerHal: [PE] scn:0 hdl:7482 hint:25 comm:mtkpower@1.0-se pid:575
+09-21 21:36:29.397   575   652 I libPowerHal: MTKPOWER_HINT_APP_TOUCH: cpu_ctrl set cpu freq: 2301000 -1 1800000 -1
+09-21 21:36:29.397   575   652 I libPowerHal: [PE] MTKPOWER_HINT_APP_TOUCH update cmd:3408600 param:1
+09-21 21:36:29.398   575   652 I libPowerHal: [perfLockRel] hdl:7481, idx:-1
+09-21 21:36:29.412   575   652 I libPowerHal: [perfLockAcq] idx:1 hdl:7483 hint:25 pid:575 duration:500 => ret_hdl:7483
+09-21 21:36:29.412   575   652 I libPowerHal: [PE] scn:1 hdl:7483 hint:25 comm:mtkpower@1.0-se pid:575
+09-21 21:36:29.412   575   652 I libPowerHal: [perfLockRel] hdl:7482, idx:0
+09-21 21:36:29.412   575   652 I libPowerHal: [PD] scn:0 hdl:7482 hint:25 comm:mtkpower@1.0-se pid:575
+09-21 21:36:29.436   816   816 I thermal_repeater: [recvMdThermalInfo] ret=33, strLen=127,  2, 32767, -127, 113, 32767, 4046
+09-21 21:36:29.487   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:60.041306,dur:1015.97,max:17.95,min:14.49  
+09-21 21:36:29.503  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:29.576  6221  6221 W proot   : type=1400 audit(0.0:1105263): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:29.576  6221  6221 W proot   : type=1400 audit(0.0:1105264): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:29.576 22563 22563 W adb     : type=1400 audit(0.0:1105265): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:29.912   575   652 I mtkpower@impl: [powerd_req] TIMER_MSG_PERF_LOCK_TIMEOUT hdl:7483
+09-21 21:36:29.912   575   652 I libPowerHal: [perfLockRel] hdl:7483, idx:1
+09-21 21:36:29.912   575   652 I libPowerHal: [PD] scn:1 hdl:7483 hint:25 comm:mtkpower@1.0-se pid:575
+09-21 21:36:29.913   575   652 I libPowerHal: MTKPOWER_HINT_APP_TOUCH: cpu_ctrl set cpu freq: -1 -1 -1 -1
+09-21 21:36:29.913   575   652 I libPowerHal: [PD] MTKPOWER_HINT_APP_TOUCH update cmd:3408600 param:0
+09-21 21:36:30.361   590  1032 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.71 dur=1004.82 max=18.62 min=14.78
+09-21 21:36:30.489   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.858494,dur:1002.36,max:18.44,min:15.21  
+09-21 21:36:30.576  6221  6221 W proot   : type=1400 audit(0.0:1105266): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:30.576  6221  6221 W proot   : type=1400 audit(0.0:1105267): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:30.849  3477  3880 E LS-ServerManager: isConnected : mServerRun a.c.a.h0.c.b@f76b848
+09-21 21:36:31.212   590  1032 I BufferQueueProducer: [StatusBar#0](this:0xb4000071604b3ee8,id:8,api:1,p:1584,c:590) queueBuffer: fps=0.20 dur=5005.00 max=5005.00 min=5005.00
+09-21 21:36:31.363   590  1032 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.89 dur=1001.81 max=18.97 min=13.88
+09-21 21:36:31.490   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.954609,dur:1000.76,max:17.86,min:15.32  
+09-21 21:36:31.580  6221  6221 W proot   : type=1400 audit(0.0:1105269): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:31.580  6221  6221 W proot   : type=1400 audit(0.0:1105270): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:31.580 22563 22563 W adb     : type=1400 audit(0.0:1105271): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:32.380   590  1032 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.98 dur=1016.94 max=18.87 min=13.08
+09-21 21:36:32.505   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:60.086864,dur:1015.20,max:19.89,min:14.14  
+09-21 21:36:32.515  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:32.580  6221  6221 W proot   : type=1400 audit(0.0:1105272): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:32.580  6221  6221 W proot   : type=1400 audit(0.0:1105273): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:32.928  6221  6221 W proot   : type=1400 audit(0.0:1105275): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:32.928  6221  6221 W proot   : type=1400 audit(0.0:1105276): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:32.928  6221  6221 W proot   : type=1400 audit(0.0:1105277): avc: denied { setattr } for name="fd" dev="proc" ino=7747229 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:32.928  6221  6221 W proot   : type=1400 audit(0.0:1105278): avc: denied { setattr } for name="fd" dev="proc" ino=7747229 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:32.928  6221  6221 W proot   : type=1400 audit(0.0:1105279): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:33.392   590  1032 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.25 dur=1012.42 max=19.45 min=13.33
+09-21 21:36:33.399   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 361, screenshot (Letterbox - left#0)
+09-21 21:36:33.399   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 361, screenshot (com.yslither.game/android.app.NativeActivity#0)
+09-21 21:36:33.399   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 361, screenshot (NavigationBar0#0)
+09-21 21:36:33.452 19977 19977 E ion     : ioctl c0044901 failed with code -1: Invalid argument
+09-21 21:36:33.505   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.991074,dur:1000.15,max:19.93,min:13.94  
+09-21 21:36:33.724   575   652 I libPowerHal: perfUserScnCheckAll
+09-21 21:36:33.725   575   652 I libPowerHal: perfScnDumpAll cmd:0
+09-21 21:36:33.725   575   652 I libPowerHal: ========================
+09-21 21:36:33.725   575   652 I libPowerHal: ========================
+09-21 21:36:34.401   590   668 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=58.49 dur=1008.76 max=28.00 min=9.92
+09-21 21:36:34.523   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:58.951736,dur:1017.78,max:34.20,min:6.07  
+09-21 21:36:34.584  6221  6221 W proot   : type=1400 audit(0.0:1105319): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:34.584  6221  6221 W proot   : type=1400 audit(0.0:1105320): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:34.584 22563 22563 W adb     : type=1400 audit(0.0:1105321): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:34.672 19977 19977 E IMGSRV  : :2631: GrallocUnregisterBuffer: Cannot free a locked buffer (ID=82052)
+09-21 21:36:34.672 19977 19977 E IMGMapper: freeBuffer:64 Failed to unregister native handle
+09-21 21:36:34.672 19977 19977 E Gralloc4: freeBuffer(0xb400007b6208a010) failed with 2
+09-21 21:36:34.871   547  9256 I netd    : trafficSwapActiveStatsMap() <0.40ms>
+09-21 21:36:34.879   547  9256 I netd    : tetherGetStats() <3.54ms>
+09-21 21:36:34.910   547  9256 I netd    : bandwidthSetGlobalAlert(2097152) <0.45ms>
+09-21 21:36:35.154  1221  1230 I system_server: Background young concurrent copying GC freed 244180(21MB) AllocSpace objects, 19(380KB) LOS objects, 40% free, 32MB/54MB, paused 929us total 252.763ms
+09-21 21:36:35.159  1221  1231 W JavaBinder: BinderProxy is being destroyed but the application did not call unlinkToDeath to unlink all of its death recipients beforehand.  Releasing leaked death recipient: com.android.server.AlarmManagerService$2
+09-21 21:36:35.159  1221  1231 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+09-21 21:36:35.160  1221  1231 W JavaBinder: BinderProxy is being destroyed but the application did not call unlinkToDeath to unlink all of its death recipients beforehand.  Releasing leaked death recipient: com.android.server.AlarmManagerService$2
+09-21 21:36:35.160  1221  1231 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+09-21 21:36:35.413   590   668 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.33 dur=1011.29 max=21.40 min=10.77
+09-21 21:36:35.533  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:35.539   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.028263,dur:1016.46,max:33.54,min:15.23  
+09-21 21:36:35.584  6221  6221 W proot   : type=1400 audit(0.0:1105322): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:35.584  6221  6221 W proot   : type=1400 audit(0.0:1105323): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:35.588 22563 22563 W adb     : type=1400 audit(0.0:1105324): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:36.210   590   668 I BufferQueueProducer: [StatusBar#0](this:0xb4000071604b3ee8,id:8,api:1,p:1584,c:590) queueBuffer: fps=0.20 dur=4997.65 max=4997.65 min=4997.65
+09-21 21:36:36.413   590   668 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.97 dur=1000.48 max=19.71 min=8.30
+09-21 21:36:36.449 18815 18843 I yslither_net: server_callback: Connection closed
+09-21 21:36:36.541   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:60.905163,dur:1001.56,max:18.44,min:6.50  
+09-21 21:36:36.588  6221  6221 W proot   : type=1400 audit(0.0:1105325): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:36.588  6221  6221 W proot   : type=1400 audit(0.0:1105326): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:36.588 22563 22563 W adb     : type=1400 audit(0.0:1105327): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:36.732  6221  6221 W proot   : type=1400 audit(0.0:1105328): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:36.732  6221  6221 W proot   : type=1400 audit(0.0:1105329): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:36.732  6221  6221 W proot   : type=1400 audit(0.0:1105330): avc: denied { setattr } for name="fd" dev="proc" ino=7748185 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:36.732  6221  6221 W proot   : type=1400 audit(0.0:1105331): avc: denied { setattr } for name="fd" dev="proc" ino=7748185 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:36.732  6221  6221 W proot   : type=1400 audit(0.0:1105332): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:36.732  6221  6221 W proot   : type=1400 audit(0.0:1105333): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:36.860  3477  4064 E LS-ServerManager: isConnected : mServerRun a.c.a.h0.c.b@f76b848
+09-21 21:36:36.982   547  9256 I netd    : trafficSwapActiveStatsMap() <0.85ms>
+09-21 21:36:36.990   547  9256 I netd    : tetherGetStats() <4.18ms>
+09-21 21:36:37.017   547  9256 I netd    : bandwidthSetGlobalAlert(2097152) <0.32ms>
+09-21 21:36:37.227   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 362, screenshot (Letterbox - left#0)
+09-21 21:36:37.227   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 362, screenshot (com.yslither.game/android.app.NativeActivity#0)
+09-21 21:36:37.227   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 362, screenshot (NavigationBar0#0)
+09-21 21:36:37.274 19986 19986 E ion     : ioctl c0044901 failed with code -1: Invalid argument
+09-21 21:36:37.429   590  1032 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.03 dur=1016.20 max=23.04 min=9.23
+09-21 21:36:37.530 19986 19986 E IMGSRV  : :2631: GrallocUnregisterBuffer: Cannot free a locked buffer (ID=82061)
+09-21 21:36:37.530 19986 19986 E IMGMapper: freeBuffer:64 Failed to unregister native handle
+09-21 21:36:37.531 19986 19986 E Gralloc4: freeBuffer(0xb4000071dcde80f0) failed with 2
+09-21 21:36:37.541   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.993893,dur:1000.10,max:19.95,min:12.82  
+09-21 21:36:38.432   590  1032 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.83 dur=1002.90 max=18.77 min=14.39
+09-21 21:36:38.543   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.900528,dur:1001.66,max:18.09,min:15.33  
+09-21 21:36:38.547  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:38.584  6221  6221 W proot   : type=1400 audit(0.0:1105372): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:38.584  6221  6221 W proot   : type=1400 audit(0.0:1105373): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:38.584  6221  6221 W proot   : type=1400 audit(0.0:1105374): avc: denied { setattr } for name="fd" dev="proc" ino=7749074 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:38.584  6221  6221 W proot   : type=1400 audit(0.0:1105375): avc: denied { setattr } for name="fd" dev="proc" ino=7749074 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:38.584  6221  6221 W proot   : type=1400 audit(0.0:1105376): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:39.035   946   956 I [BIP]   :  [BIP NL] event newaddr match dev 0
+09-21 21:36:39.035   946   956 I [BIP]   :  [BIP NL] IPv6: *:*:*:*:*:*:*:*
+09-21 21:36:39.035   946   956 I [BIP]   :  [BIP NL] addr state is 3, ipv4=*.*.*.*, ipv6=*:*:*:*:*:*:*:*
+09-21 21:36:39.035   946   956 I [BIP]   :  [BIP NL] event newaddr match dev 0
+09-21 21:36:39.035   946   956 I [BIP]   :  [BIP NL] IPv6: *:*:*:*:*:*:*:*
+09-21 21:36:39.035   946   956 I [BIP]   :  [BIP NL] addr state is 3, ipv4=*.*.*.*, ipv6=*:*:*:*:*:*:*:*
+09-21 21:36:39.071   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 363, screenshot (Letterbox - left#0)
+09-21 21:36:39.072   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 363, screenshot (com.yslither.game/android.app.NativeActivity#0)
+09-21 21:36:39.072   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 363, screenshot (NavigationBar0#0)
+09-21 21:36:39.116 19992 19992 E ion     : ioctl c0044901 failed with code -1: Invalid argument
+09-21 21:36:39.373 19992 19992 E IMGSRV  : :2631: GrallocUnregisterBuffer: Cannot free a locked buffer (ID=82069)
+09-21 21:36:39.373 19992 19992 E IMGMapper: freeBuffer:64 Failed to unregister native handle
+09-21 21:36:39.373 19992 19992 E Gralloc4: freeBuffer(0xb40000792ac71bd0) failed with 2
+09-21 21:36:39.447   590   668 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.08 dur=1015.28 max=19.77 min=13.24
+09-21 21:36:39.456   816   816 I thermal_repeater: [recvMdThermalInfo] ret=33, strLen=127,  2, 32767, -127, 113, 32767, 4046
+09-21 21:36:39.543   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.983540,dur:1000.27,max:20.69,min:12.54  
+09-21 21:36:39.592  6221  6221 W proot   : type=1400 audit(0.0:1105416): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:39.592  6221  6221 W proot   : type=1400 audit(0.0:1105417): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:39.596 22563 22563 W adb     : type=1400 audit(0.0:1105418): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:40.450   590   668 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.83 dur=1002.85 max=19.24 min=14.10
+09-21 21:36:40.544   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.909546,dur:1001.51,max:18.08,min:15.23  
+09-21 21:36:40.596  6221  6221 W proot   : type=1400 audit(0.0:1105419): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:40.596  6221  6221 W proot   : type=1400 audit(0.0:1105420): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:40.596 22563 22563 W adb     : type=1400 audit(0.0:1105421): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:41.231   590   668 I BufferQueueProducer: [StatusBar#0](this:0xb4000071604b3ee8,id:8,api:1,p:1584,c:590) queueBuffer: fps=0.20 dur=5020.79 max=5020.79 min=5020.79
+09-21 21:36:41.451   590   668 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.99 dur=1000.20 max=19.82 min=14.15
+09-21 21:36:41.562   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.947247,dur:1017.56,max:18.51,min:14.87  
+09-21 21:36:41.572  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:41.604  6221  6221 W proot   : type=1400 audit(0.0:1105422): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:41.604  6221  6221 W proot   : type=1400 audit(0.0:1105423): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:41.604 22563 22563 W adb     : type=1400 audit(0.0:1105424): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:42.424  6221  6221 W proot   : type=1400 audit(0.0:1105425): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:42.424  6221  6221 W proot   : type=1400 audit(0.0:1105426): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:42.424  6221  6221 W proot   : type=1400 audit(0.0:1105427): avc: denied { setattr } for name="fd" dev="proc" ino=7747572 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:42.424  6221  6221 W proot   : type=1400 audit(0.0:1105428): avc: denied { setattr } for name="fd" dev="proc" ino=7747572 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:42.424  6221  6221 W proot   : type=1400 audit(0.0:1105429): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:42.424  6221  6221 W proot   : type=1400 audit(0.0:1105430): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:42.452   590  2027 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.91 dur=1001.42 max=19.58 min=13.54
+09-21 21:36:42.577   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:60.069553,dur:1015.49,max:18.57,min:13.06  
+09-21 21:36:42.872  3477  4065 E LS-ServerManager: isConnected : mServerRun a.c.a.h0.c.b@f76b848
+09-21 21:36:42.947   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 364, screenshot (Letterbox - left#0)
+09-21 21:36:42.947   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 364, screenshot (com.yslither.game/android.app.NativeActivity#0)
+09-21 21:36:42.947   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 364, screenshot (NavigationBar0#0)
+09-21 21:36:42.997 19998 19998 E ion     : ioctl c0044901 failed with code -1: Invalid argument
+09-21 21:36:43.269 19998 19998 E IMGSRV  : :2631: GrallocUnregisterBuffer: Cannot free a locked buffer (ID=82077)
+09-21 21:36:43.269 19998 19998 E IMGMapper: freeBuffer:64 Failed to unregister native handle
+09-21 21:36:43.269 19998 19998 E Gralloc4: freeBuffer(0xb40000714cb325b0) failed with 2
+09-21 21:36:43.467   590   667 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.12 dur=1014.68 max=20.15 min=13.95
+09-21 21:36:43.579   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.948174,dur:1000.86,max:18.50,min:15.04  
+09-21 21:36:43.612  6221  6221 W proot   : type=1400 audit(0.0:1105469): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:43.612  6221  6221 W proot   : type=1400 audit(0.0:1105470): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:43.612 22563 22563 W adb     : type=1400 audit(0.0:1105471): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:43.871   547  9256 I netd    : trafficSwapActiveStatsMap() <0.76ms>
+09-21 21:36:43.881   547  9256 I netd    : tetherGetStats() <3.92ms>
+09-21 21:36:43.914   547  9256 I netd    : bandwidthSetGlobalAlert(2097152) <0.66ms>
+09-21 21:36:44.467   590   667 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.97 dur=1000.43 max=19.13 min=12.80
+09-21 21:36:44.579   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.967842,dur:1000.54,max:18.53,min:14.66  
+09-21 21:36:44.587  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:44.616  6221  6221 W proot   : type=1400 audit(0.0:1105472): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:44.616  6221  6221 W proot   : type=1400 audit(0.0:1105473): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:44.616 22563 22563 W adb     : type=1400 audit(0.0:1105474): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:45.480   590   667 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.23 dur=1012.73 max=25.34 min=7.60
+09-21 21:36:45.593   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:60.146523,dur:1014.19,max:19.17,min:14.84  
+09-21 21:36:45.616  6221  6221 W proot   : type=1400 audit(0.0:1105475): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:45.616  6221  6221 W proot   : type=1400 audit(0.0:1105476): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:45.616 22563 22563 W adb     : type=1400 audit(0.0:1105477): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:45.837   547  9256 I netd    : trafficSwapActiveStatsMap() <0.20ms>
+09-21 21:36:45.842   547  9256 I netd    : tetherGetStats() <2.21ms>
+09-21 21:36:45.861   547  9256 I netd    : bandwidthSetGlobalAlert(2097152) <0.19ms>
+09-21 21:36:46.234   590   667 I BufferQueueProducer: [StatusBar#0](this:0xb4000071604b3ee8,id:8,api:1,p:1584,c:590) queueBuffer: fps=0.20 dur=5003.65 max=5003.65 min=5003.65
+09-21 21:36:46.324  6221  6221 W proot   : type=1400 audit(0.0:1105478): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:46.324  6221  6221 W proot   : type=1400 audit(0.0:1105479): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:46.324  6221  6221 W proot   : type=1400 audit(0.0:1105480): avc: denied { setattr } for name="fd" dev="proc" ino=7749287 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:46.328  6221  6221 W proot   : type=1400 audit(0.0:1105481): avc: denied { setattr } for name="fd" dev="proc" ino=7749287 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:46.328  6221  6221 W proot   : type=1400 audit(0.0:1105482): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:46.328  6221  6221 W proot   : type=1400 audit(0.0:1105483): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:46.486   590   668 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.64 dur=1005.96 max=28.25 min=6.97
+09-21 21:36:46.597   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.755016,dur:1004.10,max:19.24,min:14.35  
+09-21 21:36:46.817   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 365, screenshot (Letterbox - left#0)
+09-21 21:36:46.817   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 365, screenshot (com.yslither.game/android.app.NativeActivity#0)
+09-21 21:36:46.817   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 365, screenshot (NavigationBar0#0)
+09-21 21:36:46.860 20006 20006 E ion     : ioctl c0044901 failed with code -1: Invalid argument
+09-21 21:36:47.116 20006 20006 E IMGSRV  : :2631: GrallocUnregisterBuffer: Cannot free a locked buffer (ID=82085)
+09-21 21:36:47.116 20006 20006 E IMGMapper: freeBuffer:64 Failed to unregister native handle
+09-21 21:36:47.116 20006 20006 E Gralloc4: freeBuffer(0xb4000076bf694a90) failed with 2
+09-21 21:36:47.487   590   668 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.95 dur=1000.85 max=19.77 min=13.79
+09-21 21:36:47.598   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.965092,dur:1000.58,max:18.57,min:14.73  
+09-21 21:36:47.603  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:47.620  6221  6221 W proot   : type=1400 audit(0.0:1105522): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:47.620  6221  6221 W proot   : type=1400 audit(0.0:1105523): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:47.620 22563 22563 W adb     : type=1400 audit(0.0:1105524): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:48.488   590   668 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.92 dur=1001.28 max=18.41 min=14.78
+09-21 21:36:48.598   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.997608,dur:1000.04,max:18.79,min:15.61  
+09-21 21:36:48.620  6221  6221 W proot   : type=1400 audit(0.0:1105525): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:48.620  6221  6221 W proot   : type=1400 audit(0.0:1105526): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:48.663   946   956 I [BIP]   :  [BIP NL] event newaddr match dev 0
+09-21 21:36:48.663   946   956 I [BIP]   :  [BIP NL] IPv6: *:*:*:*:*:*:*:*
+09-21 21:36:48.663   946   956 I [BIP]   :  [BIP NL] addr state is 3, ipv4=*.*.*.*, ipv6=*:*:*:*:*:*:*:*
+09-21 21:36:48.663   946   956 I [BIP]   :  [BIP NL] event newaddr match dev 0
+09-21 21:36:48.663   946   956 I [BIP]   :  [BIP NL] IPv6: *:*:*:*:*:*:*:*
+09-21 21:36:48.663   946   956 I [BIP]   :  [BIP NL] addr state is 3, ipv4=*.*.*.*, ipv6=*:*:*:*:*:*:*:*
+09-21 21:36:48.886  3477  4064 E LS-ServerManager: isConnected : mServerRun a.c.a.h0.c.b@f76b848
+09-21 21:36:49.477   816   816 I thermal_repeater: [recvMdThermalInfo] ret=33, strLen=127,  2, 32767, -127, 113, 32767, 4046
+09-21 21:36:49.506   590   668 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.92 dur=1018.10 max=18.75 min=14.02
+09-21 21:36:49.599   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.938362,dur:1001.03,max:18.30,min:15.10  
+09-21 21:36:49.620  6221  6221 W proot   : type=1400 audit(0.0:1105528): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:49.620  6221  6221 W proot   : type=1400 audit(0.0:1105529): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:49.624 22563 22563 W adb     : type=1400 audit(0.0:1105530): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:50.176  6221  6221 W proot   : type=1400 audit(0.0:1105531): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:50.176  6221  6221 W proot   : type=1400 audit(0.0:1105532): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:50.521   590  2027 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.10 dur=1014.97 max=19.58 min=14.00
+09-21 21:36:50.615   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:60.031311,dur:1016.14,max:18.52,min:15.01  
+09-21 21:36:50.619  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:50.624  6221  6221 W proot   : type=1400 audit(0.0:1105572): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:50.624  6221  6221 W proot   : type=1400 audit(0.0:1105573): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:50.624 22563 22563 W adb     : type=1400 audit(0.0:1105574): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:50.693   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 366, screenshot (Letterbox - left#0)
+09-21 21:36:50.693   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 366, screenshot (com.yslither.game/android.app.NativeActivity#0)
+09-21 21:36:50.694   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 366, screenshot (NavigationBar0#0)
+09-21 21:36:50.744 20014 20014 E ion     : ioctl c0044901 failed with code -1: Invalid argument
+09-21 21:36:51.008 20014 20014 E IMGSRV  : :2631: GrallocUnregisterBuffer: Cannot free a locked buffer (ID=82093)
+09-21 21:36:51.008 20014 20014 E IMGMapper: freeBuffer:64 Failed to unregister native handle
+09-21 21:36:51.008 20014 20014 E Gralloc4: freeBuffer(0xb40000782b763270) failed with 2
+09-21 21:36:51.235   590  1031 I BufferQueueProducer: [StatusBar#0](this:0xb4000071604b3ee8,id:8,api:1,p:1584,c:590) queueBuffer: fps=0.20 dur=5000.90 max=5000.90 min=5000.90
+09-21 21:36:51.521   590  1031 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.98 dur=1000.26 max=19.54 min=13.63
+09-21 21:36:51.615   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.971107,dur:1000.48,max:18.68,min:14.27  
+09-21 21:36:51.628  6221  6221 W proot   : type=1400 audit(0.0:1105575): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:51.628  6221  6221 W proot   : type=1400 audit(0.0:1105576): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:51.628 22563 22563 W adb     : type=1400 audit(0.0:1105577): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:51.723   547  9256 I netd    : trafficSwapActiveStatsMap() <0.45ms>
+09-21 21:36:51.736   547  9256 I netd    : tetherGetStats() <6.02ms>
+09-21 21:36:51.767   547  9256 I netd    : bandwidthSetGlobalAlert(2097152) <0.26ms>
+09-21 21:36:52.523   590  1031 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.90 dur=1001.66 max=19.31 min=14.39
+09-21 21:36:52.616   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.958698,dur:1000.69,max:18.25,min:15.69  
+09-21 21:36:52.628  6221  6221 W proot   : type=1400 audit(0.0:1105578): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:52.628  6221  6221 W proot   : type=1400 audit(0.0:1105579): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:52.632 22563 22563 W adb     : type=1400 audit(0.0:1105580): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:53.536   590   667 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.21 dur=1013.09 max=18.97 min=13.11
+09-21 21:36:53.632  6221  6221 W proot   : type=1400 audit(0.0:1105581): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:53.632  6221  6221 W proot   : type=1400 audit(0.0:1105582): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:53.632 22563 22563 W adb     : type=1400 audit(0.0:1105583): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:53.632   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:60.044689,dur:1015.91,max:18.32,min:13.42  
+09-21 21:36:53.637  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:54.056  6221  6221 W proot   : type=1400 audit(0.0:1105584): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:54.056  6221  6221 W proot   : type=1400 audit(0.0:1105585): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:54.060  6221  6221 W proot   : type=1400 audit(0.0:1105586): avc: denied { setattr } for name="fd" dev="proc" ino=7750963 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:54.419   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 367, screenshot (Letterbox - left#0)
+09-21 21:36:54.419   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 367, screenshot (com.yslither.game/android.app.NativeActivity#0)
+09-21 21:36:54.419   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 367, screenshot (NavigationBar0#0)
+09-21 21:36:54.465 20020 20020 E ion     : ioctl c0044901 failed with code -1: Invalid argument
+09-21 21:36:54.554   590   667 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.94 dur=1017.66 max=19.03 min=13.71
+09-21 21:36:54.634   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.905239,dur:1001.58,max:18.72,min:14.55  
+09-21 21:36:54.726 20020 20020 E IMGSRV  : :2631: GrallocUnregisterBuffer: Cannot free a locked buffer (ID=82101)
+09-21 21:36:54.726 20020 20020 E IMGMapper: freeBuffer:64 Failed to unregister native handle
+09-21 21:36:54.726 20020 20020 E Gralloc4: freeBuffer(0xb400007581d244d0) failed with 2
+09-21 21:36:54.901  3477  3880 E LS-ServerManager: isConnected : mServerRun a.c.a.h0.c.b@f76b848
+09-21 21:36:55.558   590   667 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.76 dur=1004.03 max=18.67 min=13.85
+09-21 21:36:55.632  6221  6221 W proot   : type=1400 audit(0.0:1105628): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:55.632  6221  6221 W proot   : type=1400 audit(0.0:1105629): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:55.635   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.913731,dur:1001.44,max:18.34,min:15.39  
+09-21 21:36:55.636 22563 22563 W adb     : type=1400 audit(0.0:1105630): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:56.238   590  1031 I BufferQueueProducer: [StatusBar#0](this:0xb4000071604b3ee8,id:8,api:1,p:1584,c:590) queueBuffer: fps=0.20 dur=5002.96 max=5002.96 min=5002.96
+09-21 21:36:56.575   590  1031 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.98 dur=1016.95 max=19.48 min=14.41
+09-21 21:36:56.635   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.985947,dur:1000.23,max:18.69,min:15.63  
+09-21 21:36:56.636  6221  6221 W proot   : type=1400 audit(0.0:1105631): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:56.636  6221  6221 W proot   : type=1400 audit(0.0:1105632): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:56.636 22563 22563 W adb     : type=1400 audit(0.0:1105633): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:56.659  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:36:57.284 15973 15973 W ThreadPoolForeg: type=1400 audit(0.0:1105634): avc: denied { write } for name="traced_producer" dev="tmpfs" ino=13797 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:traced_producer_socket:s0 tclass=sock_file permissive=0 app=com.termux.api
+09-21 21:36:57.592   590  1031 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.97 dur=1017.12 max=19.12 min=12.39
+09-21 21:36:57.636  6221  6221 W proot   : type=1400 audit(0.0:1105635): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:57.636  6221  6221 W proot   : type=1400 audit(0.0:1105636): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:57.636 22563 22563 W adb     : type=1400 audit(0.0:1105637): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:57.651   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:60.036079,dur:1016.06,max:18.28,min:13.97  
+09-21 21:36:57.776  6221  6221 W proot   : type=1400 audit(0.0:1105638): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:57.776  6221  6221 W proot   : type=1400 audit(0.0:1105639): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:57.776  6221  6221 W proot   : type=1400 audit(0.0:1105640): avc: denied { setattr } for name="fd" dev="proc" ino=7738099 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:57.780  6221  6221 W proot   : type=1400 audit(0.0:1105641): avc: denied { setattr } for name="fd" dev="proc" ino=7738099 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:57.780  6221  6221 W proot   : type=1400 audit(0.0:1105642): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:58.261   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 368, screenshot (Letterbox - left#0)
+09-21 21:36:58.261   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 368, screenshot (com.yslither.game/android.app.NativeActivity#0)
+09-21 21:36:58.261   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 368, screenshot (NavigationBar0#0)
+09-21 21:36:58.324 20028 20028 E ion     : ioctl c0044901 failed with code -1: Invalid argument
+09-21 21:36:58.607   590  1031 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.10 dur=1015.01 max=19.06 min=14.00
+09-21 21:36:58.628 20028 20028 E IMGSRV  : :2631: GrallocUnregisterBuffer: Cannot free a locked buffer (ID=82109)
+09-21 21:36:58.629 20028 20028 E IMGMapper: freeBuffer:64 Failed to unregister native handle
+09-21 21:36:58.629 20028 20028 E Gralloc4: freeBuffer(0xb400007ae3e2f7f0) failed with 2
+09-21 21:36:58.653   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.892590,dur:1001.79,max:18.64,min:14.85  
+09-21 21:36:59.495   816   816 I thermal_repeater: [recvMdThermalInfo] ret=33, strLen=127,  2, 32767, -127, 113, 32767, 4046
+09-21 21:36:59.609   590   667 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.86 dur=1002.39 max=18.63 min=14.13
+09-21 21:36:59.640  6221  6221 W proot   : type=1400 audit(0.0:1105682): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:59.640  6221  6221 W proot   : type=1400 audit(0.0:1105683): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:59.640 22563 22563 W adb     : type=1400 audit(0.0:1105684): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:36:59.654   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.949089,dur:1000.85,max:18.14,min:14.81  
+09-21 21:36:59.684  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:37:00.005  1584  1584 W KeyguardStatusView: single clock is showing
+09-21 21:37:00.006  1584  1584 W TrClockView: Keyguard is not showing,so we do not update time.
+09-21 21:37:00.007  2465  2465 I Hoffnung: Universal onReceive: Intent { act=android.intent.action.TIME_TICK flg=0x50200010 }
+09-21 21:37:00.009  2465  2465 I TPMSStepService: sCurrentDate = 2026-09-21,save data = 2026-09-21, currentTime = 21:37
+09-21 21:37:00.026 11908 18208 I StepWeightProvider: StepWeightProvider query content://com.transsion.health.stepweight/stepregister 2465 10178
+09-21 21:37:00.037   590  1031 I BufferQueueProducer: [StatusBar#0](this:0xb4000071604b3ee8,id:8,api:1,p:1584,c:590) queueBuffer: fps=0.26 dur=3798.63 max=3798.63 min=3798.63
+09-21 21:37:00.231   946   956 I [BIP]   :  [BIP NL] event newaddr match dev 0
+09-21 21:37:00.231   946   956 I [BIP]   :  [BIP NL] IPv6: *:*:*:*:*:*:*:*
+09-21 21:37:00.231   946   956 I [BIP]   :  [BIP NL] addr state is 3, ipv4=*.*.*.*, ipv6=*:*:*:*:*:*:*:*
+09-21 21:37:00.231   946   956 I [BIP]   :  [BIP NL] event newaddr match dev 0
+09-21 21:37:00.231   946   956 I [BIP]   :  [BIP NL] IPv6: *:*:*:*:*:*:*:*
+09-21 21:37:00.231   946   956 I [BIP]   :  [BIP NL] addr state is 3, ipv4=*.*.*.*, ipv6=*:*:*:*:*:*:*:*
+09-21 21:37:00.611   590  1031 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.92 dur=1001.40 max=18.69 min=14.54
+09-21 21:37:00.640  6221  6221 W proot   : type=1400 audit(0.0:1105685): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:00.640  6221  6221 W proot   : type=1400 audit(0.0:1105686): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:00.671   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.999657,dur:1016.67,max:18.30,min:14.70  
+09-21 21:37:00.914  3477  3525 E LS-ServerManager: isConnected : mServerRun a.c.a.h0.c.b@f76b848
+09-21 21:37:01.242   590   667 I BufferQueueProducer: [StatusBar#0](this:0xb4000071604b3ee8,id:8,api:1,p:1584,c:590) queueBuffer: fps=0.83 dur=1205.73 max=1205.73 min=1205.73
+09-21 21:37:01.627   590   667 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.00 dur=1016.68 max=19.64 min=13.38
+09-21 21:37:01.640  6221  6221 W proot   : type=1400 audit(0.0:1105688): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:01.644  6221  6221 W proot   : type=1400 audit(0.0:1105689): avc: denied { getattr } for path="/dev/bus/usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:01.644 22563 22563 W adb     : type=1400 audit(0.0:1105690): avc: denied { read } for comm=64657669636520706F6C6C name="usb" dev="tmpfs" ino=8943 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:usb_device:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:01.680  6221  6221 W proot   : type=1400 audit(0.0:1105691): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:01.680  6221  6221 W proot   : type=1400 audit(0.0:1105692): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:01.687   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.997955,dur:1016.70,max:18.57,min:14.37  
+09-21 21:37:02.027   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 369, screenshot (Letterbox - left#0)
+09-21 21:37:02.027   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 369, screenshot (com.yslither.game/android.app.NativeActivity#0)
+09-21 21:37:02.027   590   590 I SurfaceFlinger: operator()(), mtkRenderCntDebug 369, screenshot (NavigationBar0#0)
+09-21 21:37:02.075 20036 20036 E ion     : ioctl c0044901 failed with code -1: Invalid argument
+09-21 21:37:02.446 20036 20036 E IMGSRV  : :2631: GrallocUnregisterBuffer: Cannot free a locked buffer (ID=82117)
+09-21 21:37:02.447 20036 20036 E IMGMapper: freeBuffer:64 Failed to unregister native handle
+09-21 21:37:02.447 20036 20036 E Gralloc4: freeBuffer(0xb4000076a0c49b70) failed with 2
+09-21 21:37:02.644   590   667 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=60.02 dur=1016.33 max=18.65 min=14.44
+09-21 21:37:02.687   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.991665,dur:1000.14,max:18.46,min:14.91  
+09-21 21:37:02.707  1221  1487 E WifiVendorHal: getWifiLinkLayerStats_1_3_Internal(l.983) failed {.code = ERROR_NOT_SUPPORTED, .description = }
+09-21 21:37:03.504  6221  6221 W proot   : type=1400 audit(0.0:1105735): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:03.504  6221  6221 W proot   : type=1400 audit(0.0:1105736): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:03.504  6221  6221 W proot   : type=1400 audit(0.0:1105737): avc: denied { setattr } for name="fd" dev="proc" ino=7753407 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:03.504  6221  6221 W proot   : type=1400 audit(0.0:1105738): avc: denied { setattr } for name="fd" dev="proc" ino=7753407 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:03.504  6221  6221 W proot   : type=1400 audit(0.0:1105739): avc: denied { setattr } for name="/" dev="proc" ino=1 scontext=u:r:untrusted_app_27:s0:c232,c256,c512,c768 tcontext=u:object_r:proc:s0 tclass=dir permissive=0 app=com.termux.api
+09-21 21:37:03.610   946   956 I [BIP]   :  [BIP NL] event newaddr match dev 0
+09-21 21:37:03.610   946   956 I [BIP]   :  [BIP NL] IPv6: *:*:*:*:*:*:*:*
+09-21 21:37:03.610   946   956 I [BIP]   :  [BIP NL] addr state is 3, ipv4=*.*.*.*, ipv6=*:*:*:*:*:*:*:*
+09-21 21:37:03.610   946   956 I [BIP]   :  [BIP NL] event newaddr match dev 0
+09-21 21:37:03.610   946   956 I [BIP]   :  [BIP NL] IPv6: *:*:*:*:*:*:*:*
+09-21 21:37:03.610   946   956 I [BIP]   :  [BIP NL] addr state is 3, ipv4=*.*.*.*, ipv6=*:*:*:*:*:*:*:*
+09-21 21:37:03.661   590  1031 I BufferQueueProducer: [com.yslither.game/android.app.NativeActivity#0](this:0xb4000071604d6108,id:601,api:1,p:18815,c:590) queueBuffer: fps=59.96 dur=1017.35 max=19.41 min=14.68
+09-21 21:37:03.690   565   565 I hwcomposer: [HWCDisplay] [Display_0 (type:1)] fps:59.874809,dur:1002.09,max:18.57,min:15.26  

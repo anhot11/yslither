@@ -1,0 +1,8 @@
+--------- beginning of main
+--------- beginning of system
+09-22 14:17:17.303 19291 19318 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:17:17.304 19291 19318 I yslither_net: server_callback: Connection opened
+09-22 14:17:17.636 19291 19318 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:17:17.753 19291 19318 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:17:18.021 19291 19318 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+--------- beginning of crash

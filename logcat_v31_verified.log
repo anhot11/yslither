@@ -1,0 +1,76 @@
+--------- beginning of system
+--------- beginning of main
+09-22 14:46:27.705 23327 23356 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:46:27.712 23327 23356 I yslither_net: server_callback: Connection opened
+09-22 14:46:27.907 23327 23356 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:46:28.006 23327 23356 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:46:28.156 23327 23356 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-22 14:46:37.934 23327 23356 I yslither_net: server_callback: Connection closed (c=0xb4000072006b73b0, active=0x0)
+09-22 14:46:37.934 23327 23356 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:46:37.935 23327 23356 I yslither_net: server_callback: Connection opened
+09-22 14:46:38.111 23327 23356 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:46:38.211 23327 23356 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:46:38.311 23327 23356 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-22 14:46:38.496 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #1]: WebSocket handshake established! Sending init bytes
+09-22 14:46:38.597 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Sent challenge response & spawn request
+09-22 14:46:38.697 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Spawned snake_id=237 at (32900.4, 38197.6)
+09-22 14:46:41.299 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #2]: WebSocket handshake established! Sending init bytes
+09-22 14:46:41.399 23327 23356 I feeder_bot: feeder_bot [[FEED] #2]: Sent challenge response & spawn request
+09-22 14:46:41.499 23327 23356 I feeder_bot: feeder_bot [[FEED] #2]: Spawned snake_id=320 at (26744.4, 23687.6)
+09-22 14:46:44.118 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #3]: WebSocket handshake established! Sending init bytes
+09-22 14:46:44.217 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Sent challenge response & spawn request
+09-22 14:46:44.317 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Spawned snake_id=411 at (29969.6, 28186.4)
+09-22 14:46:51.053 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Death packet 'v' received
+09-22 14:46:52.488 23327 23356 I feeder_bot: feeder_bot [[FEED] #2]: Death packet 'v' received
+09-22 14:46:53.722 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #3]: WebSocket handshake established! Sending init bytes
+09-22 14:46:53.823 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Sent challenge response & spawn request
+09-22 14:46:53.922 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Spawned snake_id=487 at (28363.6, 36050.0)
+09-22 14:46:56.540 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #2]: WebSocket handshake established! Sending init bytes
+09-22 14:46:56.640 23327 23356 I feeder_bot: feeder_bot [[FEED] #2]: Sent challenge response & spawn request
+09-22 14:46:56.740 23327 23356 I feeder_bot: feeder_bot [[FEED] #2]: Spawned snake_id=269 at (40296.6, 32076.4)
+09-22 14:47:02.346 23327 23356 I feeder_bot: feeder_bot [[FEED] #2]: Death packet 'v' received
+09-22 14:47:05.044 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #2]: WebSocket handshake established! Sending init bytes
+09-22 14:47:05.144 23327 23356 I feeder_bot: feeder_bot [[FEED] #2]: Sent challenge response & spawn request
+09-22 14:47:05.245 23327 23356 I feeder_bot: feeder_bot [[FEED] #2]: Spawned snake_id=76 at (24981.0, 35376.4)
+09-22 14:47:08.116 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Death packet 'v' received
+09-22 14:47:10.802 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #1]: WebSocket handshake established! Sending init bytes
+09-22 14:47:10.902 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Sent challenge response & spawn request
+09-22 14:47:11.001 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Spawned snake_id=206 at (31396.2, 41127.2)
+09-22 14:47:13.853 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Death packet 'v' received
+09-22 14:47:16.554 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #3]: WebSocket handshake established! Sending init bytes
+09-22 14:47:16.654 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Sent challenge response & spawn request
+09-22 14:47:16.752 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Spawned snake_id=287 at (32625.4, 30917.8)
+09-22 14:47:20.105 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Death packet 'v' received
+09-22 14:47:22.806 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #1]: WebSocket handshake established! Sending init bytes
+09-22 14:47:22.907 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Sent challenge response & spawn request
+09-22 14:47:23.009 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Spawned snake_id=177 at (34454.4, 29891.2)
+09-22 14:47:28.076 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Death packet 'v' received
+09-22 14:47:30.744 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #3]: WebSocket handshake established! Sending init bytes
+09-22 14:47:30.846 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Sent challenge response & spawn request
+09-22 14:47:30.945 23327 23356 I feeder_bot: feeder_bot [[FEED] #3]: Spawned snake_id=305 at (26328.6, 36405.4)
+09-22 14:47:32.261 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Death packet 'v' received
+09-22 14:47:34.947 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #1]: WebSocket handshake established! Sending init bytes
+09-22 14:47:35.047 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Sent challenge response & spawn request
+09-22 14:47:35.146 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Spawned snake_id=203 at (29328.2, 31339.6)
+09-22 14:47:59.189 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Death packet 'v' received
+09-22 14:48:01.856 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #1]: WebSocket handshake established! Sending init bytes
+09-22 14:48:03.079 23327 23356 I yslither_net: server_callback: Connection closed (c=0xb4000072006b73b0, active=0x0)
+09-22 14:48:03.080 23327 23356 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:48:03.081 23327 23356 I yslither_net: server_callback: Connection opened
+09-22 14:48:03.260 23327 23356 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:48:03.361 23327 23356 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:48:03.461 23327 23356 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-22 14:48:03.645 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #1]: WebSocket handshake established! Sending init bytes
+09-22 14:48:03.727 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Sent challenge response & spawn request
+09-22 14:48:03.828 23327 23356 I feeder_bot: feeder_bot [[FEED] #1]: Spawned snake_id=495 at (33916.6, 32384.0)
+09-22 14:48:06.478 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #2]: WebSocket handshake established! Sending init bytes
+09-22 14:48:06.578 23327 23356 I feeder_bot: feeder_bot [[FEED] #2]: Sent challenge response & spawn request
+09-22 14:48:06.677 23327 23356 I feeder_bot: feeder_bot [[FEED] #2]: Spawned snake_id=244 at (37304.0, 26815.8)
+09-22 14:48:09.376 23327 23356 I yslither_net: server_callback: Connection closed (c=0xb4000072006b73b0, active=0x0)
+09-22 14:48:09.377 23327 23356 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:48:09.377 23327 23356 I yslither_net: server_callback: Connection opened
+09-22 14:48:09.565 23327 23356 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:48:09.663 23327 23356 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:48:09.764 23327 23356 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-22 14:48:10.048 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #1]: Connection error
+09-22 14:48:12.799 23327 23356 I feeder_bot: feeder_ws_cb [[FEED] #1]: Connection error

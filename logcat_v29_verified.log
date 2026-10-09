@@ -1,0 +1,52 @@
+--------- beginning of main
+--------- beginning of system
+09-22 14:21:39.871 19944 19972 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:21:39.872 19944 19972 I yslither_net: server_callback: Connection opened
+09-22 14:21:40.169 19944 19972 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:21:40.270 19944 19972 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:21:40.372 19944 19972 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-22 14:21:48.007 19944 19972 I feeder_bot: feeder_ws_cb [[FEED] #1]: WebSocket handshake established! Sending init bytes
+09-22 14:21:48.108 19944 19972 I feeder_bot: feeder_bot [[FEED] #1]: Sent challenge response & spawn request
+09-22 14:21:48.207 19944 19972 I feeder_bot: feeder_bot [[FEED] #1]: Spawned snake_id=497 at (36444.4, 37990.6)
+09-22 14:21:50.765 19944 19972 I yslither_net: server_callback: Connection closed (c=0xb4000072006ba110, active=0x0)
+09-22 14:21:50.766 19944 19972 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:21:50.766 19944 19972 I yslither_net: server_callback: Connection opened
+09-22 14:21:50.925 19944 19972 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:21:51.024 19944 19972 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:21:51.124 19944 19972 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-22 14:21:54.430 19944 19972 I feeder_bot: feeder_ws_cb [[FEED] #2]: WebSocket handshake established! Sending init bytes
+09-22 14:21:54.529 19944 19972 I feeder_bot: feeder_bot [[FEED] #2]: Sent challenge response & spawn request
+09-22 14:21:54.631 19944 19972 I feeder_bot: feeder_bot [[FEED] #2]: Spawned snake_id=82 at (26268.8, 27772.2)
+09-22 14:22:03.019 19944 19972 I feeder_bot: feeder_ws_cb [[FEED] #1]: WebSocket handshake established! Sending init bytes
+09-22 14:22:03.117 19944 19972 I feeder_bot: feeder_bot [[FEED] #1]: Sent challenge response & spawn request
+09-22 14:22:03.216 19944 19972 I feeder_bot: feeder_bot [[FEED] #1]: Spawned snake_id=340 at (29663.6, 39778.0)
+09-22 14:22:05.237 19944 19972 I yslither_net: server_callback: Connection closed (c=0xb4000072006ba110, active=0x0)
+09-22 14:22:05.238 19944 19972 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:22:05.238 19944 19972 I yslither_net: server_callback: Connection opened
+09-22 14:22:05.417 19944 19972 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:22:05.517 19944 19972 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:22:05.618 19944 19972 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-22 14:22:20.117 19944 19972 I yslither_net: server_callback: Connection closed (c=0xb4000072006ba110, active=0x0)
+09-22 14:22:20.118 19944 19972 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:22:20.118 19944 19972 I yslither_net: server_callback: Connection opened
+09-22 14:22:20.295 19944 19972 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:22:20.378 19944 19972 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:22:20.479 19944 19972 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-22 14:22:35.146 19944 19972 I yslither_net: server_callback: Connection closed (c=0xb4000072006ba110, active=0x0)
+09-22 14:22:35.147 19944 19972 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:22:35.147 19944 19972 I yslither_net: server_callback: Connection opened
+09-22 14:22:35.321 19944 19972 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:22:35.420 19944 19972 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:22:35.522 19944 19972 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-22 14:22:45.482 19944 19972 I yslither_net: server_callback: Connection closed (c=0xb4000072006ba110, active=0x0)
+09-22 14:22:45.484 19944 19972 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:22:45.484 19944 19972 I yslither_net: server_callback: Connection opened
+09-22 14:22:45.642 19944 19972 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:22:45.741 19944 19972 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:22:45.842 19944 19972 I yslither_net: Snake spawned successfully! Game is now CONNECTED!
+09-22 14:22:55.214 19944 19972 I yslither_net: server_callback: Connection closed (c=0xb4000072006ba110, active=0x0)
+09-22 14:22:55.215 19944 19972 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:22:55.215 19944 19972 I yslither_net: server_callback: Connection opened
+09-22 14:22:55.378 19944 19972 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:22:55.480 19944 19972 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:22:55.580 19944 19972 I yslither_net: Snake spawned successfully! Game is now CONNECTED!

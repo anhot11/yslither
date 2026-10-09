@@ -1,0 +1,109 @@
+import subprocess
+import time
+import os
+import sys
+
+DEVICE = "192.168.7.12:33203"
+
+def adb_cmd(cmd):
+    return subprocess.run(f"adb -s {DEVICE} {cmd}", shell=True, capture_output=True, text=True)
+
+def adb_shell(cmd):
+    return subprocess.run(f"adb -s {DEVICE} shell {cmd}", shell=True, capture_output=True, text=True)
+
+def take_screenshot(name):
+    adb_shell(f"screencap -p /sdcard/{name}")
+    adb_cmd(f"pull /sdcard/{name} .")
+    adb_shell(f"rm /sdcard/{name}")
+    # Also copy to artifacts dir
+    artifact_path = f"/root/.gemini/antigravity-cli/brain/2dd9cf8c-072a-40d2-8b7f-c3709750347c/{name}"
+    subprocess.run(f"cp {name} {artifact_path}", shell=True)
+    print(f"[Screenshot] Captured: {name}")
+
+def main():
+    print("=================================================================")
+    print("=== STARTING COMPLETE VERIFICATION FOR YSLITHER v1.0.31 ===")
+    print("=================================================================")
+    
+    # 1. Device check & wake screen
+    adb_shell("input keyevent KEYCODE_WAKEUP; wm dismiss-keyguard; svc power stayon true")
+    devs = adb_cmd("devices").stdout
+    print("Active Devices:\n", devs.strip())
+    
+    # 2. Force-stop previous instance and clear logcat
+    print("\n[Step 1] Stopping existing yslither process & clearing logs...")
+    adb_shell("am force-stop com.yslither.game")
+    time.sleep(1.5)
+    adb_cmd("logcat -c")
+    
+    # 3. Launch yslither v1.0.31
+    print("\n[Step 2] Launching com.yslither.game (v1.0.31)...")
+    adb_shell("am start -n com.yslither.game/android.app.NativeActivity")
+    time.sleep(4.5)
+    take_screenshot("v31_01_title_screen.png")
+    
+    # Check title screen logcat
+    title_logs = adb_cmd("logcat -d | grep -E 'yslither|NativeActivity|server_list' | tail -n 15").stdout
+    print("Title Screen Logcat:\n", title_logs.strip())
+    
+    # 4. Tap "JUGAR" button (Center: 800, 360)
+    print("\n[Step 3] Tapping 'JUGAR' button at (800, 360)...")
+    adb_shell("input tap 800 360")
+    time.sleep(4.0)
+    take_screenshot("v31_02_match_spawn.png")
+    
+    # Check match connection logcat
+    net_logs = adb_cmd("logcat -d -s yslither_net:I | tail -n 15").stdout
+    print("Match Connection Logcat:\n", net_logs.strip())
+    
+    # 5. Activate Feeder Bots (BOTS button at x = 1216, y = 302)
+    print("\n[Step 4] Tapping 'BOTS' button (1216, 302) to spawn Feeder Bots...")
+    adb_shell("input tap 1216 302")
+    time.sleep(1.5)
+    
+    # 6. Activate Autonomous Snake Bot (BOT button at x = 1216, y = 417)
+    print("\n[Step 5] Tapping 'BOT' button (1216, 417) to activate Autonomous AI Bot...")
+    adb_shell("input tap 1216 417")
+    time.sleep(2.0)
+    take_screenshot("v31_03_bots_and_ai_active.png")
+    
+    # 7. Monitor extended gameplay for 90 seconds
+    print("\n[Step 6] Monitoring sustained gameplay with Feeder Bots & Autonomous Bot for 90 seconds...")
+    start_time = time.time()
+    next_snap = start_time + 10.0
+    
+    while time.time() - start_time < 90.0:
+        now = time.time()
+        if now >= next_snap:
+            elapsed = int(now - start_time)
+            snap_file = f"v31_04_monitor_sec_{elapsed:02d}.png"
+            take_screenshot(snap_file)
+            next_snap = now + 10.0
+            
+            # Extract log events
+            feeder_logs = adb_cmd("logcat -d -s feeder_bot:I yslither_net:I | grep -E 'feeder_bot|Spawned|Crashed|Death' | tail -n 10").stdout
+            if feeder_logs.strip():
+                print(f"[Sec {elapsed:02d}] Feeder Events:\n{feeder_logs.strip()}")
+                
+        # Check process liveness
+        pid = adb_shell("pidof com.yslither.game").stdout.strip()
+        if not pid:
+            print(f"[CRITICAL ERROR] App crashed at elapsed {int(time.time() - start_time)}s!")
+            crash_dump = adb_cmd("logcat -d -b crash | tail -n 20").stdout
+            print("Crash dump:\n", crash_dump)
+            break
+            
+        time.sleep(1.0)
+        
+    print("\n[Step 7] Final gameplay screenshot & verification report...")
+    take_screenshot("v31_05_sustained_survival.png")
+    
+    # Full log dump
+    full_log = adb_cmd("logcat -d -s yslither_net:I feeder_bot:I sbot:I | tail -n 120").stdout
+    with open("logcat_v31_verified.log", "w") as f:
+        f.write(full_log)
+    print("\nFull Logcat (v1.0.31):\n", full_log.strip())
+    print("\n=== VERIFICATION COMPLETE FOR YSLITHER v1.0.31 ===")
+
+if __name__ == "__main__":
+    main()

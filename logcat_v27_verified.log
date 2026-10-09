@@ -1,0 +1,20 @@
+--------- beginning of main
+--------- beginning of system
+09-22 14:09:06.720 17731 17760 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:09:06.726 17731 17760 I yslither_net: server_callback: Connection opened
+09-22 14:09:06.921 17731 17760 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:09:07.205 17731 17760 I yslither_net: server_callback: Connection closed (c=0xb4000072006b98d0, active=0xb4000072006b98d0)
+09-22 14:09:07.206 17731 17760 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.227.195.74:444/slither
+09-22 14:09:07.206 17731 17760 I yslither_net: server_callback: Connection opened
+09-22 14:09:07.407 17731 17760 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:09:07.524 17731 17760 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:09:07.641 17731 17760 I yslither_net: server_callback: Connection closed (c=0xb4000072006b98d0, active=0xb4000072006b98d0)
+09-22 14:09:07.642 17731 17760 I yslither_net: server_connect: Attempting WebSocket connection to ws://15.204.212.200:444/slither
+09-22 14:09:07.642 17731 17760 I yslither_net: server_callback: Connection opened
+09-22 14:09:07.841 17731 17760 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:09:07.958 17731 17760 I yslither_net: got_packet: Received server challenge packet '6', responding to spawn snake...
+09-22 14:09:08.159 17731 17760 I yslither_net: server_callback: Connection closed (c=0xb4000072006b98d0, active=0xb4000072006b98d0)
+09-22 14:09:08.159 17731 17760 I yslither_net: server_connect: Attempting WebSocket connection to ws://23.29.125.178:444/slither
+09-22 14:09:08.159 17731 17760 I yslither_net: server_callback: Connection opened
+09-22 14:09:08.341 17731 17760 I yslither_net: server_callback: WebSocket handshake established! Sending init bytes
+09-22 14:09:08.456 17731 17760 I yslither_net: server_callback: Connection closed (c=0xb4000072006b98d0, active=0xb4000072006b98d0)
